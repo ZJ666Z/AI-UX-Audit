@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ai-ux-audit": {
+      "command": "node",
+      "args": [
+        "/Users/zijiesmac/Downloads/AI UX Audit/bridge/mcp-server.mjs"
+      ],
+      "env": {
+        "BRIDGE_HTTP_URL": "http://localhost:3845"
+      }
+    }
+  }
+}

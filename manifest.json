@@ -1,0 +1,22 @@
+{
+  "name": "AI UX Audit",
+  "id": "1606347742886666347",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html",
+  "networkAccess": {
+    "allowedDomains": [
+      "https://api.openai.com",
+      "https://api.anthropic.com"
+    ],
+    "devAllowedDomains": [
+      "http://localhost:3845"
+    ]
+  }
+}
