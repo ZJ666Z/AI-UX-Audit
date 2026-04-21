@@ -1,5 +1,6 @@
 import { stdin, stdout } from 'node:process';
 import {
+  analyzeJourney,
   extractAvailableFrameNames,
   extractDecisionCard,
   generateDRD,
@@ -137,6 +138,22 @@ const TOOL_DEFINITIONS = [
         availableFrameNames: { type: 'array', items: { type: 'string' } },
       },
       required: ['audits'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'analyze_journey',
+    description:
+      'Run a journey-level UX audit on the current flow. Computes graph metrics, runs LLM analysis, and returns drop-off points, flow structure observations, happy path assessment, and pre/post health scores. Accepts sessionId to pull live data from the plugin.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string' },
+        provider: { type: 'string', enum: ['openai', 'anthropic'] },
+        model: { type: 'string' },
+        apiKey: { type: 'string' },
+      },
+      required: ['provider', 'model', 'apiKey'],
       additionalProperties: false,
     },
   },
@@ -384,6 +401,33 @@ async function handleRequest(message) {
           enqueuedToSession: Boolean(enqueueStatus),
         }),
       };
+    }
+
+    if (toolName === 'analyze_journey') {
+      let flowGraph, flowMetrics, frameMetrics, decisionCard, existingAudits;
+      if (args.sessionId) {
+        const sessionPayload = await getSessionContext(args.sessionId);
+        if (!sessionPayload.auditPayload) {
+          throw new Error('The session does not have an audit payload yet. Run Start Audit in the plugin first.');
+        }
+        flowGraph = sessionPayload.auditPayload.flowGraph;
+        flowMetrics = sessionPayload.auditPayload.flowMetrics;
+        frameMetrics = sessionPayload.auditPayload.frameMetrics;
+        decisionCard = sessionPayload.auditPayload.decisionCard;
+        existingAudits = sessionPayload.auditPayload.audits || sessionPayload.audits || [];
+      }
+      if (!flowGraph && !flowMetrics) {
+        throw new Error('analyze_journey requires sessionId with a recorded audit payload.');
+      }
+      const result = await analyzeJourney({
+        ...args,
+        flowGraph,
+        flowMetrics,
+        frameMetrics,
+        decisionCard,
+        existingAudits,
+      });
+      return { jsonrpc: '2.0', id, result: makeTextResult(result) };
     }
 
     return makeError(-32602, `Unknown tool: ${toolName}`, id);

@@ -203,7 +203,7 @@ export async function callOpenAIWithRetry(request) {
   throw new Error('OpenAI request failed after multiple retry attempts.');
 }
 
-export async function callLLM({ provider, model, apiKey, purpose, prompt, visuals }) {
+export async function callLLM({ provider, model, apiKey, purpose, prompt, visuals, maxTokens = 1800 }) {
   if (!apiKey) {
     throw new Error('Please provide an API key first.');
   }
@@ -234,7 +234,7 @@ export async function callLLM({ provider, model, apiKey, purpose, prompt, visual
           { role: 'system', content: purpose },
           { role: 'user', content: userContent },
         ],
-        max_completion_tokens: 1800,
+        max_completion_tokens: maxTokens,
         temperature: 0.3,
       }),
     });
@@ -264,7 +264,7 @@ export async function callLLM({ provider, model, apiKey, purpose, prompt, visual
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1800,
+      max_tokens: maxTokens,
       system: purpose,
       messages: [{ role: 'user', content: anthropicContent }],
     }),
@@ -304,12 +304,13 @@ export async function extractDecisionCard({ provider, model, apiKey, notes, lang
   const systemPrompt = [
     'You convert messy product notes into a strict JSON DecisionCard.',
     'Return only valid JSON with exactly these keys:',
-    'decisionQuestion (string), businessGoal (string), businessMetrics (string[]), experienceGoal (string), experienceMetrics (string[]), drivingLogic (string), primaryMetric (string), guardrails (string[]), constraints (string[]).',
+    'decisionQuestion (string), businessGoal (string), businessMetrics (string[]), experienceGoal (string), experienceMetrics (string[]), drivingLogic (string), primaryMetric (string), guardrails (string[]), constraints (string[]), touchpoints (string[]).',
     'businessGoal: one sentence — what business outcome + which metric + direction (e.g. "Increase activation rate ↑20%, growth category").',
     'businessMetrics: array of quantified metric names with ↑/↓ direction where derivable from notes.',
     'experienceGoal: one sentence — which user behavior to optimize + experience metric (e.g. "Reduce task completion time ↓30%, increase completion rate ↑20%").',
     'experienceMetrics: array of experience metric names.',
     'drivingLogic: plain language causal chain a non-PM could understand — user behavior change → business outcome change. Must show the mechanism, not jargon.',
+    'touchpoints: array of device/platform context strings (e.g. ["TV (remote control)", "Mobile (touch)"]). Infer from notes if mentioned.',
     'guardrails and constraints must be arrays of concise strings.',
     'Do not add markdown or commentary.',
   ].join(' ');
@@ -334,6 +335,7 @@ export async function extractDecisionCard({ provider, model, apiKey, notes, lang
     primaryMetric:     card.primaryMetric     || '',
     guardrails:        Array.isArray(card.guardrails)        ? card.guardrails        : [],
     constraints:       Array.isArray(card.constraints)       ? card.constraints       : [],
+    touchpoints:       Array.isArray(card.touchpoints)       ? card.touchpoints       : [],
   };
 
   if (language === 'zh') {
@@ -348,6 +350,7 @@ export async function extractDecisionCard({ provider, model, apiKey, notes, lang
       primaryMetric:     translated.primaryMetric     || result.primaryMetric,
       guardrails:        Array.isArray(translated.guardrails)        ? translated.guardrails        : result.guardrails,
       constraints:       Array.isArray(translated.constraints)       ? translated.constraints       : result.constraints,
+      touchpoints:       Array.isArray(translated.touchpoints)       ? translated.touchpoints       : result.touchpoints,
     };
   }
 
@@ -365,6 +368,7 @@ export async function runContextualAudit({ provider, model, apiKey, payload, lan
     'You are an interrogative UX Director.',
     'Cross-reference the attached visuals with the Logic Graph summary to find broken links, dead ends, and missing states.',
     'Critique the flow strictly against the provided Guardrails, Constraints, and business/experience metrics in the DecisionCard.',
+    'If the DecisionCard includes touchpoints (e.g. "TV (remote control)"), evaluate interaction patterns specifically for those device types — e.g. focus management, D-pad navigation, remote-friendly tap targets — not generic touch/mouse conventions.',
     'Do not suggest removing friction if that friction serves a business constraint.',
     'Return only valid JSON in this exact shape:',
     '{"audits":[{',
@@ -452,6 +456,181 @@ export async function runContextualAudit({ provider, model, apiKey, payload, lan
   };
 }
 
+const INTENTIONAL_EXIT_KEYWORDS_MJS = ['success', 'complete', 'done', 'confirm', 'thank', '成功', '完成', '确认', '谢谢'];
+
+function isIntentionalExitMjs(name) {
+  const lower = name.toLowerCase();
+  return INTENTIONAL_EXIT_KEYWORDS_MJS.some((kw) => lower.includes(kw.toLowerCase()));
+}
+
+export function computeGraphMetrics(flowGraph) {
+  const { frames, nodes, edges } = flowGraph;
+
+  const outboundNeighbors = new Map();
+  const inboundNeighbors  = new Map();
+  const danglingByFrame   = new Map();
+  for (const frame of frames) {
+    outboundNeighbors.set(frame.name, new Set());
+    inboundNeighbors.set(frame.name, new Set());
+    danglingByFrame.set(frame.name, 0);
+  }
+  for (const edge of edges) {
+    const src = edge.sourceFrameName;
+    const dst = edge.destinationFrameName;
+    if (dst === null) {
+      danglingByFrame.set(src, (danglingByFrame.get(src) ?? 0) + 1);
+    } else if (dst !== src) {
+      outboundNeighbors.get(src)?.add(dst);
+      inboundNeighbors.get(dst)?.add(src);
+    }
+  }
+  const interactiveByFrame = new Map();
+  for (const frame of frames) interactiveByFrame.set(frame.name, 0);
+  for (const node of nodes) {
+    if (node.isInteractive) interactiveByFrame.set(node.frameName, (interactiveByFrame.get(node.frameName) ?? 0) + 1);
+  }
+
+  const frameMetrics = frames.map((frame) => {
+    const outbound = outboundNeighbors.get(frame.name) ?? new Set();
+    const inbound  = inboundNeighbors.get(frame.name) ?? new Set();
+    const dangling = danglingByFrame.get(frame.name) ?? 0;
+    const outboundCount = outbound.size;
+    const inboundCount  = inbound.size;
+    const isEntryPoint = inboundCount === 0;
+    const isExitPoint  = outboundCount === 0;
+    return {
+      frameId: frame.id, frameName: frame.name,
+      inboundCount, outboundCount, danglingReactions: dangling,
+      isEntryPoint, isExitPoint,
+      isDeadEnd: isExitPoint && !isIntentionalExitMjs(frame.name),
+      interactiveNodeCount: interactiveByFrame.get(frame.name) ?? 0,
+      decisionPointCount: outboundCount > 1 ? 1 : 0,
+      frameArea: frame.width * frame.height,
+    };
+  });
+
+  const entryPoints = frameMetrics.filter((f) => f.isEntryPoint).map((f) => f.frameName);
+  const exitPoints  = frameMetrics.filter((f) => f.isExitPoint).map((f) => f.frameName);
+  const deadEnds    = frameMetrics.filter((f) => f.isDeadEnd).map((f) => f.frameName);
+  const totalDecisionPoints    = frameMetrics.reduce((s, f) => s + f.decisionPointCount, 0);
+  const totalDanglingReactions = frameMetrics.reduce((s, f) => s + f.danglingReactions, 0);
+  const totalTransitions = edges.filter((e) => e.destinationFrameName !== null && e.destinationFrameName !== e.sourceFrameName).length;
+
+  let mostConnectedFrame = frames[0]?.name ?? '';
+  let mostConnectedCount = -1;
+  let leastConnectedFrame = frames[0]?.name ?? '';
+  let leastConnectedTotal = Infinity;
+  for (const fm of frameMetrics) {
+    if (fm.inboundCount > mostConnectedCount) { mostConnectedCount = fm.inboundCount; mostConnectedFrame = fm.frameName; }
+    const t = fm.inboundCount + fm.outboundCount;
+    if (t < leastConnectedTotal) { leastConnectedTotal = t; leastConnectedFrame = fm.frameName; }
+  }
+
+  const adjacency = new Map();
+  for (const frame of frames) adjacency.set(frame.name, Array.from(outboundNeighbors.get(frame.name) ?? []));
+  const deadEndSet = new Set(deadEnds);
+  const allNames   = frames.map((f) => f.name);
+  const startFrames = entryPoints.length > 0 ? entryPoints : allNames.slice(0, 1);
+
+  let bestPath = [];
+  function dfs(current, path, visited) {
+    if (path.length >= frames.length) {
+      if (!deadEndSet.has(current) && path.length > bestPath.length) bestPath = [...path];
+      return;
+    }
+    const unvisited = (adjacency.get(current) || []).filter((n) => !visited.has(n));
+    if (unvisited.length === 0) {
+      if (!deadEndSet.has(current) && path.length > bestPath.length) bestPath = [...path];
+      return;
+    }
+    for (const neighbor of unvisited) {
+      visited.add(neighbor);
+      dfs(neighbor, [...path, neighbor], visited);
+      visited.delete(neighbor);
+    }
+  }
+  for (const entry of startFrames) {
+    const visited = new Set([entry]);
+    dfs(entry, [entry], visited);
+  }
+
+  const happyPathExtra = Math.max(0, bestPath.length - 5);
+  const cognitiveComplexityScore = Math.max(0,
+    100 - totalDecisionPoints * 3 - deadEnds.length * 5 - totalDanglingReactions * 2 - happyPathExtra,
+  );
+
+  return {
+    frameMetrics,
+    flowMetrics: {
+      totalFrames: frames.length, totalTransitions,
+      entryPoints, exitPoints, deadEnds,
+      mostConnectedFrame, leastConnectedFrame,
+      totalDecisionPoints, totalDanglingReactions,
+      happyPath: bestPath, cognitiveComplexityScore,
+    },
+  };
+}
+
+export function computeFlowHealthScore(flowMetrics) {
+  if (!flowMetrics) return 100;
+  let score = 100;
+  const deadEndCount  = (flowMetrics.deadEnds || []).length;
+  const danglingCount = flowMetrics.totalDanglingReactions || 0;
+  if (deadEndCount > 0)  score -= Math.min(10 + 5 * Math.max(0, deadEndCount - 1), 20);
+  if (danglingCount > 0) score -= Math.min(5  + 2 * Math.max(0, danglingCount - 1), 10);
+  if ((flowMetrics.entryPoints || []).length > 1) score -= 5;
+  if ((flowMetrics.cognitiveComplexityScore ?? 100) < 40) score -= 5;
+  else if ((flowMetrics.cognitiveComplexityScore ?? 100) < 60) score -= 3;
+  return Math.max(0, score);
+}
+
+export async function analyzeJourney({ provider, model, apiKey, flowGraph, flowMetrics, frameMetrics, decisionCard, existingAudits }) {
+  // Allow caller to pass pre-computed metrics or compute them from the raw flow graph
+  let fm = flowMetrics;
+  let frm = frameMetrics;
+  if (!fm && flowGraph) {
+    const computed = computeGraphMetrics(flowGraph);
+    fm  = computed.flowMetrics;
+    frm = computed.frameMetrics;
+  }
+  const preScore = computeFlowHealthScore(fm);
+  const totalFrames = (fm && fm.totalFrames) || 0;
+  const filteredFrameMetrics = totalFrames > 20
+    ? (frm || []).filter((f) => f.isDeadEnd || f.danglingReactions > 0 || f.decisionPointCount > 2 || f.inboundCount === 0)
+    : (frm || []);
+
+  const systemPrompt = 'You are a senior UX researcher and interaction design expert specializing in user flow analysis. Analyze the journey as a whole and output only valid JSON. No markdown or commentary.';
+  const userPrompt = [
+    'FLOW METRICS:', JSON.stringify(fm, null, 2),
+    '', 'PER-FRAME METRICS:', JSON.stringify(filteredFrameMetrics, null, 2),
+    '', 'DECISION CARD:', JSON.stringify(decisionCard, null, 2),
+    '', 'EXISTING PER-FRAME AUDIT FINDINGS (do not repeat):', JSON.stringify((existingAudits || []).slice(0, 10), null, 2),
+    '', 'Analyze the journey as a whole. Return JSON with keys: happyPathAssessment, dropOffPoints, flowStructureObservations, journeyScoreAdjustment.',
+    'Happy path is: ' + JSON.stringify(fm && fm.happyPath),
+    JSON.stringify({
+      happyPathAssessment: { pathMakesSense: true, misplacedFrames: [], minimumSteps: 0, unnecessaryFriction: '', summary: '' },
+      dropOffPoints: [{ frameName: '', severity: 'critical|warning', dropOffType: 'dead_end|decision_overload|isolation|navigation_trap', journeyPosition: 'early|mid|late', whyUsersLeave: '', impactOnGoal: '', suggestion: '' }],
+      flowStructureObservations: [{ observation: '', affectedFrames: [], severity: 'critical|warning|suggestion', journeyImpact: '' }],
+      journeyScoreAdjustment: { additionalDeductions: [{ reason: '', points: 8, severity: 'critical|warning' }], journeySummary: '' },
+    }),
+  ].join('\n');
+
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3200 });
+  const result = extractJson(raw);
+
+  const adjustments = result.journeyScoreAdjustment && result.journeyScoreAdjustment.additionalDeductions;
+  let postScore = preScore;
+  for (const adj of adjustments || []) postScore = Math.max(0, postScore - (adj.points || 0));
+
+  return {
+    flowMetrics: fm,
+    frameMetrics: frm,
+    preScore,
+    postScore,
+    analysis: result,
+  };
+}
+
 export async function generateEvidenceReport({ provider, model, apiKey, audits, decisionCard }) {
   // Cap at 20 items to stay within token budget
   const cappedAudits = (audits || []).slice(0, 20);
@@ -483,7 +662,7 @@ export async function generateEvidenceReport({ provider, model, apiKey, audits, 
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [] });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3200 });
   return extractJson(raw);
 }
 
@@ -525,7 +704,7 @@ export async function generateDRD({ provider, model, apiKey, audit, decisionCard
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [] });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3500 });
   return extractJson(raw);
 }
 

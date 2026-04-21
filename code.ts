@@ -8,6 +8,7 @@ type DecisionCard = {
   primaryMetric: string;
   guardrails: string[];
   constraints: string[];
+  touchpoints: string[];
 };
 
 type FlowGraphNode = {
@@ -63,6 +64,36 @@ type AuditPayload = {
   decisionCard: DecisionCard;
   flowGraph: FlowGraph;
   visuals: VisualPayload[];
+  frameMetrics: FrameMetrics[];
+  flowMetrics: FlowMetrics;
+};
+
+type FrameMetrics = {
+  frameId: string;
+  frameName: string;
+  inboundCount: number;
+  outboundCount: number;
+  danglingReactions: number;
+  isEntryPoint: boolean;
+  isExitPoint: boolean;
+  isDeadEnd: boolean;
+  interactiveNodeCount: number;
+  decisionPointCount: number;
+  frameArea: number;
+};
+
+type FlowMetrics = {
+  totalFrames: number;
+  totalTransitions: number;
+  entryPoints: string[];
+  exitPoints: string[];
+  deadEnds: string[];
+  mostConnectedFrame: string;
+  leastConnectedFrame: string;
+  totalDecisionPoints: number;
+  totalDanglingReactions: number;
+  happyPath: string[];
+  cognitiveComplexityScore: number;
 };
 
 type AuditItem = {
@@ -276,6 +307,149 @@ async function exportFrameVisuals(frames: FrameNode[]): Promise<VisualPayload[]>
   return visuals;
 }
 
+const INTENTIONAL_EXIT_KEYWORDS = ['success', 'complete', 'done', 'confirm', 'thank', '成功', '完成', '确认', '谢谢'];
+
+function isIntentionalExit(name: string): boolean {
+  const lower = name.toLowerCase();
+  return INTENTIONAL_EXIT_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
+}
+
+function computeHappyPath(
+  adjacency: Map<string, string[]>,
+  entryPoints: string[],
+  deadEndSet: Set<string>,
+  totalFrames: number,
+  allFrameNames: string[]
+): string[] {
+  let bestPath: string[] = [];
+  const startFrames = entryPoints.length > 0 ? entryPoints : allFrameNames.slice(0, 1);
+
+  function dfs(current: string, path: string[], visited: Set<string>): void {
+    if (path.length >= totalFrames) {
+      if (!deadEndSet.has(current) && path.length > bestPath.length) bestPath = [...path];
+      return;
+    }
+    const unvisited = (adjacency.get(current) || []).filter((n) => !visited.has(n));
+    if (unvisited.length === 0) {
+      if (!deadEndSet.has(current) && path.length > bestPath.length) bestPath = [...path];
+      return;
+    }
+    for (const neighbor of unvisited) {
+      visited.add(neighbor);
+      dfs(neighbor, [...path, neighbor], visited);
+      visited.delete(neighbor);
+    }
+  }
+
+  for (const entry of startFrames) {
+    const visited = new Set<string>([entry]);
+    dfs(entry, [entry], visited);
+  }
+  return bestPath;
+}
+
+function computeGraphMetrics(flowGraph: FlowGraph): { frameMetrics: FrameMetrics[]; flowMetrics: FlowMetrics } {
+  const { frames, nodes, edges } = flowGraph;
+
+  const outboundNeighbors = new Map<string, Set<string>>();
+  const inboundNeighbors  = new Map<string, Set<string>>();
+  const danglingByFrame   = new Map<string, number>();
+
+  for (const frame of frames) {
+    outboundNeighbors.set(frame.name, new Set());
+    inboundNeighbors.set(frame.name, new Set());
+    danglingByFrame.set(frame.name, 0);
+  }
+
+  for (const edge of edges) {
+    const src = edge.sourceFrameName;
+    const dst = edge.destinationFrameName;
+    if (dst === null) {
+      danglingByFrame.set(src, (danglingByFrame.get(src) ?? 0) + 1);
+    } else if (dst !== src) {
+      outboundNeighbors.get(src)?.add(dst);
+      inboundNeighbors.get(dst)?.add(src);
+    }
+  }
+
+  const interactiveByFrame = new Map<string, number>();
+  for (const frame of frames) interactiveByFrame.set(frame.name, 0);
+  for (const node of nodes) {
+    if (node.isInteractive) {
+      interactiveByFrame.set(node.frameName, (interactiveByFrame.get(node.frameName) ?? 0) + 1);
+    }
+  }
+
+  const frameMetrics: FrameMetrics[] = frames.map((frame) => {
+    const outbound = outboundNeighbors.get(frame.name)!;
+    const inbound  = inboundNeighbors.get(frame.name)!;
+    const dangling = danglingByFrame.get(frame.name) ?? 0;
+    const outboundCount = outbound.size;
+    const inboundCount  = inbound.size;
+    const isEntryPoint  = inboundCount === 0;
+    const isExitPoint   = outboundCount === 0;
+    const isDeadEnd     = isExitPoint && !isIntentionalExit(frame.name);
+    return {
+      frameId: frame.id,
+      frameName: frame.name,
+      inboundCount,
+      outboundCount,
+      danglingReactions: dangling,
+      isEntryPoint,
+      isExitPoint,
+      isDeadEnd,
+      interactiveNodeCount: interactiveByFrame.get(frame.name) ?? 0,
+      decisionPointCount: outboundCount > 1 ? 1 : 0,
+      frameArea: frame.width * frame.height,
+    };
+  });
+
+  const entryPoints = frameMetrics.filter((f) => f.isEntryPoint).map((f) => f.frameName);
+  const exitPoints  = frameMetrics.filter((f) => f.isExitPoint).map((f) => f.frameName);
+  const deadEnds    = frameMetrics.filter((f) => f.isDeadEnd).map((f) => f.frameName);
+  const totalDecisionPoints   = frameMetrics.reduce((s, f) => s + f.decisionPointCount, 0);
+  const totalDanglingReactions = frameMetrics.reduce((s, f) => s + f.danglingReactions, 0);
+  const totalTransitions = edges.filter((e) => e.destinationFrameName !== null && e.destinationFrameName !== e.sourceFrameName).length;
+
+  let mostConnectedFrame = frames[0]?.name ?? '';
+  let mostConnectedCount = -1;
+  let leastConnectedFrame = frames[0]?.name ?? '';
+  let leastConnectedTotal = Infinity;
+  for (const fm of frameMetrics) {
+    if (fm.inboundCount > mostConnectedCount) { mostConnectedCount = fm.inboundCount; mostConnectedFrame = fm.frameName; }
+    const total = fm.inboundCount + fm.outboundCount;
+    if (total < leastConnectedTotal) { leastConnectedTotal = total; leastConnectedFrame = fm.frameName; }
+  }
+
+  const adjacency = new Map<string, string[]>();
+  for (const frame of frames) adjacency.set(frame.name, Array.from(outboundNeighbors.get(frame.name)!));
+
+  const deadEndSet = new Set(deadEnds);
+  const happyPath  = computeHappyPath(adjacency, entryPoints, deadEndSet, frames.length, frames.map((f) => f.name));
+
+  const happyPathExtra = Math.max(0, happyPath.length - 5);
+  const cognitiveComplexityScore = Math.max(0,
+    100 - totalDecisionPoints * 3 - deadEnds.length * 5 - totalDanglingReactions * 2 - happyPathExtra,
+  );
+
+  return {
+    frameMetrics,
+    flowMetrics: {
+      totalFrames: frames.length,
+      totalTransitions,
+      entryPoints,
+      exitPoints,
+      deadEnds,
+      mostConnectedFrame,
+      leastConnectedFrame,
+      totalDecisionPoints,
+      totalDanglingReactions,
+      happyPath,
+      cognitiveComplexityScore,
+    },
+  };
+}
+
 async function prepareAuditPayload(decisionCard: DecisionCard): Promise<AuditPayload> {
   const frames = getSelectedTopLevelFrames();
   if (frames.length === 0) {
@@ -283,12 +457,15 @@ async function prepareAuditPayload(decisionCard: DecisionCard): Promise<AuditPay
   }
 
   const flowGraph = await buildFlowGraph(frames);
-  const visuals = await exportFrameVisuals(frames);
+  const visuals   = await exportFrameVisuals(frames);
+  const { frameMetrics, flowMetrics } = computeGraphMetrics(flowGraph);
 
   return {
     decisionCard,
     flowGraph,
     visuals,
+    frameMetrics,
+    flowMetrics,
   };
 }
 

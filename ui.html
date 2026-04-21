@@ -4,30 +4,31 @@
   <meta charset="UTF-8" />
   <title>AI UX Audit</title>
   <style>
-    /* ── Apple SF-style design system ── */
+    /* ── Enterprise design system (Google Material + Apple SF) ── */
     :root {
-      --bg:          #f2f2f7;
+      --bg:          #f1f3f4;
       --surface:     #ffffff;
-      --surface2:    #f9f9fb;
-      --border:      rgba(0,0,0,.09);
-      --separator:   rgba(0,0,0,.06);
-      --text:        #1c1c1e;
-      --text-sec:    #636366;
-      --text-ter:    #aeaeb2;
-      --accent:      #007aff;
-      --accent-d:    #0062cc;
-      --green:       #34c759;
-      --orange:      #ff9500;
-      --red:         #ff3b30;
-      --purple:      #af52de;
-      --fill:        rgba(116,116,128,.08);
-      --fill-sec:    rgba(116,116,128,.12);
-      --radius-s:    8px;
-      --radius-m:    12px;
-      --radius-l:    16px;
-      --shadow-s:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-      --shadow-m:    0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
-      --font:        -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      --surface2:    #f8f9fa;
+      --border:      rgba(0,0,0,.12);
+      --separator:   rgba(0,0,0,.08);
+      --text:        #202124;
+      --text-sec:    #5f6368;
+      --text-ter:    #9aa0a6;
+      --accent:      #1a73e8;
+      --accent-d:    #1557b0;
+      --accent-light: rgba(26,115,232,.1);
+      --green:       #1e8e3e;
+      --orange:      #e37400;
+      --red:         #d93025;
+      --purple:      #7b61ff;
+      --fill:        rgba(32,33,36,.06);
+      --fill-sec:    rgba(32,33,36,.10);
+      --radius-s:    6px;
+      --radius-m:    8px;
+      --radius-l:    12px;
+      --shadow-s:    0 1px 2px rgba(60,64,67,.2), 0 1px 3px rgba(60,64,67,.1);
+      --shadow-m:    0 2px 6px rgba(60,64,67,.15), 0 1px 2px rgba(60,64,67,.1);
+      --font:        -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", sans-serif;
       --mono:        "SF Mono", "Fira Mono", monospace;
     }
 
@@ -50,39 +51,37 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px 10px;
-      background: rgba(255,255,255,.85);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-bottom: 1px solid var(--separator);
+      padding: 10px 14px 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
       gap: 8px;
     }
     .header-left { display: flex; align-items: center; gap: 8px; }
     .app-icon {
-      width: 26px; height: 26px;
-      background: linear-gradient(145deg, #007aff, #5856d6);
-      border-radius: 7px;
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, #1a73e8, #4285f4);
+      border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,122,255,.35);
+      font-size: 12px;
       flex-shrink: 0;
     }
-    .app-name { font-weight: 700; font-size: 14px; letter-spacing: -.3px; }
+    .app-name { font-weight: 600; font-size: 13px; letter-spacing: -.2px; color: var(--text); }
     .app-name span { color: var(--accent); }
 
-    .header-right { display: flex; align-items: center; gap: 10px; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
     .score-pill {
       display: flex; align-items: center; gap: 5px;
       background: var(--fill);
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 12px; font-weight: 600;
+      border-radius: var(--radius-s);
+      padding: 4px 9px;
+      font-size: 11px; font-weight: 500;
       color: var(--text-sec);
       transition: all .3s;
+      border: 1px solid var(--border);
     }
     .score-num {
-      font-weight: 800; font-size: 15px; line-height: 1;
+      font-weight: 700; font-size: 14px; line-height: 1;
       transition: color .3s;
     }
     .score-num.good   { color: var(--green);  }
@@ -93,16 +92,17 @@
     .lang-seg {
       display: flex;
       background: var(--fill);
-      border-radius: 8px;
+      border-radius: var(--radius-s);
       padding: 2px;
       gap: 2px;
+      border: 1px solid var(--border);
     }
     .lang-btn {
       padding: 3px 8px;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       background: transparent;
-      font: 600 11px var(--font);
+      font: 500 11px var(--font);
       color: var(--text-sec);
       cursor: pointer;
       transition: all .15s;
@@ -110,37 +110,35 @@
     .lang-btn.active {
       background: var(--surface);
       color: var(--text);
-      box-shadow: var(--shadow-s);
+      box-shadow: 0 1px 2px rgba(0,0,0,.12);
     }
 
     /* ══ TAB BAR ══ */
     .tabbar {
       display: flex;
-      background: rgba(255,255,255,.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--separator);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
-      padding: 0 8px;
+      padding: 0 4px;
     }
     .tab {
       flex: 1;
-      height: 40px;
+      height: 38px;
       border: none;
       background: transparent;
-      font: 600 12px var(--font);
+      font: 500 12px var(--font);
       color: var(--text-ter);
       cursor: pointer;
       position: relative;
       transition: color .15s;
       display: flex; align-items: center; justify-content: center; gap: 4px;
+      letter-spacing: .1px;
     }
-    .tab .tab-icon { font-size: 13px; }
-    .tab.active { color: var(--accent); }
+    .tab.active { color: var(--accent); font-weight: 600; }
     .tab.active::after {
       content: '';
       position: absolute;
-      bottom: 0; left: 10%; right: 10%;
+      bottom: 0; left: 8%; right: 8%;
       height: 2px;
       background: var(--accent);
       border-radius: 2px 2px 0 0;
@@ -148,15 +146,47 @@
     .tab-badge {
       background: var(--red);
       color: #fff;
-      font-size: 9px; font-weight: 800;
+      font-size: 9px; font-weight: 700;
       border-radius: 99px;
       padding: 1px 4px;
-      min-width: 16px;
+      min-width: 15px;
       text-align: center;
-      line-height: 14px;
+      line-height: 13px;
       display: none;
     }
     .tab-badge.visible { display: inline-block; }
+
+    /* ══ SUB-TAB BAR ══ */
+    .sub-tabbar {
+      display: none;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      padding: 0 12px;
+      gap: 0;
+    }
+    .sub-tabbar.visible { display: flex; }
+    .sub-tab {
+      height: 34px;
+      border: none;
+      background: transparent;
+      font: 500 12px var(--font);
+      color: var(--text-sec);
+      cursor: pointer;
+      position: relative;
+      transition: color .15s;
+      padding: 0 12px;
+      white-space: nowrap;
+    }
+    .sub-tab.active { color: var(--accent); font-weight: 600; }
+    .sub-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 12px; right: 12px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px 2px 0 0;
+    }
 
     /* ══ SCROLL BODY ══ */
     .body {
@@ -171,95 +201,117 @@
     .pane { display: none; flex-direction: column; gap: 10px; }
     .pane.active { display: flex; }
 
+    /* ══ SECTION DIVIDERS ══ */
+    .section-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 2px 6px;
+      margin-top: 2px;
+    }
+    .section-header-label {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-ter);
+      text-transform: uppercase; letter-spacing: .6px;
+      white-space: nowrap;
+    }
+    .section-header-line {
+      flex: 1; height: 1px;
+      background: var(--separator);
+    }
+
     /* ══ CARDS ══ */
     .card {
       background: var(--surface);
       border-radius: var(--radius-l);
+      border: 1px solid var(--border);
       box-shadow: var(--shadow-s);
       overflow: hidden;
     }
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px 10px;
+      padding: 11px 14px 10px;
       border-bottom: 1px solid var(--separator);
+      background: var(--surface2);
     }
     .card-title {
-      font-size: 12px; font-weight: 700;
+      font-size: 12px; font-weight: 600;
       color: var(--text-sec);
-      text-transform: uppercase;
-      letter-spacing: .5px;
+      letter-spacing: .1px;
     }
     .card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
     .card-body.tight { gap: 6px; }
 
     /* ══ FORM ELEMENTS ══ */
-    .field { display: flex; flex-direction: column; gap: 5px; }
-    .field-label { font-size: 12px; font-weight: 600; color: var(--text-sec); }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 11px; font-weight: 600; color: var(--text-sec); letter-spacing: .1px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
     input, select, textarea {
       width: 100%;
-      background: var(--fill);
-      border: 1px solid transparent;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius-s);
-      padding: 8px 10px;
+      padding: 7px 10px;
       font: inherit; font-size: 12px;
       color: var(--text);
-      transition: all .15s;
+      transition: border-color .15s, box-shadow .15s;
       -webkit-appearance: none;
       appearance: none;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--accent);
-      background: var(--surface);
-      box-shadow: 0 0 0 3px rgba(0,122,255,.12);
+      box-shadow: 0 0 0 3px rgba(26,115,232,.15);
     }
-    textarea { resize: vertical; min-height: 66px; }
+    textarea { resize: vertical; min-height: 60px; }
     input::placeholder, textarea::placeholder { color: var(--text-ter); }
 
     /* ══ BUTTONS ══ */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-      border: none; border-radius: 999px;
-      padding: 8px 16px;
-      font: 600 12px var(--font);
+      border: none; border-radius: var(--radius-m);
+      padding: 7px 16px;
+      font: 500 12px var(--font);
       cursor: pointer;
-      transition: all .15s;
+      transition: background .15s, box-shadow .15s, transform .1s;
       white-space: nowrap;
+      letter-spacing: .1px;
     }
     .btn-primary {
       background: var(--accent);
       color: #fff;
-      box-shadow: 0 1px 3px rgba(0,122,255,.3);
+      box-shadow: 0 1px 3px rgba(26,115,232,.25);
+      font-weight: 600;
     }
-    .btn-primary:hover  { background: var(--accent-d); }
-    .btn-primary:active { transform: scale(.97); }
+    .btn-primary:hover  { background: var(--accent-d); box-shadow: 0 2px 6px rgba(26,115,232,.3); }
+    .btn-primary:active { transform: scale(.98); }
 
     .btn-secondary {
-      background: var(--fill-sec);
-      color: var(--text);
+      background: var(--surface);
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+      font-weight: 500;
     }
-    .btn-secondary:hover { background: var(--fill); }
+    .btn-secondary:hover { background: var(--fill); color: var(--text); }
 
     .btn-danger {
-      background: rgba(255,59,48,.1);
+      background: rgba(217,48,37,.08);
       color: var(--red);
+      border: 1px solid rgba(217,48,37,.2);
     }
 
-    .btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
     .btn-row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
 
     /* ══ STEPPER ══ */
     .stepper {
       display: flex; align-items: center;
-      padding: 10px 14px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--separator);
       gap: 0;
     }
     .step-item {
       display: flex; align-items: center; gap: 5px;
-      flex: 1; font-size: 11px; font-weight: 600;
+      flex: 1; font-size: 11px; font-weight: 500;
       color: var(--text-ter);
       transition: color .2s;
     }
@@ -273,16 +325,17 @@
       width: 20px; height: 20px;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 800;
+      font-size: 10px; font-weight: 700;
       background: var(--fill);
       color: var(--text-ter);
+      border: 1px solid var(--border);
       flex-shrink: 0;
       transition: all .2s;
     }
     .step-item.done   { color: var(--green);  }
-    .step-item.done   .step-dot { background: var(--green);  color: #fff; }
+    .step-item.done   .step-dot { background: var(--green); border-color: var(--green); color: #fff; }
     .step-item.active { color: var(--accent); }
-    .step-item.active .step-dot { background: var(--accent); color: #fff; }
+    .step-item.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
 
     /* progress bar */
     .progress-track {
@@ -321,73 +374,84 @@
     /* ══ CHIPS ══ */
     .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
     .chip {
-      background: rgba(0,122,255,.1);
+      background: var(--accent-light);
       color: var(--accent);
-      border-radius: 999px;
+      border-radius: var(--radius-s);
       padding: 3px 9px;
-      font-size: 11px; font-weight: 600;
+      font-size: 11px; font-weight: 500;
+      border: 1px solid rgba(26,115,232,.15);
     }
 
     /* ══ SEVERITY RESULTS ══ */
     .group-label {
       display: flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .6px;
-      padding: 4px 0 2px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: .2px;
+      padding: 6px 0 4px;
+      text-transform: capitalize;
     }
     .group-pill {
-      font-size: 10px; font-weight: 800;
-      border-radius: 99px; padding: 1px 6px;
+      font-size: 10px; font-weight: 700;
+      border-radius: 4px; padding: 1px 6px;
     }
     .sev-critical .group-label  { color: var(--red);    }
-    .sev-critical .group-pill   { background: rgba(255,59,48,.12);  color: var(--red);    }
+    .sev-critical .group-pill   { background: rgba(217,48,37,.1);   color: var(--red);    }
     .sev-warning  .group-label  { color: var(--orange); }
-    .sev-warning  .group-pill   { background: rgba(255,149,0,.14);  color: var(--orange); }
+    .sev-warning  .group-pill   { background: rgba(227,116,0,.1);   color: var(--orange); }
     .sev-suggestion .group-label{ color: var(--accent); }
-    .sev-suggestion .group-pill { background: rgba(0,122,255,.12);  color: var(--accent); }
+    .sev-suggestion .group-pill { background: var(--accent-light);  color: var(--accent); }
 
     .audit-card {
       background: var(--surface);
       border-radius: var(--radius-m);
+      border: 1px solid var(--border);
       box-shadow: var(--shadow-s);
       overflow: hidden;
       margin-bottom: 6px;
     }
+    .audit-card.critical { border-left: 3px solid var(--red); }
+    .audit-card.warning  { border-left: 3px solid var(--orange); }
+    .audit-card.suggestion { border-left: 3px solid var(--accent); }
     .audit-card-header {
       display: flex; align-items: flex-start; gap: 9px;
       padding: 10px 12px;
       cursor: pointer;
       user-select: none;
-      transition: background .1s;
+      transition: background .12s;
     }
-    .audit-card-header:active { background: var(--fill); }
-    .sev-bar {
-      width: 3px; border-radius: 99px;
-      align-self: stretch; flex-shrink: 0;
-      min-height: 18px;
-    }
-    .critical   .sev-bar { background: var(--red);    }
-    .warning    .sev-bar { background: var(--orange); }
-    .suggestion .sev-bar { background: var(--accent); }
+    .audit-card-header:hover { background: var(--fill); }
+    .sev-bar { display: none; }
 
-    .audit-card-text { flex: 1; }
-    .audit-frame-name {
-      font-size: 10px; font-weight: 700;
-      color: var(--text-ter);
-      text-transform: uppercase; letter-spacing: .4px;
-      margin-bottom: 2px;
+    .sev-label {
+      display: inline-block;
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px;
+      border-radius: 4px; padding: 2px 6px;
+      flex-shrink: 0; margin-top: 1px;
     }
-    .audit-question { font-size: 12px; line-height: 1.45; color: var(--text); }
+    .critical  .sev-label { background: rgba(217,48,37,.1);  color: var(--red); }
+    .warning   .sev-label { background: rgba(227,116,0,.1);  color: var(--orange); }
+    .suggestion .sev-label { background: var(--accent-light); color: var(--accent); }
+
+    .audit-card-text { flex: 1; min-width: 0; }
+    .audit-frame-name {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-ter);
+      letter-spacing: .3px;
+      margin-bottom: 3px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .audit-question { font-size: 12px; line-height: 1.5; color: var(--text); }
     .audit-chevron {
       color: var(--text-ter); font-size: 10px;
-      transition: transform .2s; padding-top: 3px; flex-shrink: 0;
+      transition: transform .2s; padding-top: 2px; flex-shrink: 0;
     }
     .audit-card.open .audit-chevron { transform: rotate(90deg); }
 
     .audit-card-body {
       display: none;
       flex-direction: column; gap: 8px;
-      padding: 0 12px 12px 24px;
+      padding: 0 12px 12px 12px;
       border-top: 1px solid var(--separator);
       padding-top: 10px;
     }
@@ -410,18 +474,21 @@
 
     .callout {
       border-radius: var(--radius-s);
-      padding: 8px 10px;
+      padding: 8px 11px;
       font-size: 12px; line-height: 1.5;
+      border: 1px solid transparent;
     }
     .callout-guardrail {
-      background: rgba(255,149,0,.1);
+      background: rgba(227,116,0,.08);
+      border-color: rgba(227,116,0,.2);
       border-left: 3px solid var(--orange);
-      color: #7a4a00;
+      color: #7a3b00;
     }
     .callout-suggestion {
-      background: rgba(52,199,89,.1);
+      background: rgba(30,142,62,.08);
+      border-color: rgba(30,142,62,.2);
       border-left: 3px solid var(--green);
-      color: #1a5c2a;
+      color: #0a4019;
     }
 
     /* impact badge */
@@ -500,6 +567,73 @@
       display: inline-block; margin-top: 4px;
     }
 
+    /* ══ JOURNEY ══ */
+    .journey-health-good  { color: var(--green);  }
+    .journey-health-warn  { color: var(--orange); }
+    .journey-health-bad   { color: var(--red);    }
+
+    .happy-path-row {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+      padding: 10px 14px;
+    }
+    .happy-path-chip {
+      background: rgba(0,122,255,.1);
+      color: var(--accent);
+      border-radius: 6px; padding: 3px 9px;
+      font-size: 11px; font-weight: 600;
+    }
+    .happy-path-arrow {
+      color: var(--text-ter); font-size: 10px;
+    }
+
+    .dropoff-card {
+      background: var(--surface);
+      border-radius: var(--radius-m);
+      box-shadow: var(--shadow-s);
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .dropoff-card-header {
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 10px 12px;
+      cursor: pointer; user-select: none;
+    }
+    .dropoff-type-badge {
+      font-size: 9px; font-weight: 800;
+      border-radius: 6px; padding: 2px 6px;
+      text-transform: uppercase; letter-spacing: .3px;
+      background: var(--fill); color: var(--text-sec);
+    }
+    .journey-pos-badge {
+      font-size: 9px; font-weight: 700;
+      border-radius: 99px; padding: 2px 7px;
+      background: rgba(175,82,222,.1); color: var(--purple);
+    }
+    .dropoff-card-body {
+      display: none; flex-direction: column; gap: 8px;
+      padding: 0 12px 12px 24px;
+      border-top: 1px solid var(--separator);
+      padding-top: 10px;
+    }
+    .dropoff-card.open .dropoff-card-body { display: flex; }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 6px; padding: 10px 14px;
+    }
+    .stat-cell {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px;
+    }
+    .stat-value { font-size: 18px; font-weight: 800; }
+    .stat-label { font-size: 9px; font-weight: 700; color: var(--text-ter); text-transform: uppercase; letter-spacing: .4px; }
+    .entry-exit-row {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 0 14px 12px;
+    }
+    .entry-exit-line { font-size: 11px; line-height: 1.5; }
+    .entry-exit-label { font-weight: 700; color: var(--text-sec); margin-right: 6px; }
+
     /* ══ DRD PANEL ══ */
     .drd-overlay {
       position: fixed; inset: 0;
@@ -534,12 +668,12 @@
     .drd-panel-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
     .drd-solution-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
     .drd-sol-tab {
-      padding: 5px 12px; border-radius: 999px;
-      font-size: 11px; font-weight: 600;
-      background: var(--fill); color: var(--text-sec);
-      border: none; cursor: pointer; transition: all .15s;
+      padding: 5px 12px; border-radius: var(--radius-s);
+      font-size: 11px; font-weight: 500;
+      background: var(--surface); color: var(--text-sec);
+      border: 1px solid var(--border); cursor: pointer; transition: all .15s;
     }
-    .drd-sol-tab.active { background: var(--accent); color: #fff; }
+    .drd-sol-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
     .drd-solution-card { display: none; flex-direction: column; gap: 8px; }
     .drd-solution-card.active { display: flex; }
     .drd-field { display: flex; flex-direction: column; gap: 3px; }
@@ -668,8 +802,8 @@
 <!-- ══ HEADER ══ -->
 <div class="header">
   <div class="header-left">
-    <div class="app-icon">🔍</div>
-    <div class="app-name">UX<span>Audit</span></div>
+    <div class="app-icon" style="color:#fff;font-style:normal;font-weight:700;font-size:11px;letter-spacing:-.3px">AI</div>
+    <div class="app-name">UX <span>Audit</span></div>
   </div>
   <div class="header-right">
     <!-- Language selector -->
@@ -686,22 +820,20 @@
 
 <!-- ══ TAB BAR ══ -->
 <div class="tabbar">
-  <button class="tab active" data-tab="setup">
-    <span class="tab-icon">⚙</span><span data-i18n="tab.setup">Setup</span>
-  </button>
-  <button class="tab" data-tab="audit">
-    <span class="tab-icon">▶</span><span data-i18n="tab.audit">Audit</span>
-  </button>
+  <button class="tab active" data-tab="setup" data-i18n="tab.setup">Setup</button>
+  <button class="tab" data-tab="audit" data-i18n="tab.audit">Audit</button>
   <button class="tab" data-tab="results">
-    <span class="tab-icon">◉</span><span data-i18n="tab.results">Results</span>
+    <span data-i18n="tab.results">Results</span>
     <span id="resultsBadge" class="tab-badge"></span>
   </button>
-  <button class="tab" data-tab="history">
-    <span class="tab-icon">↗</span><span data-i18n="tab.trend">Trend</span>
-  </button>
-  <button class="tab" data-tab="evidence">
-    <span class="tab-icon">🔬</span><span data-i18n="tab.evidence">Evidence</span>
-  </button>
+  <button class="tab" data-tab="history" data-i18n="tab.trend">Trend</button>
+</div>
+
+<!-- ══ SUB-TAB BAR (Results group) ══ -->
+<div class="sub-tabbar" id="resultsSubTabs">
+  <button class="sub-tab active" data-subtab="results" data-i18n="subtab.findings">Findings</button>
+  <button class="sub-tab" data-subtab="evidence" data-i18n="subtab.evidence">Evidence</button>
+  <button class="sub-tab" data-subtab="journey" data-i18n="subtab.journey">Journey</button>
 </div>
 
 <!-- ══ BODY ══ -->
@@ -709,8 +841,10 @@
 
   <!-- ── SETUP ── -->
   <div class="pane active" id="pane-setup">
+
+    <!-- LLM Config -->
     <div class="card">
-      <div class="card-header"><span class="card-title" data-i18n="setup.connection">Connection</span></div>
+      <div class="card-header"><span class="card-title" data-i18n="setup.connection">LLM Configuration</span></div>
       <div class="card-body">
         <div class="field-row">
           <div class="field">
@@ -729,9 +863,10 @@
           <div class="field-label" data-i18n="setup.apiKey">API Key</div>
           <input id="apiKey" type="password" data-i18n-placeholder="ph.apiKey" placeholder="sk-… or anthropic key" />
         </div>
-        <details style="margin-top:4px">
-          <summary style="font-size:11px;color:var(--text-ter);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:4px">
-            <span style="font-size:9px">▶</span> <span data-i18n="setup.mcp">MCP Bridge (optional)</span>
+        <details>
+          <summary style="font-size:11px;color:var(--text-ter);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:5px;padding:2px 0">
+            <span style="font-size:9px;transition:transform .15s">▶</span>
+            <span data-i18n="setup.mcp">MCP Bridge (optional)</span>
           </summary>
           <div class="field-row" style="margin-top:8px">
             <div class="field">
@@ -747,17 +882,26 @@
       </div>
     </div>
 
+    <!-- Decision Card -->
     <div class="card">
       <div class="card-header">
         <span class="card-title" data-i18n="setup.decisionCard">Decision Card</span>
-        <button class="btn btn-secondary" id="extractBtn" style="font-size:11px;padding:5px 12px">
+        <button class="btn btn-secondary" id="extractBtn" style="font-size:11px;padding:4px 11px">
           <span data-i18n="btn.extract">✦ Extract from notes</span>
         </button>
       </div>
       <div class="card-body">
+
+        <!-- Notes input -->
         <div class="field">
           <div class="field-label" data-i18n="setup.notes">Raw Meeting Notes</div>
           <textarea id="notes" data-i18n-placeholder="ph.notes" placeholder="Paste product discussion, goals, guardrails, constraints…" rows="3"></textarea>
+        </div>
+
+        <!-- Core intent -->
+        <div class="section-header">
+          <span class="section-header-label" data-i18n="setup.section.intent">Intent</span>
+          <div class="section-header-line"></div>
         </div>
         <div class="field">
           <div class="field-label" data-i18n="setup.question">Decision Question</div>
@@ -767,25 +911,47 @@
           <div class="field-label" data-i18n="setup.metric">Primary Metric</div>
           <input id="primaryMetric" data-i18n-placeholder="ph.metric" placeholder="Activation rate, conversion…" />
         </div>
+
+        <!-- Business context -->
+        <div class="section-header">
+          <span class="section-header-label" data-i18n="setup.section.business">Business</span>
+          <div class="section-header-line"></div>
+        </div>
         <div class="field">
-          <div class="field-label" data-i18n="setup.businessGoal">Business Goal</div>
+          <div class="field-label" data-i18n="setup.businessGoal">Goal</div>
           <input id="businessGoal" data-i18n-placeholder="ph.businessGoal" placeholder="Increase activation rate ↑20%, growth category" />
         </div>
         <div class="field">
-          <div class="field-label" data-i18n="setup.businessMetrics">Business Metrics</div>
+          <div class="field-label" data-i18n="setup.businessMetrics">Metrics</div>
           <textarea id="businessMetrics" data-i18n-placeholder="ph.perline" placeholder="One per line" rows="2"></textarea>
         </div>
+
+        <!-- Experience context -->
+        <div class="section-header">
+          <span class="section-header-label" data-i18n="setup.section.experience">Experience</span>
+          <div class="section-header-line"></div>
+        </div>
         <div class="field">
-          <div class="field-label" data-i18n="setup.experienceGoal">Experience Goal</div>
+          <div class="field-label" data-i18n="setup.experienceGoal">Goal</div>
           <input id="experienceGoal" data-i18n-placeholder="ph.experienceGoal" placeholder="Reduce task completion time ↓30%, increase completion rate ↑20%" />
         </div>
         <div class="field">
-          <div class="field-label" data-i18n="setup.experienceMetrics">Experience Metrics</div>
+          <div class="field-label" data-i18n="setup.experienceMetrics">Metrics</div>
           <textarea id="experienceMetrics" data-i18n-placeholder="ph.perline" placeholder="One per line" rows="2"></textarea>
         </div>
         <div class="field">
           <div class="field-label" data-i18n="setup.drivingLogic">Driving Logic</div>
-          <textarea id="drivingLogic" data-i18n-placeholder="ph.drivingLogic" placeholder="User behavior change → business outcome change" rows="3"></textarea>
+          <textarea id="drivingLogic" data-i18n-placeholder="ph.drivingLogic" placeholder="User behavior change → business outcome change" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <div class="field-label" data-i18n="setup.touchpoints">Touchpoints</div>
+          <textarea id="touchpoints" data-i18n-placeholder="ph.touchpoints" placeholder="e.g. TV (remote control), Mobile (touch)" rows="2"></textarea>
+        </div>
+
+        <!-- Constraints -->
+        <div class="section-header">
+          <span class="section-header-label" data-i18n="setup.section.constraints">Guardrails & Constraints</span>
+          <div class="section-header-line"></div>
         </div>
         <div class="field-row">
           <div class="field">
@@ -797,6 +963,7 @@
             <textarea id="constraints" data-i18n-placeholder="ph.perline" placeholder="One per line" rows="3"></textarea>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -832,7 +999,7 @@
         <span id="statusText" data-i18n="status.idle">Select frames in Figma, then start the audit.</span>
       </div>
       <div style="padding:0 14px 14px">
-        <button class="btn btn-primary" id="auditBtn" style="width:100%"><span data-i18n="btn.audit">▶ Start Audit</span></button>
+        <button class="btn btn-primary" id="auditBtn" style="width:100%;padding:9px 16px;font-size:13px;border-radius:var(--radius-m)"><span data-i18n="btn.audit">Start Audit</span></button>
       </div>
     </div>
   </div>
@@ -854,9 +1021,9 @@
       <div id="resultGroups" style="display:flex;flex-direction:column;gap:8px">
         <div style="color:var(--text-ter);font-size:12px;padding:8px 2px" data-i18n="results.empty">Run an audit to see results.</div>
       </div>
-      <div id="evidenceBtnRow" style="display:none;padding:4px 0">
-        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:11px;padding:5px 14px;border:1px solid var(--border)">
-          <span data-i18n="btn.evidence">🔬 Generate Evidence Report</span>
+      <div id="evidenceBtnRow" style="display:none;padding:4px 0 8px">
+        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:11px;padding:6px 14px">
+          <span data-i18n="btn.evidence">Generate Evidence Report</span>
         </button>
       </div>
     </div>
@@ -907,6 +1074,44 @@
       </div>
     </div>
     <div id="evidenceSections" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
+  <!-- ── JOURNEY ── -->
+  <div class="pane" id="pane-journey">
+    <!-- empty state -->
+    <div class="card" id="journeyEmptyCard">
+      <div class="card-body" style="align-items:center;padding:24px 14px">
+        <div style="font-size:28px;margin-bottom:8px">🗺</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="journey.empty">Run an audit first, then analyze the journey.</div>
+        <div style="font-size:12px;color:var(--text-ter);margin-top:4px;text-align:center" data-i18n="journey.hint">Journey audit looks at the whole flow, not individual screens.</div>
+      </div>
+    </div>
+    <!-- score banner -->
+    <div id="journeyScoreBanner" style="display:none">
+      <div class="card">
+        <div class="card-body" style="gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="field-label" data-i18n="journey.healthScore">Flow Health Score</div>
+              <div id="journeyHealthNum" style="font-size:28px;font-weight:800;line-height:1.1">—</div>
+            </div>
+            <div style="text-align:right">
+              <div class="field-label" data-i18n="journey.cognitiveScore">Cognitive Complexity</div>
+              <div id="journeyCognitiveNum" style="font-size:28px;font-weight:800;line-height:1.1">—</div>
+            </div>
+          </div>
+          <div id="journeySummaryText" style="font-size:12px;line-height:1.55;color:var(--text-sec)"></div>
+        </div>
+      </div>
+    </div>
+    <!-- "Analyze Journey" button -->
+    <div id="journeyBtnRow" style="display:none">
+      <button class="btn btn-primary" id="journeyBtn" style="width:100%;border-radius:var(--radius-m)">
+        <span data-i18n="btn.journey">Analyze Journey</span>
+      </button>
+    </div>
+    <!-- content sections (filled after LLM call) -->
+    <div id="journeySections" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- ── HISTORY ── -->
@@ -1048,7 +1253,7 @@ async function callOpenAIWithRetry(request) {
   throw new Error('OpenAI request failed after multiple retry attempts.');
 }
 
-async function callLLM({ provider, model, apiKey, purpose, prompt, visuals }) {
+async function callLLM({ provider, model, apiKey, purpose, prompt, visuals, maxTokens = 1800 }) {
   if (!apiKey) throw new Error('Please provide an API key first.');
   if (!model) throw new Error('Please enter a model name.');
 
@@ -1058,7 +1263,7 @@ async function callLLM({ provider, model, apiKey, purpose, prompt, visuals }) {
     const response = await callOpenAIWithRetry({
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
-      body: JSON.stringify({ model, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: purpose }, { role: 'user', content: userContent }], max_completion_tokens: 1800, temperature: 0.3 }),
+      body: JSON.stringify({ model, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: purpose }, { role: 'user', content: userContent }], max_completion_tokens: maxTokens, temperature: 0.3 }),
     });
     const data = await response.json();
     return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '{}';
@@ -1070,7 +1275,7 @@ async function callLLM({ provider, model, apiKey, purpose, prompt, visuals }) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model, max_tokens: 1800, system: purpose, messages: [{ role: 'user', content }] }),
+    body: JSON.stringify({ model, max_tokens: maxTokens, system: purpose, messages: [{ role: 'user', content }] }),
   });
   if (!response.ok) throw new Error(await parseErrorResponse(response, 'Anthropic'));
   const data = await response.json();
@@ -1100,12 +1305,13 @@ async function extractDecisionCard({ provider, model, apiKey, notes, language })
   const systemPrompt = [
     'You convert messy product notes into a strict JSON DecisionCard.',
     'Return only valid JSON with exactly these keys:',
-    'decisionQuestion (string), businessGoal (string), businessMetrics (string[]), experienceGoal (string), experienceMetrics (string[]), drivingLogic (string), primaryMetric (string), guardrails (string[]), constraints (string[]).',
+    'decisionQuestion (string), businessGoal (string), businessMetrics (string[]), experienceGoal (string), experienceMetrics (string[]), drivingLogic (string), primaryMetric (string), guardrails (string[]), constraints (string[]), touchpoints (string[]).',
     'businessGoal: one sentence — what business outcome + which metric + direction (e.g. "Increase activation rate ↑20%, growth category").',
     'businessMetrics: array of quantified metric names with ↑/↓ direction where derivable from notes.',
     'experienceGoal: one sentence — which user behavior to optimize + experience metric (e.g. "Reduce task completion time ↓30%, increase completion rate ↑20%").',
     'experienceMetrics: array of experience metric names.',
     'drivingLogic: plain language causal chain a non-PM could understand — user behavior change → business outcome change. Must show the mechanism, not jargon.',
+    'touchpoints: array of device/platform context strings (e.g. ["TV (remote control)", "Mobile (touch)"]). Infer from notes if mentioned.',
     'guardrails and constraints must be arrays of concise strings.',
     'Do not add markdown or commentary.',
   ].join(' ');
@@ -1121,6 +1327,7 @@ async function extractDecisionCard({ provider, model, apiKey, notes, language })
     primaryMetric:     card.primaryMetric     || '',
     guardrails:        Array.isArray(card.guardrails)        ? card.guardrails        : [],
     constraints:       Array.isArray(card.constraints)       ? card.constraints       : [],
+    touchpoints:       Array.isArray(card.touchpoints)       ? card.touchpoints       : [],
   };
   if (language === 'zh') {
     const tr = await translateToZh({ provider, model, apiKey, source: result });
@@ -1134,6 +1341,7 @@ async function extractDecisionCard({ provider, model, apiKey, notes, language })
       primaryMetric:     (tr && tr.primaryMetric)     || result.primaryMetric,
       guardrails:        Array.isArray(tr && tr.guardrails)        ? tr.guardrails        : result.guardrails,
       constraints:       Array.isArray(tr && tr.constraints)       ? tr.constraints       : result.constraints,
+      touchpoints:       Array.isArray(tr && tr.touchpoints)       ? tr.touchpoints       : result.touchpoints,
     };
   }
   return result;
@@ -1171,7 +1379,7 @@ async function generateEvidenceReport({ provider, model, apiKey, audits, decisio
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [] });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3200 });
   return extractJson(raw);
 }
 
@@ -1213,7 +1421,80 @@ async function generateDRD({ provider, model, apiKey, audit, decisionCard }) {
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [] });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3500 });
+  return extractJson(raw);
+}
+
+async function runJourneyAudit({ provider, model, apiKey, flowMetrics, frameMetrics, decisionCard, existingAudits }) {
+  // Token budget: if many frames, only send frames with a risk signal
+  const totalFrames = (flowMetrics && flowMetrics.totalFrames) || 0;
+  const filteredFrameMetrics = totalFrames > 20
+    ? (frameMetrics || []).filter((f) => f.isDeadEnd || f.danglingReactions > 0 || f.decisionPointCount > 2 || f.inboundCount === 0)
+    : (frameMetrics || []);
+
+  const happyPath = (flowMetrics && flowMetrics.happyPath) || [];
+
+  const systemPrompt = 'You are a senior UX researcher and interaction design expert specializing in user flow analysis. Analyze the journey as a whole and output only valid JSON. No markdown or commentary.';
+
+  const userPrompt = [
+    'FLOW METRICS (computed from Figma graph data):',
+    JSON.stringify(flowMetrics, null, 2),
+    '',
+    'PER-FRAME METRICS:',
+    JSON.stringify(filteredFrameMetrics, null, 2),
+    '',
+    'DECISION CARD (business context):',
+    JSON.stringify(decisionCard, null, 2),
+    '',
+    'EXISTING PER-FRAME AUDIT FINDINGS (for context — do not repeat these):',
+    JSON.stringify((existingAudits || []).slice(0, 10), null, 2),
+    '',
+    'Analyze the journey as a whole. Do not repeat findings already covered in the per-frame audit.',
+    '',
+    '1. HAPPY PATH ASSESSMENT',
+    'The computed happy path is: ' + JSON.stringify(happyPath),
+    'Assess: does this path make sense for the user goal? Are frames out of order? What is the minimum steps needed? Where is unnecessary friction?',
+    '',
+    '2. DROP-OFF POINT ANALYSIS',
+    'For each frame that is a genuine drop-off risk, output one item. Do not flag intentional success/confirmation screens.',
+    '',
+    '3. FLOW STRUCTURE OBSERVATIONS (3–5 observations not in the per-frame audit)',
+    'Look for: loops that trap users, missing error recovery, asymmetric flows, orphaned frames, premature exits.',
+    '',
+    '4. JOURNEY SCORE ADJUSTMENT',
+    '',
+    'Return JSON with this exact structure:',
+    JSON.stringify({
+      happyPathAssessment: {
+        pathMakesSense: true,
+        misplacedFrames: ['string'],
+        minimumSteps: 0,
+        unnecessaryFriction: 'string',
+        summary: 'string',
+      },
+      dropOffPoints: [{
+        frameName: 'string',
+        severity: 'critical | warning',
+        dropOffType: 'dead_end | decision_overload | isolation | navigation_trap',
+        journeyPosition: 'early | mid | late',
+        whyUsersLeave: 'string',
+        impactOnGoal: 'string',
+        suggestion: 'string',
+      }],
+      flowStructureObservations: [{
+        observation: 'string',
+        affectedFrames: ['string'],
+        severity: 'critical | warning | suggestion',
+        journeyImpact: 'string',
+      }],
+      journeyScoreAdjustment: {
+        additionalDeductions: [{ reason: 'string', points: 8, severity: 'critical | warning' }],
+        journeySummary: 'string',
+      },
+    }),
+  ].join('\n');
+
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3200 });
   return extractJson(raw);
 }
 
@@ -1233,6 +1514,7 @@ async function runContextualAudit({ provider, model, apiKey, payload, language }
     'You are an interrogative UX Director.',
     'Cross-reference the attached visuals with the Logic Graph summary to find broken links, dead ends, and missing states.',
     'Critique the flow strictly against the provided Guardrails, Constraints, and business/experience metrics in the DecisionCard.',
+    'If the DecisionCard includes touchpoints (e.g. "TV (remote control)"), evaluate interaction patterns specifically for those device types — e.g. focus management, D-pad navigation, remote-friendly tap targets — not generic touch/mouse conventions.',
     'Do not suggest removing friction if that friction serves a business constraint.',
     'Return only valid JSON in this exact shape:',
     '{"audits":[{',
@@ -1281,6 +1563,41 @@ async function runContextualAudit({ provider, model, apiKey, payload, language }
   };
 }
 
+/* ─────────── FLOW HEALTH SCORE ─────────── */
+function computeFlowHealthScore(flowMetrics) {
+  if (!flowMetrics) return 100;
+  let score = 100;
+  const { deadEnds, totalDanglingReactions, entryPoints, cognitiveComplexityScore } = flowMetrics;
+  const deadEndCount = (deadEnds || []).length;
+  const danglingCount = totalDanglingReactions || 0;
+
+  // Dead end deductions (capped at 20)
+  if (deadEndCount > 0) {
+    const deduction = Math.min(10 + 5 * Math.max(0, deadEndCount - 1), 20);
+    score -= deduction;
+  }
+  // Dangling reaction deductions (capped at 10)
+  if (danglingCount > 0) {
+    const deduction = Math.min(5 + 2 * Math.max(0, danglingCount - 1), 10);
+    score -= deduction;
+  }
+  // Multiple entry points
+  if ((entryPoints || []).length > 1) score -= 5;
+  // Cognitive complexity
+  if ((cognitiveComplexityScore || 100) < 40) score -= 5;
+  else if ((cognitiveComplexityScore || 100) < 60) score -= 3;
+
+  return Math.max(0, score);
+}
+
+function applyJourneyAIPenalties(preScore, adjustments) {
+  let score = preScore;
+  for (const adj of adjustments || []) {
+    score -= (adj.points || 0);
+  }
+  return Math.max(0, score);
+}
+
 /* ─────────── STATE ─────────── */
 const state = {
   lang: 'en',
@@ -1299,8 +1616,11 @@ const $ = (id) => document.getElementById(id);
 const UI_STRINGS = {
   en: {
     'tab.setup':'Setup','tab.audit':'Audit','tab.results':'Results','tab.trend':'Trend',
+    'subtab.findings':'Findings','subtab.evidence':'Evidence','subtab.journey':'Journey',
+    'setup.section.intent':'Intent','setup.section.business':'Business','setup.section.experience':'Experience','setup.section.constraints':'Guardrails & Constraints',
+    'sev.critical':'Critical','sev.warning':'Warning','sev.suggestion':'Suggestion',
     'score.label':'Score',
-    'setup.connection':'Connection','setup.provider':'Provider','setup.model':'Model',
+    'setup.connection':'LLM Configuration','setup.provider':'Provider','setup.model':'Model',
     'setup.apiKey':'API Key','ph.apiKey':'sk-… or anthropic key',
     'setup.mcp':'MCP Bridge (optional)','setup.bridgeUrl':'Bridge URL','setup.sessionId':'Session ID',
     'setup.decisionCard':'Decision Card','btn.extract':'✦ Extract from notes',
@@ -1312,6 +1632,7 @@ const UI_STRINGS = {
     'setup.experienceGoal':'Experience Goal','ph.experienceGoal':'Reduce task completion time ↓30%, increase completion rate ↑20%',
     'setup.experienceMetrics':'Experience Metrics',
     'setup.drivingLogic':'Driving Logic','ph.drivingLogic':'User behavior change → business outcome change',
+    'setup.touchpoints':'Touchpoints','ph.touchpoints':'e.g. TV (remote control), Mobile (touch)',
     'setup.guardrails':'Guardrails','setup.constraints':'Constraints','ph.perline':'One per line',
     'audit.frames':'Selected Frames','audit.noFrames':'No frames selected in Figma.',
     'audit.progress':'Audit Progress',
@@ -1323,7 +1644,7 @@ const UI_STRINGS = {
     'status.translate':'Translating results…',
     'status.done':'Audit complete — annotations written to canvas.',
     'status.extracted':'Decision Card extracted — review and start audit.',
-    'btn.audit':'▶ Start Audit',
+    'btn.audit':'Start Audit',
     'results.compare':'Compare mode','results.empty':'Run an audit to see results.',
     'cmp.snapA':'Snapshot A (older)','cmp.snapB':'Snapshot B (newer)','btn.compare':'Compare snapshots',
     'cmp.added':'▲ New','cmp.removed':'✓ Resolved','cmp.same':'= Unchanged',
@@ -1331,7 +1652,7 @@ const UI_STRINGS = {
     'audit.type':'Type','audit.suggestion':'Suggestion','audit.guardrailViolation':'Guardrail violation','audit.whyMatters':'Why this matters',
     'history.noRuns':'No runs recorded.',
     'tab.evidence':'Evidence',
-    'btn.evidence':'🔬 Generate Evidence Report',
+    'btn.evidence':'Generate Evidence Report',
     'status.evidenceGenerating':'Generating evidence report…',
     'evidence.empty':'Run an audit, then generate the evidence report.',
     'evidence.hint':'The report simulates UX research that would have discovered these issues.',
@@ -1344,6 +1665,21 @@ const UI_STRINGS = {
     'evidence.issueSummary':'Issue Summary','evidence.sharedPatterns':'Shared Patterns',
     'evidence.rootCauses':'Root Causes','evidence.modulesCoverage':'Module Coverage',
     'evidence.moduleA':'Module A — Qualitative','evidence.moduleB':'Module B — Quantitative',
+    'tab.journey':'Journey',
+    'btn.journey':'Analyze Journey',
+    'status.journeyAnalysing':'Analysing journey…',
+    'journey.empty':'Run an audit first, then analyze the journey.',
+    'journey.hint':'Journey audit looks at the whole flow, not individual screens.',
+    'journey.runAuditFirst':'Run an audit first to load flow metrics.',
+    'journey.healthScore':'Flow Health Score','journey.cognitiveScore':'Cognitive Complexity',
+    'journey.stats':'Flow Statistics',
+    'journey.statFrames':'Frames','journey.statTransitions':'Transitions','journey.statDecisions':'Decisions',
+    'journey.statDeadEnds':'Dead Ends','journey.statDangling':'Dangling','journey.statHappyLen':'Happy Path',
+    'journey.entryPoints':'Entry points:','journey.exitPoints':'Exit points:',
+    'journey.happyPath':'Happy Path','journey.assessment':'Path Assessment','journey.friction':'Unnecessary friction',
+    'journey.dropOffPoints':'Drop-off Points',
+    'journey.whyLeave':'Why users leave','journey.impactGoal':'Impact on goal',
+    'journey.observations':'Flow Structure Observations',
     'btn.drd':'✏ Generate DRD',
     'drd.title':'Redesign Document',
     'drd.generating':'Generating DRD…',
@@ -1362,8 +1698,11 @@ const UI_STRINGS = {
   },
   zh: {
     'tab.setup':'设置','tab.audit':'审计','tab.results':'结果','tab.trend':'趋势',
+    'subtab.findings':'发现','subtab.evidence':'研究报告','subtab.journey':'用户旅程',
+    'setup.section.intent':'决策意图','setup.section.business':'业务目标','setup.section.experience':'体验目标','setup.section.constraints':'护栏与约束',
+    'sev.critical':'严重','sev.warning':'警告','sev.suggestion':'建议',
     'score.label':'评分',
-    'setup.connection':'连接配置','setup.provider':'供应商','setup.model':'模型',
+    'setup.connection':'LLM 配置','setup.provider':'供应商','setup.model':'模型',
     'setup.apiKey':'API 密钥','ph.apiKey':'sk-… 或 Anthropic 密钥',
     'setup.mcp':'MCP 桥接（可选）','setup.bridgeUrl':'桥接地址','setup.sessionId':'会话 ID',
     'setup.decisionCard':'决策卡','btn.extract':'✦ 从笔记提取',
@@ -1375,6 +1714,7 @@ const UI_STRINGS = {
     'setup.experienceGoal':'体验目标','ph.experienceGoal':'缩短任务完成时间 ↓30%，提升完成率 ↑20%',
     'setup.experienceMetrics':'体验指标',
     'setup.drivingLogic':'驱动逻辑','ph.drivingLogic':'用户行为改变 → 业务结果改变',
+    'setup.touchpoints':'触达方式','ph.touchpoints':'每行一条，如：电视（遥控器）、手机（触摸）',
     'setup.guardrails':'护栏','setup.constraints':'约束条件','ph.perline':'每行一条',
     'audit.frames':'已选画框','audit.noFrames':'Figma 中未选择画框。',
     'audit.progress':'审计进度',
@@ -1386,7 +1726,7 @@ const UI_STRINGS = {
     'status.translate':'正在翻译结果…',
     'status.done':'审计完成 — 标注已写入画布。',
     'status.extracted':'决策卡已提取 — 请确认后开始审计。',
-    'btn.audit':'▶ 开始审计',
+    'btn.audit':'开始审计',
     'results.compare':'对比模式','results.empty':'运行审计后查看结果。',
     'cmp.snapA':'快照 A（较旧）','cmp.snapB':'快照 B（较新）','btn.compare':'对比快照',
     'cmp.added':'▲ 新增','cmp.removed':'✓ 已解决','cmp.same':'= 未变更',
@@ -1394,7 +1734,7 @@ const UI_STRINGS = {
     'audit.type':'类型','audit.suggestion':'改进建议','audit.guardrailViolation':'护栏冲突','audit.whyMatters':'为什么重要',
     'history.noRuns':'暂无记录。',
     'tab.evidence':'研究报告',
-    'btn.evidence':'🔬 生成研究报告',
+    'btn.evidence':'生成研究报告',
     'status.evidenceGenerating':'正在生成研究报告…',
     'evidence.empty':'先运行审计，然后生成研究报告。',
     'evidence.hint':'报告模拟了发现这些问题的 UX 研究过程。',
@@ -1407,6 +1747,21 @@ const UI_STRINGS = {
     'evidence.issueSummary':'问题摘要','evidence.sharedPatterns':'共同模式',
     'evidence.rootCauses':'根因分析','evidence.modulesCoverage':'模块覆盖',
     'evidence.moduleA':'模块 A — 定性研究','evidence.moduleB':'模块 B — 定量研究',
+    'tab.journey':'旅程',
+    'btn.journey':'分析旅程',
+    'status.journeyAnalysing':'正在分析旅程…',
+    'journey.empty':'先运行审计，然后分析旅程。',
+    'journey.hint':'旅程审计关注整体流程，而非单个画框。',
+    'journey.runAuditFirst':'请先运行审计以加载流程指标。',
+    'journey.healthScore':'流程健康评分','journey.cognitiveScore':'认知复杂度',
+    'journey.stats':'流程统计',
+    'journey.statFrames':'画框','journey.statTransitions':'跳转','journey.statDecisions':'决策点',
+    'journey.statDeadEnds':'死胡同','journey.statDangling':'悬空反应','journey.statHappyLen':'主路径',
+    'journey.entryPoints':'入口：','journey.exitPoints':'出口：',
+    'journey.happyPath':'主要路径','journey.assessment':'路径评估','journey.friction':'多余摩擦',
+    'journey.dropOffPoints':'流失风险节点',
+    'journey.whyLeave':'用户为何离开','journey.impactGoal':'对目标的影响',
+    'journey.observations':'流程结构观察',
     'btn.drd':'✏ 生成 DRD',
     'drd.title':'重新设计文档',
     'drd.generating':'正在生成 DRD…',
@@ -1449,16 +1804,37 @@ document.querySelectorAll('.lang-btn').forEach((btn) => {
 });
 
 /* ─────────── TABS ─────────── */
+const RESULTS_GROUP = new Set(['results', 'evidence', 'journey']);
+
 document.querySelectorAll('.tab').forEach((btn) => {
   btn.addEventListener('click', () => {
-    switchTab(btn.dataset.tab);
-    if (btn.dataset.tab === 'history') loadHistory();
+    const tabName = btn.dataset.tab;
+    if (tabName === 'results') switchTab('results');
+    else switchTab(tabName);
+    if (tabName === 'history') loadHistory();
   });
 });
 
+document.querySelectorAll('.sub-tab').forEach((btn) => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.subtab));
+});
+
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('active', p.id === 'pane-' + name));
+  const isResults = RESULTS_GROUP.has(name);
+  document.querySelectorAll('.tab[data-tab]').forEach((t) => {
+    const active = t.dataset.tab === name || (t.dataset.tab === 'results' && isResults);
+    t.classList.toggle('active', active);
+  });
+  document.querySelectorAll('.pane').forEach((p) => {
+    p.classList.toggle('active', p.id === 'pane-' + name);
+  });
+  const subBar = $('resultsSubTabs');
+  if (subBar) {
+    subBar.classList.toggle('visible', isResults);
+    subBar.querySelectorAll('.sub-tab').forEach((t) => {
+      t.classList.toggle('active', t.dataset.subtab === name);
+    });
+  }
 }
 
 /* ─────────── STEPPER ─────────── */
@@ -1588,6 +1964,7 @@ function getDecisionCard() {
     primaryMetric:     $('primaryMetric').value.trim(),
     guardrails:        parseLines($('guardrails').value),
     constraints:       parseLines($('constraints').value),
+    touchpoints:       parseLines($('touchpoints').value),
   };
 }
 
@@ -1607,8 +1984,9 @@ $('extractBtn').addEventListener('click', async () => {
     $('experienceMetrics').value = (c.experienceMetrics || []).join('\n');
     $('drivingLogic').value      = c.drivingLogic      || '';
     $('primaryMetric').value     = c.primaryMetric     || '';
-    $('guardrails').value        = (c.guardrails  || []).join('\n');
-    $('constraints').value       = (c.constraints || []).join('\n');
+    $('guardrails').value        = (c.guardrails    || []).join('\n');
+    $('constraints').value       = (c.constraints   || []).join('\n');
+    $('touchpoints').value       = (c.touchpoints   || []).join('\n');
     switchTab('audit');
     setStatus(t('status.extracted'), 'ok');
   } catch (e) {
@@ -1704,6 +2082,18 @@ async function runAudit(payload) {
   _lastDecisionCardForEvidence = payload.decisionCard || null;
   showEvidenceButton(true);
 
+  // Populate journey state from payload metrics
+  if (payload.flowMetrics) {
+    journeyState.flowMetrics  = payload.flowMetrics;
+    journeyState.frameMetrics = payload.frameMetrics || [];
+    journeyState.preScore     = computeFlowHealthScore(payload.flowMetrics);
+    journeyState.postScore    = null;
+    journeyState.result       = null;
+    showJourneyButton(true);
+    updateJourneyScoreBanner(journeyState.preScore, null, payload.flowMetrics.cognitiveComplexityScore, null);
+    $('journeySections').innerHTML = '';
+  }
+
   renderGroups(audits);
   updateResultsBadge(audits.length);
 
@@ -1759,8 +2149,9 @@ function buildAuditCard(audit, sev) {
 
   const hdr = document.createElement('div');
   hdr.className = 'audit-card-header';
+  const sevLabelText = sev === 'critical' ? t('sev.critical') : sev === 'warning' ? t('sev.warning') : t('sev.suggestion');
   hdr.innerHTML =
-    '<div class="sev-bar"></div>' +
+    '<div class="sev-label">' + sevLabelText + '</div>' +
     '<div class="audit-card-text">' +
       '<div class="audit-frame-name">' + esc(audit.targetFrameName || '') + '</div>' +
       '<div class="audit-question">' + esc(audit.provocativeQuestion || '') + '</div>' +
@@ -1829,6 +2220,260 @@ function block(label, content) {
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ─────────── JOURNEY AUDIT ─────────── */
+const journeyState = {
+  flowMetrics: null,
+  frameMetrics: null,
+  preScore: null,
+  postScore: null,
+  result: null,
+};
+
+function journeyHealthClass(score) {
+  if (score == null) return '';
+  return score >= 80 ? 'journey-health-good' : score >= 60 ? 'journey-health-warn' : 'journey-health-bad';
+}
+
+function showJourneyButton(show) {
+  const row = $('journeyBtnRow');
+  if (row) row.style.display = show ? '' : 'none';
+  const empty = $('journeyEmptyCard');
+  if (empty) empty.style.display = show ? 'none' : '';
+}
+
+function updateJourneyScoreBanner(preScore, postScore, cognitiveScore, summary) {
+  const banner = $('journeyScoreBanner');
+  if (!banner) return;
+  banner.style.display = '';
+  const healthEl = $('journeyHealthNum');
+  const cogEl    = $('journeyCognitiveNum');
+  const summEl   = $('journeySummaryText');
+  const displayScore = postScore != null ? postScore : preScore;
+  healthEl.textContent = displayScore != null ? displayScore : '—';
+  healthEl.className = journeyHealthClass(displayScore);
+  cogEl.textContent = cognitiveScore != null ? cognitiveScore : '—';
+  cogEl.className = journeyHealthClass(cognitiveScore);
+  if (summEl && summary) summEl.textContent = summary;
+}
+
+$('journeyBtn').addEventListener('click', async () => {
+  if (!journeyState.flowMetrics) { alert(t('journey.runAuditFirst')); return; }
+  const btn = $('journeyBtn');
+  btn.disabled = true;
+  btn.querySelector('[data-i18n]').textContent = t('status.journeyAnalysing');
+  try {
+    const cfg = getLLMConfig();
+    const result = await runJourneyAudit({
+      ...cfg,
+      flowMetrics:    journeyState.flowMetrics,
+      frameMetrics:   journeyState.frameMetrics,
+      decisionCard:   _lastDecisionCardForEvidence,
+      existingAudits: _lastAuditsForEvidence,
+    });
+    journeyState.result = result;
+
+    // Compute post-LLM score
+    const adjustments = result.journeyScoreAdjustment && result.journeyScoreAdjustment.additionalDeductions;
+    journeyState.postScore = applyJourneyAIPenalties(journeyState.preScore, adjustments);
+
+    const summary = result.journeyScoreAdjustment && result.journeyScoreAdjustment.journeySummary;
+    updateJourneyScoreBanner(
+      journeyState.preScore,
+      journeyState.postScore,
+      journeyState.flowMetrics.cognitiveComplexityScore,
+      summary,
+    );
+    renderJourneySections(result, journeyState.flowMetrics, journeyState.frameMetrics);
+  } catch (e) {
+    alert(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.querySelector('[data-i18n]').textContent = t('btn.journey');
+  }
+});
+
+function renderJourneySections(result, flowMetrics, frameMetrics) {
+  const container = $('journeySections');
+  container.innerHTML = '';
+
+  // Stats card
+  renderJourneyStatsCard(container, flowMetrics);
+
+  // Happy path card
+  if (flowMetrics && (flowMetrics.happyPath || []).length) {
+    renderHappyPathCard(container, flowMetrics.happyPath, result.happyPathAssessment);
+  }
+
+  // Drop-off points
+  if (result.dropOffPoints && result.dropOffPoints.length) {
+    renderDropOffSection(container, result.dropOffPoints);
+  }
+
+  // Flow structure observations
+  if (result.flowStructureObservations && result.flowStructureObservations.length) {
+    renderObservationsSection(container, result.flowStructureObservations);
+  }
+}
+
+function renderJourneyStatsCard(container, flowMetrics) {
+  if (!flowMetrics) return;
+  const card = document.createElement('div');
+  card.className = 'card';
+  const hdr = document.createElement('div');
+  hdr.className = 'card-header';
+  hdr.innerHTML = '<span class="card-title" data-i18n-dynamic="journey.stats">' + t('journey.stats') + '</span>';
+
+  const grid = document.createElement('div');
+  grid.className = 'stats-grid';
+  const stats = [
+    { v: flowMetrics.totalFrames,        l: t('journey.statFrames')      },
+    { v: flowMetrics.totalTransitions,   l: t('journey.statTransitions') },
+    { v: flowMetrics.totalDecisionPoints,l: t('journey.statDecisions')   },
+    { v: (flowMetrics.deadEnds || []).length, l: t('journey.statDeadEnds') },
+    { v: flowMetrics.totalDanglingReactions,  l: t('journey.statDangling') },
+    { v: (flowMetrics.happyPath || []).length, l: t('journey.statHappyLen') },
+  ];
+  stats.forEach(({ v, l }) => {
+    const cell = document.createElement('div');
+    cell.className = 'stat-cell';
+    cell.innerHTML = '<span class="stat-value">' + (v != null ? v : '—') + '</span><span class="stat-label">' + esc(l) + '</span>';
+    grid.appendChild(cell);
+  });
+
+  const entryExitRow = document.createElement('div');
+  entryExitRow.className = 'entry-exit-row';
+  if ((flowMetrics.entryPoints || []).length) {
+    entryExitRow.innerHTML +=
+      '<div class="entry-exit-line"><span class="entry-exit-label">' + t('journey.entryPoints') + '</span>' +
+      flowMetrics.entryPoints.map((n) => '<span class="chip" style="font-size:10px;padding:2px 7px">' + esc(n) + '</span>').join(' ') + '</div>';
+  }
+  if ((flowMetrics.exitPoints || []).length) {
+    entryExitRow.innerHTML +=
+      '<div class="entry-exit-line"><span class="entry-exit-label">' + t('journey.exitPoints') + '</span>' +
+      flowMetrics.exitPoints.map((n) => '<span class="chip" style="font-size:10px;padding:2px 7px;background:rgba(52,199,89,.1);color:var(--green)">' + esc(n) + '</span>').join(' ') + '</div>';
+  }
+
+  card.appendChild(hdr);
+  card.appendChild(grid);
+  card.appendChild(entryExitRow);
+  container.appendChild(card);
+}
+
+function renderHappyPathCard(container, happyPath, assessment) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const hdr = document.createElement('div');
+  hdr.className = 'card-header';
+  hdr.innerHTML = '<span class="card-title" data-i18n-dynamic="journey.happyPath">' + t('journey.happyPath') + '</span>';
+
+  const chipRow = document.createElement('div');
+  chipRow.className = 'happy-path-row';
+  happyPath.forEach((name, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'happy-path-chip';
+    chip.textContent = name;
+    chipRow.appendChild(chip);
+    if (i < happyPath.length - 1) {
+      const arrow = document.createElement('span');
+      arrow.className = 'happy-path-arrow';
+      arrow.textContent = '→';
+      chipRow.appendChild(arrow);
+    }
+  });
+
+  card.appendChild(hdr);
+  card.appendChild(chipRow);
+
+  if (assessment && assessment.summary) {
+    const whyBtn = document.createElement('button');
+    whyBtn.className = 'why-toggle';
+    whyBtn.style.cssText = 'margin:0 14px 12px';
+    whyBtn.innerHTML = '<span class="why-chevron">▶</span><span>' + t('journey.assessment') + '</span>';
+    const whyBody = document.createElement('div');
+    whyBody.className = 'why-body';
+    whyBody.style.cssText = 'margin:0 14px 12px';
+    whyBody.textContent = assessment.summary;
+    if (assessment.unnecessaryFriction) whyBody.textContent += '\n\n' + t('journey.friction') + ': ' + assessment.unnecessaryFriction;
+    whyBtn.addEventListener('click', () => { whyBtn.classList.toggle('open'); whyBody.classList.toggle('open'); });
+    card.appendChild(whyBtn);
+    card.appendChild(whyBody);
+  }
+
+  container.appendChild(card);
+}
+
+function renderDropOffSection(container, dropOffPoints) {
+  const sectionEl = document.createElement('div');
+  const lbl = document.createElement('div');
+  lbl.className = 'group-label';
+  lbl.innerHTML = '<span>' + t('journey.dropOffPoints') + '</span><span class="group-pill">' + dropOffPoints.length + '</span>';
+  sectionEl.appendChild(lbl);
+
+  dropOffPoints.forEach((dp) => {
+    const sev = dp.severity || 'warning';
+    const card = document.createElement('div');
+    card.className = 'dropoff-card ' + sev;
+    const hdr = document.createElement('div');
+    hdr.className = 'dropoff-card-header';
+    hdr.innerHTML =
+      '<div class="sev-bar"></div>' +
+      '<div class="audit-card-text">' +
+        '<div class="audit-frame-name">' + esc(dp.frameName || '') + '</div>' +
+        '<div class="tag-row" style="margin-top:4px">' +
+          (dp.dropOffType ? '<span class="dropoff-type-badge">' + esc(dp.dropOffType.replace('_', ' ')) + '</span>' : '') +
+          (dp.journeyPosition ? '<span class="journey-pos-badge">' + esc(dp.journeyPosition) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="audit-chevron">▶</div>';
+    hdr.addEventListener('click', () => card.classList.toggle('open'));
+
+    const body = document.createElement('div');
+    body.className = 'dropoff-card-body';
+    if (dp.whyUsersLeave) body.innerHTML += block(t('journey.whyLeave'), '<div class="detail-text">' + esc(dp.whyUsersLeave) + '</div>');
+    if (dp.impactOnGoal)  body.innerHTML += block(t('journey.impactGoal'), '<div class="callout callout-guardrail">' + esc(dp.impactOnGoal) + '</div>');
+    if (dp.suggestion)    body.innerHTML += block(t('audit.suggestion'), '<div class="callout callout-suggestion">' + esc(dp.suggestion) + '</div>');
+
+    card.appendChild(hdr);
+    card.appendChild(body);
+    sectionEl.appendChild(card);
+  });
+
+  container.appendChild(sectionEl);
+}
+
+function renderObservationsSection(container, observations) {
+  const section = document.createElement('div');
+  section.className = 'evidence-section open';
+  const hdr = document.createElement('div');
+  hdr.className = 'evidence-section-header';
+  hdr.innerHTML = '<span class="evidence-section-title">' + t('journey.observations') + ' (' + observations.length + ')</span><span style="font-size:10px;color:var(--text-ter)">▼</span>';
+  const body = document.createElement('div');
+  body.className = 'evidence-section-body';
+
+  observations.forEach((obs) => {
+    const sev = obs.severity || 'suggestion';
+    const sevColor = sev === 'critical' ? 'var(--red)' : sev === 'warning' ? 'var(--orange)' : 'var(--accent)';
+    const el = document.createElement('div');
+    el.className = 'evidence-item';
+    el.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+        '<div class="evidence-item-text" style="flex:1">' + esc(obs.observation || '') + '</div>' +
+        '<span style="font-size:9px;font-weight:800;color:' + sevColor + ';flex-shrink:0">' + esc(sev.toUpperCase()) + '</span>' +
+      '</div>' +
+      (obs.journeyImpact ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(obs.journeyImpact) + '</div>' : '') +
+      ((obs.affectedFrames || []).length ? '<div class="tag-row">' + obs.affectedFrames.map((f) => '<span class="type-tag">' + esc(f) + '</span>').join('') + '</div>' : '');
+    body.appendChild(el);
+  });
+
+  hdr.addEventListener('click', () => {
+    section.classList.toggle('open');
+    hdr.querySelector('span:last-child').textContent = section.classList.contains('open') ? '▼' : '▶';
+  });
+  section.appendChild(hdr);
+  section.appendChild(body);
+  container.appendChild(section);
 }
 
 /* ─────────── EVIDENCE REPORT ─────────── */
