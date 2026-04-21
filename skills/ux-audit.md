@@ -125,17 +125,26 @@ The tool fetches the payload from the active bridge session automatically.
 **Response shape:**
 ```json
 {
-  "audits": [
+  "businessAnalysis": {
+    "coreAction": "The one action a user must complete to succeed in this flow",
+    "whyItMatters": "Why completing that action drives the primary metric",
+    "businessMetrics": ["activation rate ↑20%", "D7 retention ↑10%", "CAC ↓15%"],
+    "businessLogic": "Causal chain from user behaviour change to business outcome change",
+    "summary": "1–2 sentence executive summary of what the flow is trying to achieve"
+  },
+  "auditItems": [
     {
       "targetFrameName": "Onboarding / Step 2 — Permissions",
+      "what": "No recovery path after location permission denial",
+      "where": "Permission request dialog — denial state",
       "critiqueType": "Guardrail Conflict",
       "severity": "critical",
       "impactedMetric": "activation rate ↓",
+      "why": "Users who deny permission have no visible next step and no way to understand why the permission is needed",
       "causalMechanism": "Missing error recovery on permission denial → user has no path forward → session abandonment → activation rate drops.",
       "guardrailRef": "All error states must use $brand-danger token",
       "suggestion": "Add a denial recovery screen that explains why the permission is needed and offers a 'Skip for now' path. Use the $brand-danger token for the error state.",
-      "provocativeQuestion": "If a user denies location access here, what happens — and is the fallback state using the correct $brand-danger token or a hardcoded red?",
-      "affectedFrameId": "123:456"
+      "provocativeQuestion": "If a user denies location access here, what happens — and is the fallback state using the correct $brand-danger token or a hardcoded red?"
     }
   ],
   "score": 72,
@@ -154,6 +163,16 @@ The tool fetches the payload from the active bridge session automatically.
 | `critical` | User cannot complete goal, or a guardrail is directly violated | −15 pts |
 | `warning` | Significant friction, ambiguity, or near-violation | −8 pts |
 | `suggestion` | Improvement opportunity within constraints | −2 pts |
+
+The `businessAnalysis` block appears as a card at the top of the Results → Findings panel. Use it to verify the LLM correctly interpreted the DecisionCard before reviewing individual findings.
+
+---
+
+### Step 4b — (Optional) Confirm findings before evidence
+
+In the plugin UI, each audit card has **✓ confirm** and **✕ dismiss** buttons. The **Generate Evidence Report** button is disabled until at least one finding is confirmed.
+
+When calling `generate_evidence_report` via MCP, you can pass a filtered `audits` array to replicate this — only include findings you want the research plan to address.
 
 ---
 
@@ -215,7 +234,7 @@ Arguments:
 
 ### Step 6 — (Optional) Generate an evidence report
 
-Simulate the UX research process that would have discovered the audit findings.
+Simulate the UX research process that would have discovered the audit findings. The LLM reads all findings together before designing any research module — producing 1–2 modules maximum rather than one study per issue.
 
 ```
 Tool: generate_evidence_report
@@ -226,13 +245,76 @@ Arguments:
   apiKey: "<your-key>"
 ```
 
-Returns a structured report with: issue overview, research hypotheses, research design (qualitative + quantitative modules), simulated results, issue definitions, and user insights.
+**Response shape:**
+```json
+{
+  "researchPlan": {
+    "problemTypes": ["navigation clarity", "error recovery", "information hierarchy"],
+    "rootCauseGroups": [
+      { "groupName": "Missing feedback states", "issueIndices": [0, 2] }
+    ],
+    "modulesJustification": "Both issues share a root cause (absent system feedback) and can be addressed by a single usability study + funnel analysis"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "statement": "Users who encounter the permissions screen without context abandon the flow",
+      "cognitiveMechanism": "Uncertainty aversion — users default to denial when the value exchange is unclear",
+      "testableMethod": "Task-based usability test with think-aloud protocol"
+    }
+  ],
+  "moduleA": {
+    "method": "Moderated usability testing",
+    "why": "Direct observation of decision points is needed to understand abandonment triggers",
+    "issuesCovered": [0, 2],
+    "sampleSize": "8 participants",
+    "timeRange": "2 weeks",
+    "findings": [
+      {
+        "issueIndex": 0,
+        "finding": "6/8 participants tapped 'Deny' before reading the explanation text",
+        "severity": "critical",
+        "hypothesisRef": "H1",
+        "suggestedVisualization": "Task completion funnel by step"
+      }
+    ]
+  },
+  "moduleB": {
+    "method": "Funnel analysis + exit heatmap",
+    "why": "Quantify the drop-off rate at the permissions screen at scale",
+    "issuesCovered": [0, 1, 2],
+    "sampleSize": "30-day cohort, ~12 000 sessions",
+    "timeRange": "30 days",
+    "findings": []
+  },
+  "issueDefinitions": [
+    {
+      "auditIndex": 0,
+      "definition": "In first-time users completing onboarding, because the permissions screen shows a request without context, users deny access and have no recovery path, which blocks activation and causes session abandonment."
+    }
+  ],
+  "userInsights": [
+    {
+      "auditIndex": 0,
+      "insight": "Users experiencing uncertainty on the permissions screen exhibited loss-aversion behaviour — they preferred denying an unclear request over risking an unknown consequence.",
+      "cognitiveOrBehavioralMechanism": "Loss aversion under ambiguity",
+      "designImplication": "Reframe the permission request around the user benefit before asking; add a visible 'Skip for now' option to reduce perceived risk"
+    }
+  ]
+}
+```
+
+In the plugin UI, each item in `issueDefinitions` and `userInsights` has a **✓ confirm** button (Stage 2→3 gating). Confirmed items are injected as research context into the subsequent DRD call for that finding.
 
 ---
 
 ### Step 7 — (Optional) Generate a DRD for a specific finding
 
-For any `critical` or `warning` audit item, generate 3 redesign solutions and a full DRD document.
+For any `critical` or `warning` audit item, generate 3 redesign solutions and a full DRD document. Each solution **must target a different design dimension** (no two solutions can address the same level of the design):
+
+- **Solution 1** — information architecture / content hierarchy / interaction path
+- **Solution 2** — visual weight / affordance / feedback mechanisms
+- **Solution 3** — defaults / progressive disclosure / error prevention / copy and guidance
 
 ```
 Tool: generate_drd
@@ -244,7 +326,41 @@ Arguments:
   apiKey: "<your-key>"
 ```
 
-Returns 3 solution options with before/after contrast, a comparison table, and a full DRD document for the recommended solution. Copy the DRD as Markdown to paste into Notion or Confluence.
+**Response shape:**
+```json
+{
+  "dimensionDeclaration": "Solution 1 targets interaction path; Solution 2 targets feedback mechanisms; Solution 3 targets copy and progressive disclosure",
+  "solutions": [
+    {
+      "name": "Restructure Permission Flow",
+      "dimension": "Information Architecture / Interaction Path",
+      "coreDirection": "Move the permission request after the user has experienced value",
+      "specificChanges": ["Delay location prompt until after first core action", "Add a pre-permission value screen"],
+      "beforeAfter": {
+        "before": "Permission request shown on step 2, before user has any context",
+        "after": "Permission request delayed until step 4, after user completes first action",
+        "interactionPathChange": "User now reaches core setup before encountering the permission gate — activation path no longer blocked by a cold permission request",
+        "meaningfulChangeEvidence": "Value-first sequencing increases permission grant rates by 20–40% in comparable onboarding flows"
+      },
+      "whyBetter": "Contextual permission requests convert at higher rates because users understand the value exchange",
+      "estimatedImpact": "activation rate ↑12–18%",
+      "recommended": true,
+      "comparisonRow": {
+        "suitableFor": "Flows where core value can be demonstrated before requiring permissions",
+        "scopeOfChange": "Structural — requires reordering 3+ screens",
+        "risk": "Medium — requires QA across all permission states",
+        "businessBenefitDirection": "Activation rate ↑, permission grant rate ↑",
+        "timelineFit": "2-week sprint (structural change)"
+      }
+    }
+  ],
+  "comparisonTable": [ ... ],
+  "recommendedSolutionIndex": 0,
+  "drdDocument": "..."
+}
+```
+
+The comparison table rows must show **clearly different** scope, risk, and timeline values across the three solutions. Copy the `drdDocument` as Markdown to paste into Notion or Confluence.
 
 ---
 
@@ -282,11 +398,12 @@ For an automated, single-prompt audit, call the tools in this order:
 1. `inspect_selected_flow` — verify the flow has content and identify structural issues
 2. `get_variable_defs` — load token context
 3. `extract_decision_card` — (if notes available) structure business context with all 10 fields
-4. `run_contextual_audit` — run the per-frame audit
-5. `analyze_journey` — run the journey-level analysis
-6. `generate_evidence_report` — simulate the research backing
-7. `generate_drd` — generate redesign solutions for the most critical finding (index 0)
-8. `write_audit_feedback` — write results to canvas
+4. `run_contextual_audit` — run the per-frame audit; response includes `businessAnalysis` + `auditItems`
+5. Review the `businessAnalysis` block to confirm the LLM correctly read the DecisionCard
+6. `generate_evidence_report` — pass only the `auditItems` you want researched (equivalent to the designer confirming findings in the UI)
+7. `analyze_journey` — run the journey-level analysis
+8. `generate_drd` — generate redesign solutions for the most critical finding (index 0); optionally pass confirmed `issueDefinitions`/`userInsights` from the evidence report as `confirmedContext` for a richer DRD
+9. `write_audit_feedback` — write results to canvas
 
 If any step returns an error about a missing audit payload, ask the user to click **Start Audit** in the Figma plugin UI first (or ensure the plugin is open with frames selected).
 

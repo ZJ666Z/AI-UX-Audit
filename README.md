@@ -99,32 +99,67 @@ The plugin sends three signal types to the LLM simultaneously:
 - **Flow graph summary** — frame transitions, interactive nodes, dangling reactions, and frame sizes
 - **DecisionCard** — full business context including metrics, causal logic, and touchpoints
 
-### Audit output
+### Audit output structure
 
-Each audit item contains:
+The audit LLM returns a two-part JSON object:
+
+```json
+{
+  "businessAnalysis": {
+    "coreAction": "The one action a user must complete to succeed in this flow",
+    "whyItMatters": "Why completing that action drives the primary metric",
+    "businessMetrics": ["activation rate ↑20%", "D7 retention ↑10%", "CAC ↓15%"],
+    "businessLogic": "Causal chain from user behaviour change to business outcome change",
+    "summary": "1–2 sentence executive summary of what the flow is trying to achieve"
+  },
+  "auditItems": [ ... ]
+}
+```
+
+**Business Analysis fields:**
+
+| Field | Description |
+|---|---|
+| `coreAction` | The single user action that determines success in this flow |
+| `whyItMatters` | Why completing that action moves the primary metric |
+| `businessMetrics` | 3–5 quantified metrics pulled from the DecisionCard |
+| `businessLogic` | Plain-language causal chain: user behaviour → business outcome |
+| `summary` | Executive summary of what the flow is trying to accomplish |
+
+**Audit item fields:**
 
 | Field | Description |
 |---|---|
 | `targetFrameName` | Exact name of the Figma frame being critiqued |
+| `what` | One-sentence description of the UX problem |
+| `where` | Specific UI element, region, or interaction point where the issue occurs |
 | `critiqueType` | `Broken Link`, `Missing State`, `Guardrail Conflict`, `Constraint Risk`, or `Flow Ambiguity` |
 | `severity` | `critical` / `warning` / `suggestion` |
-| `impactedMetric` | Which business or experience metric is affected, with ↑/↓ direction. References metrics from the DecisionCard where possible. |
-| `causalMechanism` | `[UI condition] → [user cognitive/behavioral response] → [metric consequence]`. 1–2 sentences, no vague claims. |
+| `impactedMetric` | Which business or experience metric is affected, with ↑/↓ direction |
+| `why` | Why this is a problem — the cognitive or behavioral mechanism |
+| `causalMechanism` | `[UI condition] → [user cognitive/behavioral response] → [metric consequence]`. 1–2 sentences. |
 | `guardrailRef` | Exact guardrail string from the DecisionCard (or `null`) |
 | `suggestion` | One concrete, actionable fix |
 | `provocativeQuestion` | A pointed question for the design team |
 
 ### Audit card UI
 
-Each audit result card in the plugin panel shows:
+**Business Analysis card** — appears at the top of the Findings sub-tab before individual audit items. Shows `coreAction`, business metric chips, `whyItMatters`, `businessLogic`, and a `summary`.
+
+**Audit result cards** — one per `auditItems` entry, showing:
 
 - Severity chip (Critical / Warning / Suggestion) + left border tint
 - Frame name + provocative question (always visible)
+- **✓ / ✕ confirm buttons** — designer marks each finding as confirmed or dismissed
 - **Type** tag + **Impact badge** (purple, shows `impactedMetric`) — visible when expanded
+- **What** — description of the problem
+- **Where** — specific UI location
 - **Suggestion** callout (green)
 - **Guardrail violation** callout (amber) — when applicable
-- **Why this matters** — collapsible section showing `causalMechanism`, hidden by default
+- **Why this matters** — collapsible section showing `causalMechanism`
 - **Generate DRD** button — visible on `critical` and `warning` items
+
+A **confirmation summary** below the cards shows how many findings are confirmed (e.g. `2 / 4 confirmed`). The **Generate Evidence Report** button is disabled until at least one finding is confirmed.
 
 ### Severity and score
 
@@ -177,14 +212,18 @@ Shows graded audit findings grouped by severity. After an audit completes:
 
 #### Evidence sub-tab
 
-After clicking "Generate Evidence Report", the plugin generates a structured research document with 6 collapsible sections:
+The Evidence Report uses a **holistic research planning** approach: all confirmed audit findings are read together first to identify shared root causes and overlapping patterns before any research module is designed. This produces 1–2 research modules maximum (not one study per issue) and realistic simulated findings with concrete numbers.
 
-1. **Issue Overview & Research Plan** — issue summary, shared patterns, root causes, module coverage
-2. **Research Hypotheses** — 2–4 testable hypotheses pointing to cognitive/behavioral mechanisms
-3. **Research Design** — Module A (qualitative: interviews/usability testing) + Module B (quantitative: funnel/heatmap/clickstream)
-4. **Simulated Results** — realistic findings with counts, percentages, metric values, and suggested visualization types
-5. **Issue Definitions** — one per audit finding, in the format: "In [user + context], because of [design problem], users [behavioral consequence], which impacts [business metric]."
-6. **User Insights** — one per finding, with cognitive/behavioral mechanism and design implication
+Only confirmed audit findings (✓ from Stage 1) are sent to the LLM. The rendered sections appear in this order:
+
+1. **Research Plan** — problem types identified, root cause groups (with issue chips), modules justification (why 1–2 modules cover all issues)
+2. **Hypotheses** — 2–4 testable hypotheses, each with an ID badge, the hypothesis statement, cognitive/behavioral mechanism, and testable method
+3. **Module A** — qualitative method (interviews, usability testing, or diary study): why this method, issues covered, sample size, time range, and simulated findings with severity ratings, hypothesis references, and visualization suggestions
+4. **Module B** — quantitative method (funnel analysis, heatmap, clickstream, or A/B test): same structure as Module A
+5. **Issue Definitions** — one per confirmed finding, format: "In [user + context], because of [design problem], users [behavioral consequence], which impacts [business metric]." Each has a **✓ confirm button** for Stage 2→3 gating.
+6. **User Insights** — one per confirmed finding, with cognitive/behavioral mechanism and design implication. Each has a **✓ confirm button** for Stage 2→3 gating.
+
+Confirmed issue definitions and user insights are injected as research context into the subsequent DRD call for that finding.
 
 #### Journey sub-tab
 
@@ -203,16 +242,25 @@ Score history chart and audit run log. Shows all audit runs in the current sessi
 
 ## Generate DRD (Redesign Document)
 
-Clicking **Generate DRD** on a `critical` or `warning` audit card opens a slide-over panel with:
+Clicking **Generate DRD** on a `critical` or `warning` audit card opens a slide-over panel. If research findings have been confirmed in the Evidence tab (Stage 2→3), those confirmed definitions and insights are injected as context into the DRD prompt. If not yet confirmed, the LLM receives a disclaimer and generates solutions without research backing.
 
-- **3 redesign solutions** shown as tabs, each with:
+The panel contains:
+
+- **Dimension declaration** — a brief statement of which design dimension each solution targets before the solutions are shown
+
+- **3 redesign solutions** as tabs, each **targeting a different design dimension**:
+  - **Solution 1** — information architecture / content hierarchy / interaction path
+  - **Solution 2** — visual weight / affordance / feedback mechanisms
+  - **Solution 3** — defaults / progressive disclosure / error prevention / copy and guidance
+
+  Each solution tab shows a **dimension badge** and includes:
   - Core direction and approach
-  - Specific changes (information architecture, interaction path, visual hierarchy, key elements)
-  - Before/after contrast
+  - Specific changes
+  - **Before/after contrast** (4 fields): `before` (current state), `after` (first meaningful difference), `interactionPathChange` (how the user journey changes), `meaningfulChangeEvidence` (why this constitutes a real improvement)
   - Why this solution is better (experience + business reasoning)
   - Estimated impact on the impacted metric
 
-- **Solution comparison table** — columns: Solution | Suitable For | Scope of Change | Risk | Business Benefit Direction | Timeline Fit
+- **Solution comparison table** — columns: Solution | Suitable For | Scope of Change | Risk | Business Benefit Direction | Timeline Fit. The three rows must show clearly different scope, risk, and timeline values.
 
 - **DRD document** for the recommended solution:
   - 4.1 Redesign background (current problem, root cause, business impact)
@@ -222,6 +270,35 @@ Clicking **Generate DRD** on a `critical` or `warning` audit card opens a slide-
   - 4.5 Risks and validation (side effects, metrics to monitor, validation method)
 
 - **Copy DRD as Markdown** button — exports the document to clipboard for pasting into Notion, Confluence, or a doc
+
+---
+
+## Confirmation Layer
+
+The plugin uses a two-stage confirmation model that keeps the designer in control of what the LLM uses as input for downstream steps.
+
+### Stage 1 → 2: Audit findings → Evidence Report
+
+After an audit completes, each audit card in the Findings sub-tab shows a **✓ confirm** and **✕ dismiss** button.
+
+- **✓ confirm** — marks the finding as validated; the card border turns green
+- **✕ dismiss** — marks the finding as not relevant; the card border turns red
+
+The **Generate Evidence Report** button is **disabled** until at least one finding is confirmed. When the button is clicked, only the confirmed findings are sent to the Evidence Report LLM — dismissed and unreviewed findings are excluded. This prevents the research simulation from being diluted by false-positive audit items.
+
+A **confirmation summary** (e.g. `2 / 4 confirmed`) is shown below the audit cards to indicate progress.
+
+### Stage 2 → 3: Evidence findings → DRD
+
+The Evidence sub-tab shows Issue Definitions and User Insights sections, each item with a **✓ confirm** button.
+
+Confirming an issue definition or user insight stores that item's text, cognitive/behavioral mechanism, and design implication in session memory keyed to the original audit index.
+
+When **Generate DRD** is clicked on an audit card, the plugin looks up whether the corresponding evidence item was confirmed. If confirmed research context exists, it is injected as a `CONFIRMED RESEARCH CONTEXT` block in the DRD prompt. If not, the prompt includes a note that research findings have not yet been confirmed and the solutions are generated without that backing.
+
+### Session state
+
+All confirmation state is **in-memory** and scoped to the current plugin session. Running a new audit resets all confirmation state.
 
 ---
 
@@ -514,3 +591,4 @@ Use `devAllowedDomains` (not `allowedDomains`) for the localhost bridge URL, and
 | [`bridge/mcp-server.mjs`](bridge/mcp-server.mjs) | MCP stdio server (8 tools) |
 | [`bridge/session-store.mjs`](bridge/session-store.mjs) | In-memory session store |
 | [`skills/ux-audit.md`](skills/ux-audit.md) | Claude Code skill — step-by-step MCP audit guide |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Full system architecture + every LLM sub-process and prompt structure |

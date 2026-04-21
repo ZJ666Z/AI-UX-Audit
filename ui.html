@@ -448,6 +448,43 @@
     }
     .audit-card.open .audit-chevron { transform: rotate(90deg); }
 
+    /* ── Confirmation buttons ── */
+    .confirm-row {
+      display: flex; gap: 3px; align-items: center; flex-shrink: 0;
+    }
+    .confirm-btn {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--fill);
+      cursor: pointer;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-ter);
+      transition: all .15s;
+      flex-shrink: 0; line-height: 1;
+    }
+    .confirm-btn:hover { background: var(--fill-sec); color: var(--text-sec); }
+    .confirm-btn.cb-yes.confirmed  { background: rgba(30,142,62,.12); border-color: rgba(30,142,62,.3); color: var(--green); }
+    .confirm-btn.cb-no.dismissed   { background: rgba(217,48,37,.08); border-color: rgba(217,48,37,.2); color: var(--red); }
+
+    .confirm-summary {
+      font-size: 11px; color: var(--text-ter); padding: 1px 0;
+    }
+    .confirm-summary strong { color: var(--accent); }
+
+    /* ── Evidence confirm buttons (Stage 2→3) ── */
+    .ev-confirm-row { display: flex; gap: 5px; align-items: center; margin-top: 6px; }
+    .ev-confirm-btn {
+      font-size: 10px; padding: 2px 9px;
+      border-radius: 4px; border: 1px solid var(--border);
+      background: var(--fill); cursor: pointer; color: var(--text-sec);
+      transition: all .15s; font-weight: 500;
+    }
+    .ev-confirm-btn:hover { background: var(--fill-sec); }
+    .ev-confirm-btn.ev-confirmed { background: rgba(30,142,62,.1); border-color: rgba(30,142,62,.25); color: var(--green); font-weight: 600; }
+    .ev-confirm-btn.ev-dismissed { background: rgba(217,48,37,.06); border-color: rgba(217,48,37,.15); color: var(--red); }
+
     .audit-card-body {
       display: none;
       flex-direction: column; gap: 8px;
@@ -524,6 +561,85 @@
     }
     .why-body.open { display: block; }
 
+    /* ── audit-card new fields ── */
+    .audit-what {
+      font-size: 12px; font-weight: 600;
+      color: var(--text); line-height: 1.4;
+      margin-bottom: 2px;
+    }
+    .audit-where {
+      font-size: 10px; color: var(--text-ter);
+      font-weight: 500;
+    }
+    .callout-why {
+      background: rgba(26,115,232,.06);
+      border-color: rgba(26,115,232,.18);
+      border-left: 3px solid var(--accent);
+      color: var(--text-sec);
+    }
+
+    /* ── Business Analysis card ── */
+    .ba-card {
+      background: linear-gradient(135deg, #f8f9ff 0%, #f1f3f4 100%);
+      border: 1px solid rgba(26,115,232,.2);
+      border-radius: var(--radius-m);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .ba-header {
+      display: flex; flex-direction: column; gap: 3px;
+      padding: 10px 12px 8px;
+      background: rgba(26,115,232,.07);
+      border-bottom: 1px solid rgba(26,115,232,.15);
+    }
+    .ba-label {
+      font-size: 9px; font-weight: 800; letter-spacing: .7px;
+      text-transform: uppercase; color: var(--accent);
+    }
+    .ba-core-action {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      line-height: 1.35;
+    }
+    .ba-body {
+      padding: 10px 12px 10px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .ba-metrics {
+      display: flex; flex-wrap: wrap; gap: 5px;
+    }
+    .ba-metric-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700;
+      background: rgba(26,115,232,.1); color: var(--accent);
+      border-radius: 20px; padding: 2px 8px;
+    }
+    .ba-metric-seg {
+      font-size: 9px; font-weight: 500;
+      color: var(--text-ter);
+      margin-left: 3px;
+    }
+    .ba-row {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .ba-row-label {
+      font-size: 9px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--text-ter);
+    }
+    .ba-row-val {
+      font-size: 12px; line-height: 1.5; color: var(--text-sec);
+    }
+    .ba-logic {
+      font-style: italic;
+    }
+    .ba-summary {
+      font-size: 12px; line-height: 1.55; color: var(--text);
+      font-weight: 500;
+      padding: 8px 10px;
+      background: var(--surface);
+      border-radius: var(--radius-s);
+      border: 1px solid var(--border);
+    }
+
     /* ══ EVIDENCE ══ */
     .evidence-section {
       background: var(--surface);
@@ -564,7 +680,63 @@
       font-size: 10px; font-weight: 700;
       border-radius: 6px; padding: 2px 6px;
       background: var(--fill-sec); color: var(--text-sec);
-      display: inline-block; margin-top: 4px;
+      display: inline-block;
+    }
+
+    /* ── Evidence new components ── */
+    .ev-hyp-id {
+      font-size: 10px; font-weight: 800; letter-spacing: .4px;
+      background: rgba(26,115,232,.12); color: var(--accent);
+      border-radius: 4px; padding: 1px 6px; flex-shrink: 0;
+    }
+    .ev-rcg {
+      display: flex; flex-direction: column; gap: 3px;
+      padding: 7px 9px; margin-top: 5px;
+      background: var(--fill); border-radius: var(--radius-s);
+    }
+    .ev-rcg-name {
+      font-size: 11px; font-weight: 700; color: var(--text);
+    }
+    .ev-rcg-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ev-rcg-chip {
+      font-size: 10px; background: rgba(26,115,232,.1); color: var(--accent);
+      border-radius: 20px; padding: 1px 6px;
+    }
+    .ev-module-meta { gap: 6px; }
+    .ev-module-method { font-size: 13px; font-weight: 700; color: var(--text); }
+    .ev-covers-row {
+      font-size: 10px; color: var(--text-ter);
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      margin-top: 2px;
+    }
+    .ev-covers-chip {
+      font-size: 10px; background: rgba(30,142,62,.1); color: var(--green);
+      border-radius: 20px; padding: 1px 6px;
+    }
+    .ev-module-detail-grid {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      font-size: 11px; color: var(--text-sec); margin-top: 3px;
+    }
+    .ev-module-detail-grid em { color: var(--text-ter); font-style: normal; margin-right: 2px; }
+    .ev-finding {
+      padding: 7px 9px;
+      background: var(--fill);
+      border-radius: var(--radius-s);
+      margin-top: 4px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .ev-finding-sev {
+      font-size: 9px; font-weight: 800; letter-spacing: .4px;
+      text-transform: uppercase; flex-shrink: 0; padding-top: 2px;
+    }
+    .ev-finding-meta {
+      font-size: 10px; color: var(--text-ter); padding-left: 2px;
+    }
+    .ev-issue-ref-row {
+      display: flex; align-items: center; gap: 5px; margin-top: 5px; flex-wrap: wrap;
+    }
+    .ev-sev-badge {
+      font-size: 10px; font-weight: 700; text-transform: capitalize;
     }
 
     /* ══ JOURNEY ══ */
@@ -668,12 +840,20 @@
     .drd-panel-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
     .drd-solution-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
     .drd-sol-tab {
-      padding: 5px 12px; border-radius: var(--radius-s);
+      padding: 5px 12px 6px; border-radius: var(--radius-s);
       font-size: 11px; font-weight: 500;
       background: var(--surface); color: var(--text-sec);
       border: 1px solid var(--border); cursor: pointer; transition: all .15s;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
     }
     .drd-sol-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+    .drd-sol-tab.active .drd-dim-badge { background: rgba(255,255,255,.22); color: #fff; }
+    .drd-dim-badge {
+      font-size: 9px; font-weight: 700; letter-spacing: .3px;
+      background: rgba(26,115,232,.1); color: var(--accent);
+      border-radius: 4px; padding: 1px 5px;
+      text-transform: uppercase; white-space: nowrap;
+    }
     .drd-solution-card { display: none; flex-direction: column; gap: 8px; }
     .drd-solution-card.active { display: flex; }
     .drd-field { display: flex; flex-direction: column; gap: 3px; }
@@ -1018,13 +1198,15 @@
 
     <!-- normal view -->
     <div id="normalView">
+      <div id="businessAnalysisSection"></div>
       <div id="resultGroups" style="display:flex;flex-direction:column;gap:8px">
         <div style="color:var(--text-ter);font-size:12px;padding:8px 2px" data-i18n="results.empty">Run an audit to see results.</div>
       </div>
-      <div id="evidenceBtnRow" style="display:none;padding:4px 0 8px">
-        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:11px;padding:6px 14px">
+      <div id="evidenceBtnRow" style="display:none;padding:4px 0 8px;display:flex;flex-direction:column;gap:5px">
+        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:11px;padding:6px 14px" disabled>
           <span data-i18n="btn.evidence">Generate Evidence Report</span>
         </button>
+        <div id="confirmSummary" class="confirm-summary" style="display:none"></div>
       </div>
     </div>
 
@@ -1348,34 +1530,63 @@ async function extractDecisionCard({ provider, model, apiKey, notes, language })
 }
 
 async function generateEvidenceReport({ provider, model, apiKey, audits, decisionCard }) {
-  // Large prompt — inject audit results + DecisionCard. Token budget note: if audit has many findings,
-  // the prompt grows. Cap at 20 items to stay within typical context limits.
   const cappedAudits = (audits || []).slice(0, 20);
-  const systemPrompt = 'You are a senior UX researcher and data analysis expert. Reconstruct a realistic UX research process that would have discovered and validated the provided issues. Output only valid JSON matching the requested schema. No markdown or commentary.';
+  const systemPrompt = 'You are a senior UX researcher. You design holistic research plans — not one study per issue. Output only valid JSON matching the requested schema. No markdown or commentary.';
+
   const userPrompt = [
-    'UX AUDIT FINDINGS:',
-    JSON.stringify(cappedAudits, null, 2),
+    'UX AUDIT FINDINGS (read all together before planning):',
+    JSON.stringify(cappedAudits.map((a, i) => ({ index: i, frameName: a.targetFrameName, what: a.what, severity: a.severity, impactedMetric: a.impactedMetric })), null, 2),
     '',
-    'DECISION CARD CONTEXT:',
+    'DECISION CARD:',
     JSON.stringify(decisionCard, null, 2),
     '',
-    'INSTRUCTIONS:',
-    'Read ALL issues first. Identify shared patterns and root causes, then plan 1-2 research modules that cover all issues together. Do NOT treat each issue as a separate study.',
+    'INSTRUCTIONS — follow all 5 steps:',
     '',
-    'Return JSON with this exact structure:',
+    'Step 1 — Read ALL issues together. Identify what types of problems they are (cognition / behavior / information architecture / decision overload / trust / etc.), which issues share a root cause, and the minimum number of research modules needed.',
+    '',
+    'Step 2 — Design 1–2 research modules (NOT one per issue):',
+    '  moduleA (Qualitative — answers "Why"): method (user interviews / think-aloud / contextual inquiry), issuesCovered (list), whyThisMethod (plain language), sampleSize (n=?), segments, tasks (interview guide outline), setting.',
+    '  moduleB (Quantitative — answers "How many / Where"): method (funnel analysis / clickstream / heatmap / session recording / A/B test), issuesCovered, whyThisMethod, timeRange, sampleSize, coreMetrics, analysisDimensions.',
+    '',
+    'Step 3 — Simulated findings for each module (realistic, not fabricated):',
+    '  Each finding must include a concrete number or percentage (e.g. "8 of 12 users hesitated at step 3", "drop-off rate: 34%"), a severity (Critical / Major / Minor), the hypothesis it supports or refutes, and a visualization suggestion.',
+    '',
+    'Step 4 — For each original audit issue, output:',
+    '  issueDefinitions: "In [user + context], because of [design problem], users [behavior], which ultimately impacts [business metric]."',
+    '  userInsights: evidence-based insight pointing to a cognitive or decision-making mechanism. NOT a restatement of the UI problem. Include designImplication.',
+    '',
+    'Step 5 — 2–4 research hypotheses covering the full issue set. Each must point to a user cognition, decision-making, or behavior mechanism, and be testable.',
+    '',
+    'Return ONLY valid JSON in this exact shape:',
     JSON.stringify({
-      issueOverview: { issueSummary: 'string', sharedPatterns: 'string', rootCauses: 'string', modulesCoverage: 'string' },
+      researchPlan: {
+        problemTypes: 'string',
+        rootCauseGroups: [{ groupName: 'string', issues: ['string'], sharedRootCause: 'string' }],
+        modulesJustification: 'string',
+      },
       hypotheses: [{ id: 'H1', statement: 'string', mechanism: 'string', testable: 'string' }],
-      researchDesign: {
-        moduleA: { method: 'string', sampleSize: 'string', segments: 'string', tasks: 'string', issuesCovered: 'string', whyQualitative: 'string' },
-        moduleB: { method: 'string', timeRange: 'string', sampleSize: 'string', metrics: 'string', analysisDimensions: 'string', issuesCovered: 'string', whyQuantitative: 'string' },
+      moduleA: {
+        method: 'string',
+        whyThisMethod: 'string',
+        issuesCovered: ['string'],
+        sampleSize: 'string',
+        segments: 'string',
+        tasks: 'string',
+        setting: 'string',
+        findings: [{ finding: 'string', severity: 'Critical | Major | Minor', hypothesisRef: 'H1', supported: true, visualization: 'string' }],
       },
-      results: {
-        moduleA: { sampleBreakdown: 'string', keyFindings: ['string'], severityRatings: 'string', hypothesesSupported: 'string', suggestedVisualizations: ['string'] },
-        moduleB: { sampleSize: 'string', coreMetrics: ['string'], hypothesesSupported: 'string', suggestedVisualizations: ['string'] },
+      moduleB: {
+        method: 'string',
+        whyThisMethod: 'string',
+        issuesCovered: ['string'],
+        timeRange: 'string',
+        sampleSize: 'string',
+        coreMetrics: ['string'],
+        analysisDimensions: ['string'],
+        findings: [{ finding: 'string', severity: 'Critical | Major | Minor', hypothesisRef: 'H1', supported: true, visualization: 'string' }],
       },
-      issueDefinitions: [{ auditIndex: 0, definition: 'In [user + context], because of [design problem], users [behavioral consequence], which impacts [business metric].' }],
-      userInsights: [{ auditIndex: 0, insight: 'string', cognitiveOrBehavioralMechanism: 'string', designImplication: 'string' }],
+      issueDefinitions: [{ auditIndex: 0, frameName: 'string', severity: 'string', definition: 'In [user + context], because of [design problem], users [behavior], which ultimately impacts [business metric].' }],
+      userInsights: [{ auditIndex: 0, frameName: 'string', severity: 'string', insight: 'string', cognitiveOrBehavioralMechanism: 'string', designImplication: 'string' }],
     }),
   ].join('\n');
 
@@ -1383,33 +1594,71 @@ async function generateEvidenceReport({ provider, model, apiKey, audits, decisio
   return extractJson(raw);
 }
 
-async function generateDRD({ provider, model, apiKey, audit, decisionCard }) {
+async function generateDRD({ provider, model, apiKey, audit, decisionCard, confirmedContext }) {
   const systemPrompt = 'You are a senior Product Manager, Interaction Design expert, and UX Strategy consultant. Output only valid JSON matching the requested schema. No markdown or commentary.';
+
+  const researchContextLines = [];
+  if (confirmedContext && (confirmedContext.definition || confirmedContext.insight)) {
+    researchContextLines.push('', 'CONFIRMED RESEARCH CONTEXT (designer has reviewed and accepted these findings):');
+    if (confirmedContext.definition) researchContextLines.push('Issue Definition: ' + confirmedContext.definition);
+    if (confirmedContext.insight) researchContextLines.push('User Insight: ' + confirmedContext.insight);
+    if (confirmedContext.cognitiveOrBehavioralMechanism) researchContextLines.push('Cognitive / Behavioral Mechanism: ' + confirmedContext.cognitiveOrBehavioralMechanism);
+    if (confirmedContext.designImplication) researchContextLines.push('Design Implication: ' + confirmedContext.designImplication);
+    researchContextLines.push('Use this confirmed context to ground the redesign solutions in verified user behavior, not assumptions.');
+  } else {
+    researchContextLines.push('', 'Note: the designer has not confirmed research findings for this issue yet. Treat the following issue data as preliminary and apply reasonable assumptions about user behavior.');
+  }
+
   const userPrompt = [
     'ISSUE:',
     'Frame: ' + (audit.targetFrameName || ''),
     'Critique type: ' + (audit.critiqueType || ''),
     'Severity: ' + (audit.severity || ''),
-    'Problem: ' + (audit.suggestion || ''),
+    'Problem: ' + (audit.what || audit.suggestion || ''),
+    'Where: ' + (audit.where || ''),
     'Impacted metric: ' + (audit.impactedMetric || 'unknown'),
-    'Why it matters: ' + (audit.causalMechanism || ''),
+    'Why it matters: ' + (audit.why || audit.causalMechanism || ''),
+    ...researchContextLines,
     '',
     'BUSINESS CONTEXT:',
     JSON.stringify(decisionCard, null, 2),
     '',
+    'MANDATORY DIFFERENTIATION CONSTRAINT:',
+    'Before generating the 3 solutions, declare upfront in dimensionDeclaration which design dimension each solution primarily targets:',
+    '  Solution 1 must primarily address one of: information architecture / content hierarchy / interaction path',
+    '  Solution 2 must primarily address one of: visual weight / affordance / feedback mechanisms',
+    '  Solution 3 must primarily address one of: defaults / progressive disclosure / error prevention / copy and guidance',
+    'These three dimensions must be different from each other. Solutions that address the same underlying dimension are not acceptable even if they look different.',
+    '',
+    'For each solution, the beforeAfter section must explicitly answer four questions:',
+    '  before: What does the user see and what do they do in the current design?',
+    '  after: What is the FIRST thing the user notices that is different — not the last, the first?',
+    '  interactionPathChange: Which specific interaction path is shortened, removed, or restructured?',
+    '  meaningfulChangeEvidence: Why would someone looking at before and after side by side immediately understand this is a meaningful change and not a cosmetic one?',
+    '',
+    'COMPARISON TABLE CONSTRAINT:',
+    'The three solutions must differ in scope (one minimal/surgical, one medium, one structural), risk level, and implementation timeline. These differences must be immediately obvious from the table.',
+    '',
     'Generate exactly 3 redesign solutions, then produce a DRD for the recommended one.',
     'Return JSON with this exact structure:',
     JSON.stringify({
+      dimensionDeclaration: { solution1: 'string — chosen dimension', solution2: 'string — chosen dimension', solution3: 'string — chosen dimension' },
       solutions: [{
         name: 'string',
-        coreDiection: 'string',
+        dimension: 'string — the design dimension this solution primarily addresses',
+        coreDirection: 'string',
         coreApproach: 'string',
         specificChanges: { informationArchitecture: 'string', interactionPath: 'string', visualHierarchy: 'string', keyElements: 'string' },
-        beforeAfter: { before: 'string', after: 'string' },
+        beforeAfter: {
+          before: 'string — what does the user see and what do they do?',
+          after: 'string — what is the FIRST thing the user notices that is different?',
+          interactionPathChange: 'string — which specific interaction path is shortened, removed, or restructured?',
+          meaningfulChangeEvidence: 'string — why is this a meaningful change and not cosmetic?',
+        },
         whyBetter: 'string',
         impactOnMetric: 'string',
       }],
-      comparisonTable: [{ solution: 'string', suitableFor: 'string', scopeOfChange: 'string', risk: 'string', businessBenefit: 'string', timelineFit: 'string' }],
+      comparisonTable: [{ solution: 'string', dimension: 'string', suitableFor: 'string', scopeOfChange: 'Minimal/Surgical | Medium | Structural', risk: 'string', businessBenefit: 'string', timelineFit: 'string' }],
       recommendedIndex: 0,
       drd: {
         background: { currentProblem: 'string', rootCause: 'string', businessImpact: 'string' },
@@ -1511,24 +1760,38 @@ async function runContextualAudit({ provider, model, apiKey, payload, language }
   const variableSummary = summarizeDesignVariables(payload.designVariables);
 
   const systemPrompt = [
-    'You are an interrogative UX Director.',
-    'Cross-reference the attached visuals with the Logic Graph summary to find broken links, dead ends, and missing states.',
-    'Critique the flow strictly against the provided Guardrails, Constraints, and business/experience metrics in the DecisionCard.',
-    'If the DecisionCard includes touchpoints (e.g. "TV (remote control)"), evaluate interaction patterns specifically for those device types — e.g. focus management, D-pad navigation, remote-friendly tap targets — not generic touch/mouse conventions.',
+    'You are a senior UX Director and product strategist. Your response has two mandatory sequential parts in a single JSON object.',
+    '',
+    'PART 1 — Business Analysis: Analyse the DecisionCard to surface what this flow is really trying to accomplish.',
+    'Required fields:',
+    '  coreAction: The single highest-value action a user must complete in this flow (string).',
+    '  whyItMatters: Why completing that action directly moves the primary business metric — one sentence (string).',
+    '  businessMetrics: Array of 3-5 objects, each with "metric" (string), "direction" ("↑" or "↓"), "segment" (string — user group most affected).',
+    '  businessLogic: Plain-language causal chain: UI condition → user behavior → business outcome (string).',
+    '  summary: 2-sentence synthesis connecting the coreAction to the top business metric (string).',
+    '',
+    'PART 2 — UX Issues: Cross-reference the attached visuals with the flow graph. Identify exactly 3–5 UX issues that most directly threaten the business metrics from Part 1.',
+    'Sort items by business impact: critical first, then warning, then suggestion.',
+    'Required fields for each item:',
+    '  targetFrameName: exact frame name from the flow (string).',
+    '  what: one-sentence plain-English label of the issue (string).',
+    '  where: exact UI location — component name, screen zone, or element type (string).',
+    '  critiqueType: "Broken Link" | "Missing State" | "Guardrail Conflict" | "Constraint Risk" | "Flow Ambiguity".',
+    '  severity: "critical" | "warning" | "suggestion".',
+    '  impactedMetric: metric with ↑/↓ direction, referencing DecisionCard metrics where possible (string).',
+    '  why: why this issue blocks or degrades the coreAction — 1 sentence (string).',
+    '  causalMechanism: [UI condition] → [user response] → [metric consequence]. 1-2 sentences (string).',
+    '  guardrailRef: exact guardrail from DecisionCard if violated, else null.',
+    '  suggestion: one concrete actionable fix (string).',
+    '  provocativeQuestion: a sharp question a stakeholder should ask about this issue (string).',
+    '',
+    'If the DecisionCard includes touchpoints, evaluate interaction patterns specific to those devices (e.g. TV remote: focus management, D-pad navigation; Mobile: thumb zones, 44px tap targets).',
     'Do not suggest removing friction if that friction serves a business constraint.',
-    'Return only valid JSON in this exact shape:',
-    '{"audits":[{',
-    '"targetFrameName":"string",',
-    '"critiqueType":"Broken Link | Missing State | Guardrail Conflict | Constraint Risk | Flow Ambiguity",',
-    '"severity":"critical | warning | suggestion",',
-    '"impactedMetric":"which business or experience metric this issue affects, with ↑/↓ direction (e.g. \'completion rate ↓\'). Must reference a metric from the DecisionCard businessMetrics or experienceMetrics where possible.",',
-    '"causalMechanism":"[UI condition] → [user cognitive/behavioral response] → [metric consequence]. 1-2 sentences. No vague claims.",',
-    '"guardrailRef":"exact guardrail string from DecisionCard, or null if not applicable",',
-    '"suggestion":"one concrete actionable fix",',
-    '"provocativeQuestion":"string"',
-    '}]}',
-    'severity rules: critical=user cannot complete their goal or a guardrail is violated; warning=significant friction or ambiguity; suggestion=improvement opportunity.',
-  ].join(' ');
+    'severity rules: critical=user cannot complete goal or guardrail violated; warning=significant friction or ambiguity; suggestion=improvement opportunity.',
+    '',
+    'Return ONLY valid JSON:',
+    '{"businessAnalysis":{"coreAction":"string","whyItMatters":"string","businessMetrics":[{"metric":"string","direction":"↑ or ↓","segment":"string"}],"businessLogic":"string","summary":"string"},"auditItems":[{"targetFrameName":"string","what":"string","where":"string","critiqueType":"string","severity":"string","impactedMetric":"string","why":"string","causalMechanism":"string","guardrailRef":"string or null","suggestion":"string","provocativeQuestion":"string"}]}',
+  ].join('\n');
 
   const userPrompt = [
     'Evaluate the following tri-modal payload.',
@@ -1551,13 +1814,16 @@ async function runContextualAudit({ provider, model, apiKey, payload, language }
 
   const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: selectedVisuals });
   const parsed = extractJson(raw);
-  const rawAudits = Array.isArray(parsed.audits) ? parsed.audits : [];
+  const rawAudits = Array.isArray(parsed.auditItems) ? parsed.auditItems
+    : Array.isArray(parsed.audits) ? parsed.audits : [];
   if (!rawAudits.length) throw new Error('The model returned no audits.');
 
   const audits = resolveFrameIds(rawAudits, payload.flowGraph);
+  const businessAnalysis = parsed.businessAnalysis || null;
 
   return {
     audits,
+    businessAnalysis,
     score: calculateAuditScore(audits),
     meta: { attachedVisualFrames: selectedVisuals.map((v) => v.name), omittedVisualFrames: omittedVisualNames, graphSummary: summarizedGraph, flowInspection },
   };
@@ -1649,22 +1915,27 @@ const UI_STRINGS = {
     'cmp.snapA':'Snapshot A (older)','cmp.snapB':'Snapshot B (newer)','btn.compare':'Compare snapshots',
     'cmp.added':'▲ New','cmp.removed':'✓ Resolved','cmp.same':'= Unchanged',
     'history.trend':'Score Trend','btn.refresh':'↺ Refresh','history.runs':'Audit Runs',
-    'audit.type':'Type','audit.suggestion':'Suggestion','audit.guardrailViolation':'Guardrail violation','audit.whyMatters':'Why this matters',
+    'audit.type':'Type','audit.suggestion':'Suggestion','audit.guardrailViolation':'Guardrail violation','audit.whyMatters':'Why this matters','audit.why':'Why it blocks the goal',
+    'ba.label':'Business Analysis','ba.whyItMatters':'Why it matters','ba.businessLogic':'Business logic',
+    'confirm.confirm':'✓ Confirm','confirm.dismiss':'✕ Dismiss','confirm.confirmed':'✓ Confirmed','confirm.dismissed':'✕ Dismissed',
+    'confirm.summary':'issues confirmed — only confirmed issues will be sent to the evidence report',
     'history.noRuns':'No runs recorded.',
     'tab.evidence':'Evidence',
     'btn.evidence':'Generate Evidence Report',
     'status.evidenceGenerating':'Generating evidence report…',
     'evidence.empty':'Run an audit, then generate the evidence report.',
-    'evidence.hint':'The report simulates UX research that would have discovered these issues.',
-    'evidence.issueOverview':'Issue Overview & Research Plan',
+    'evidence.hint':'The report designs a holistic research plan across all issues — not one study per issue.',
+    'evidence.researchPlan':'Research Plan',
     'evidence.hypotheses':'Research Hypotheses',
-    'evidence.researchDesign':'Research Design',
-    'evidence.results':'Results',
+    'evidence.moduleA':'Module A — Qualitative (Why)',
+    'evidence.moduleB':'Module B — Quantitative (How many / Where)',
     'evidence.issueDefinitions':'Issue Definitions',
     'evidence.userInsights':'User Insights',
-    'evidence.issueSummary':'Issue Summary','evidence.sharedPatterns':'Shared Patterns',
-    'evidence.rootCauses':'Root Causes','evidence.modulesCoverage':'Module Coverage',
-    'evidence.moduleA':'Module A — Qualitative','evidence.moduleB':'Module B — Quantitative',
+    'evidence.problemTypes':'Problem types','evidence.rootCauseGroups':'Root cause groups',
+    'evidence.modulesJustification':'Why these modules cover all issues',
+    'evidence.issuesCovered':'Issues covered',
+    'evidence.sampleSize':'n','evidence.timeRange':'Time range',
+    'evidence.findings':'Simulated findings',
     'tab.journey':'Journey',
     'btn.journey':'Analyze Journey',
     'status.journeyAnalysing':'Analysing journey…',
@@ -1686,10 +1957,11 @@ const UI_STRINGS = {
     'drd.coreDirection':'Core Direction','drd.coreApproach':'Core Approach',
     'drd.infoArch':'Information Architecture','drd.interaction':'Interaction Path',
     'drd.visualHierarchy':'Visual Hierarchy','drd.keyElements':'Key Elements',
-    'drd.before':'Before','drd.after':'After',
+    'drd.before':'Before','drd.after':'After (first difference)',
+    'drd.interactionPathChange':'Interaction path change','drd.meaningfulChangeEvidence':'Why this is meaningful',
     'drd.whyBetter':'Why This Solution','drd.impactMetric':'Impact on Metric',
     'drd.comparison':'Solution Comparison',
-    'drd.solution':'Solution','drd.suitableFor':'Suitable For','drd.scope':'Scope',
+    'drd.solution':'Solution','drd.dimension':'Design Dimension','drd.suitableFor':'Suitable For','drd.scope':'Scope',
     'drd.risk':'Risk','drd.bizBenefit':'Business Benefit','drd.timeline':'Timeline Fit',
     'drd.document':'DRD Document',
     'drd.currentProblem':'Current Problem','drd.rootCause':'Root Cause','drd.bizImpact':'Business Impact',
@@ -1731,22 +2003,27 @@ const UI_STRINGS = {
     'cmp.snapA':'快照 A（较旧）','cmp.snapB':'快照 B（较新）','btn.compare':'对比快照',
     'cmp.added':'▲ 新增','cmp.removed':'✓ 已解决','cmp.same':'= 未变更',
     'history.trend':'评分趋势','btn.refresh':'↺ 刷新','history.runs':'审计记录',
-    'audit.type':'类型','audit.suggestion':'改进建议','audit.guardrailViolation':'护栏冲突','audit.whyMatters':'为什么重要',
+    'audit.type':'类型','audit.suggestion':'改进建议','audit.guardrailViolation':'护栏冲突','audit.whyMatters':'为什么重要','audit.why':'为何阻碍目标',
+    'ba.label':'业务分析','ba.whyItMatters':'为什么重要','ba.businessLogic':'业务逻辑',
+    'confirm.confirm':'✓ 确认','confirm.dismiss':'✕ 忽略','confirm.confirmed':'✓ 已确认','confirm.dismissed':'✕ 已忽略',
+    'confirm.summary':'项已确认 — 仅已确认的问题会发送给研究报告',
     'history.noRuns':'暂无记录。',
     'tab.evidence':'研究报告',
     'btn.evidence':'生成研究报告',
     'status.evidenceGenerating':'正在生成研究报告…',
     'evidence.empty':'先运行审计，然后生成研究报告。',
-    'evidence.hint':'报告模拟了发现这些问题的 UX 研究过程。',
-    'evidence.issueOverview':'问题概览与研究计划',
+    'evidence.hint':'报告针对所有问题设计整体研究计划，而非逐条研究。',
+    'evidence.researchPlan':'研究计划',
     'evidence.hypotheses':'研究假设',
-    'evidence.researchDesign':'研究设计',
-    'evidence.results':'研究结果',
+    'evidence.moduleA':'模块 A — 定性研究（为什么）',
+    'evidence.moduleB':'模块 B — 定量研究（有多少 / 在哪里）',
     'evidence.issueDefinitions':'问题定义',
     'evidence.userInsights':'用户洞察',
-    'evidence.issueSummary':'问题摘要','evidence.sharedPatterns':'共同模式',
-    'evidence.rootCauses':'根因分析','evidence.modulesCoverage':'模块覆盖',
-    'evidence.moduleA':'模块 A — 定性研究','evidence.moduleB':'模块 B — 定量研究',
+    'evidence.problemTypes':'问题类型','evidence.rootCauseGroups':'根因分组',
+    'evidence.modulesJustification':'为何这些模块覆盖所有问题',
+    'evidence.issuesCovered':'覆盖的问题',
+    'evidence.sampleSize':'样本量','evidence.timeRange':'时间范围',
+    'evidence.findings':'模拟研究结果',
     'tab.journey':'旅程',
     'btn.journey':'分析旅程',
     'status.journeyAnalysing':'正在分析旅程…',
@@ -1768,10 +2045,11 @@ const UI_STRINGS = {
     'drd.coreDirection':'核心方向','drd.coreApproach':'核心思路',
     'drd.infoArch':'信息架构','drd.interaction':'交互路径',
     'drd.visualHierarchy':'视觉层级','drd.keyElements':'关键元素',
-    'drd.before':'改动前','drd.after':'改动后',
+    'drd.before':'改动前','drd.after':'改动后（用户最先注意到什么）',
+    'drd.interactionPathChange':'交互路径变化','drd.meaningfulChangeEvidence':'为何这是实质性改变',
     'drd.whyBetter':'为什么选这个方案','drd.impactMetric':'对指标的影响',
     'drd.comparison':'方案对比',
-    'drd.solution':'方案','drd.suitableFor':'适用场景','drd.scope':'改动范围',
+    'drd.solution':'方案','drd.dimension':'设计维度','drd.suitableFor':'适用场景','drd.scope':'改动范围',
     'drd.risk':'风险','drd.bizBenefit':'业务收益方向','drd.timeline':'工期适配',
     'drd.document':'DRD 文档',
     'drd.currentProblem':'当前问题','drd.rootCause':'根因','drd.bizImpact':'业务影响',
@@ -2042,11 +2320,16 @@ async function runAudit(payload) {
   let audits = Array.isArray(result.audits) ? result.audits : [];
   if (!audits.length) throw new Error('No audit results returned.');
 
+  let businessAnalysis = result.businessAnalysis || null;
+
   // Translate display fields to Chinese right before rendering
   if (state.lang === 'zh') {
     setStatus(t('status.translate'), 'busy');
     try {
       const fields = audits.map((a) => ({
+        what:                a.what,
+        where:               a.where,
+        why:                 a.why,
         critiqueType:        a.critiqueType,
         impactedMetric:      a.impactedMetric,
         causalMechanism:     a.causalMechanism,
@@ -2058,6 +2341,9 @@ async function runAudit(payload) {
       const arr = Array.isArray(translated) ? translated : [];
       audits = audits.map((a, i) => ({
         ...a,
+        what:                (arr[i] && arr[i].what)                || a.what,
+        where:               (arr[i] && arr[i].where)               || a.where,
+        why:                 (arr[i] && arr[i].why)                 || a.why,
         critiqueType:        (arr[i] && arr[i].critiqueType)        || a.critiqueType,
         impactedMetric:      (arr[i] && arr[i].impactedMetric)      || a.impactedMetric,
         causalMechanism:     (arr[i] && arr[i].causalMechanism)     || a.causalMechanism,
@@ -2065,6 +2351,15 @@ async function runAudit(payload) {
         suggestion:          (arr[i] && arr[i].suggestion)          || a.suggestion,
         provocativeQuestion: (arr[i] && arr[i].provocativeQuestion) || a.provocativeQuestion,
       }));
+
+      if (businessAnalysis) {
+        try {
+          const baSource = [{ coreAction: businessAnalysis.coreAction, whyItMatters: businessAnalysis.whyItMatters, businessLogic: businessAnalysis.businessLogic, summary: businessAnalysis.summary }];
+          const baArr = await translateToZh({ provider: cfg.provider, model: cfg.model, apiKey: cfg.apiKey, source: baSource });
+          const bt = Array.isArray(baArr) ? baArr[0] : null;
+          if (bt) businessAnalysis = { ...businessAnalysis, coreAction: bt.coreAction || businessAnalysis.coreAction, whyItMatters: bt.whyItMatters || businessAnalysis.whyItMatters, businessLogic: bt.businessLogic || businessAnalysis.businessLogic, summary: bt.summary || businessAnalysis.summary };
+        } catch (_) { /* keep English */ }
+      }
     } catch (_) { /* translation failed — show English */ }
   }
 
@@ -2080,6 +2375,12 @@ async function runAudit(payload) {
 
   _lastAuditsForEvidence = audits;
   _lastDecisionCardForEvidence = payload.decisionCard || null;
+
+  // Reset confirmation state for the new audit
+  confirmState.confirmedAuditIndices.clear();
+  confirmState.confirmedInsights.clear();
+  _evidenceAuditIndexMap = audits.map((_, i) => i);
+
   showEvidenceButton(true);
 
   // Populate journey state from payload metrics
@@ -2094,7 +2395,7 @@ async function runAudit(payload) {
     $('journeySections').innerHTML = '';
   }
 
-  renderGroups(audits);
+  renderGroups(audits, businessAnalysis);
   updateResultsBadge(audits.length);
 
   setStep(3);
@@ -2115,12 +2416,41 @@ function updateResultsBadge(n) {
   badge.classList.toggle('visible', n > 0);
 }
 
+/* ─────────── BUSINESS ANALYSIS CARD ─────────── */
+function renderBusinessAnalysis(ba) {
+  const el = $('businessAnalysisSection');
+  if (!el) return;
+  if (!ba) { el.innerHTML = ''; return; }
+
+  const metricsHtml = (ba.businessMetrics || []).map((m) =>
+    '<span class="ba-metric-chip">' + esc(m.direction || '') + ' ' + esc(m.metric || '') +
+    (m.segment ? '<span class="ba-metric-seg">' + esc(m.segment) + '</span>' : '') +
+    '</span>'
+  ).join('');
+
+  el.innerHTML =
+    '<div class="ba-card">' +
+      '<div class="ba-header">' +
+        '<span class="ba-label">' + t('ba.label') + '</span>' +
+        '<span class="ba-core-action">' + esc(ba.coreAction || '') + '</span>' +
+      '</div>' +
+      '<div class="ba-body">' +
+        (metricsHtml ? '<div class="ba-metrics">' + metricsHtml + '</div>' : '') +
+        (ba.whyItMatters ? '<div class="ba-row"><span class="ba-row-label">' + t('ba.whyItMatters') + '</span><span class="ba-row-val">' + esc(ba.whyItMatters) + '</span></div>' : '') +
+        (ba.businessLogic ? '<div class="ba-row"><span class="ba-row-label">' + t('ba.businessLogic') + '</span><span class="ba-row-val ba-logic">' + esc(ba.businessLogic) + '</span></div>' : '') +
+        (ba.summary ? '<div class="ba-summary">' + esc(ba.summary) + '</div>' : '') +
+      '</div>' +
+    '</div>';
+}
+
 /* ─────────── RESULT GROUPS ─────────── */
-function renderGroups(audits) {
+function renderGroups(audits, businessAnalysis) {
+  renderBusinessAnalysis(businessAnalysis || null);
+
   const groups = { critical: [], warning: [], suggestion: [] };
-  audits.forEach((a) => {
+  audits.forEach((a, i) => {
     const s = a.severity || 'suggestion';
-    (groups[s] = groups[s] || []).push(a);
+    (groups[s] = groups[s] || []).push({ audit: a, idx: i });
   });
 
   const wrap = $('resultGroups');
@@ -2136,28 +2466,77 @@ function renderGroups(audits) {
     lbl.innerHTML = '<span>' + sev + '</span><span class="group-pill">' + groups[sev].length + '</span>';
     section.appendChild(lbl);
 
-    groups[sev].forEach((a) => section.appendChild(buildAuditCard(a, sev)));
+    groups[sev].forEach(({ audit, idx }) => section.appendChild(buildAuditCard(audit, sev, idx)));
     wrap.appendChild(section);
   });
 
   switchTab('results');
 }
 
-function buildAuditCard(audit, sev) {
+function buildAuditCard(audit, sev, auditIndex) {
+  // Store original index on the audit object for DRD lookup
+  audit._auditIndex = auditIndex;
+
   const card = document.createElement('div');
   card.className = 'audit-card ' + sev;
 
   const hdr = document.createElement('div');
   hdr.className = 'audit-card-header';
   const sevLabelText = sev === 'critical' ? t('sev.critical') : sev === 'warning' ? t('sev.warning') : t('sev.suggestion');
+  const whereHtml = audit.where ? '<span class="audit-where">' + esc(audit.where) + '</span>' : '';
   hdr.innerHTML =
     '<div class="sev-label">' + sevLabelText + '</div>' +
     '<div class="audit-card-text">' +
-      '<div class="audit-frame-name">' + esc(audit.targetFrameName || '') + '</div>' +
+      '<div class="audit-frame-name">' + esc(audit.targetFrameName || '') + (whereHtml ? ' · ' + whereHtml : '') + '</div>' +
+      (audit.what ? '<div class="audit-what">' + esc(audit.what) + '</div>' : '') +
       '<div class="audit-question">' + esc(audit.provocativeQuestion || '') + '</div>' +
     '</div>' +
     '<div class="audit-chevron">▶</div>';
   hdr.addEventListener('click', () => card.classList.toggle('open'));
+
+  // Confirm / dismiss buttons — inserted before chevron
+  const confirmRow = document.createElement('div');
+  confirmRow.className = 'confirm-row';
+  confirmRow.addEventListener('click', (e) => e.stopPropagation());
+
+  const yesBtn = document.createElement('button');
+  yesBtn.className = 'confirm-btn cb-yes' + (confirmState.confirmedAuditIndices.has(auditIndex) ? ' confirmed' : '');
+  yesBtn.title = t('confirm.confirm');
+  yesBtn.textContent = '✓';
+
+  const noBtn = document.createElement('button');
+  noBtn.className = 'confirm-btn cb-no';
+  noBtn.title = t('confirm.dismiss');
+  noBtn.textContent = '✕';
+
+  yesBtn.addEventListener('click', () => {
+    if (confirmState.confirmedAuditIndices.has(auditIndex)) {
+      confirmState.confirmedAuditIndices.delete(auditIndex);
+      yesBtn.classList.remove('confirmed');
+    } else {
+      confirmState.confirmedAuditIndices.add(auditIndex);
+      yesBtn.classList.add('confirmed');
+      noBtn.classList.remove('dismissed');
+    }
+    updateConfirmSummary();
+  });
+
+  noBtn.addEventListener('click', () => {
+    if (noBtn.classList.contains('dismissed')) {
+      noBtn.classList.remove('dismissed');
+    } else {
+      noBtn.classList.add('dismissed');
+      confirmState.confirmedAuditIndices.delete(auditIndex);
+      yesBtn.classList.remove('confirmed');
+    }
+    updateConfirmSummary();
+  });
+
+  confirmRow.appendChild(yesBtn);
+  confirmRow.appendChild(noBtn);
+  // Insert before the chevron
+  const chevron = hdr.querySelector('.audit-chevron');
+  hdr.insertBefore(confirmRow, chevron);
 
   const body = document.createElement('div');
   body.className = 'audit-card-body';
@@ -2167,6 +2546,9 @@ function buildAuditCard(audit, sev) {
     const typeHtml = audit.critiqueType ? '<span class="type-tag">' + esc(audit.critiqueType) + '</span>' : '';
     const impactHtml = audit.impactedMetric ? '<span class="impact-badge">📉 ' + esc(audit.impactedMetric) + '</span>' : '';
     body.innerHTML += block(t('audit.type'), '<div class="tag-row">' + typeHtml + impactHtml + '</div>');
+  }
+  if (audit.why) {
+    body.innerHTML += block(t('audit.why'), '<div class="callout callout-why">' + esc(audit.why) + '</div>');
   }
   if (audit.suggestion) {
     body.innerHTML += block(t('audit.suggestion'), '<div class="callout callout-suggestion">' + esc(audit.suggestion) + '</div>');
@@ -2479,26 +2861,62 @@ function renderObservationsSection(container, observations) {
 /* ─────────── EVIDENCE REPORT ─────────── */
 let _lastAuditsForEvidence = [];
 let _lastDecisionCardForEvidence = null;
+let _evidenceAuditIndexMap = []; // filteredIndex → originalIndex mapping
+
+/* ─────────── CONFIRMATION STATE ─────────── */
+const confirmState = {
+  confirmedAuditIndices: new Set(),  // Set<number> — original indices into _lastAuditsForEvidence
+  confirmedInsights: new Map(),       // Map<originalIndex, { definition?, insight? }>
+};
 
 function showEvidenceButton(show) {
   const row = $('evidenceBtnRow');
-  if (row) row.style.display = show ? '' : 'none';
+  if (row) row.style.display = show ? 'flex' : 'none';
+  if (show) updateConfirmSummary();
+}
+
+function updateConfirmSummary() {
+  const total     = _lastAuditsForEvidence.length;
+  const confirmed = confirmState.confirmedAuditIndices.size;
+  const summaryEl = $('confirmSummary');
+  const btn       = $('evidenceBtn');
+
+  if (summaryEl) {
+    if (total > 0) {
+      summaryEl.innerHTML = '<strong>' + confirmed + '</strong> / ' + total + ' ' + t('confirm.summary');
+      summaryEl.style.display = '';
+    } else {
+      summaryEl.style.display = 'none';
+    }
+  }
+  if (btn) btn.disabled = confirmed === 0;
 }
 
 $('evidenceBtn').addEventListener('click', async () => {
   if (!_lastAuditsForEvidence.length) { alert('Run an audit first.'); return; }
   const btn = $('evidenceBtn');
+
+  // Build filtered audit list from confirmed items
+  const confirmedIndices = Array.from(confirmState.confirmedAuditIndices).sort((a, b) => a - b);
+  const auditsToSend = confirmedIndices.length > 0
+    ? confirmedIndices.map((i) => _lastAuditsForEvidence[i])
+    : _lastAuditsForEvidence;
+  // Store the mapping: filtered position → original index
+  _evidenceAuditIndexMap = confirmedIndices.length > 0
+    ? confirmedIndices
+    : _lastAuditsForEvidence.map((_, i) => i);
+
   btn.disabled = true;
-  btn.querySelector('[data-i18n]').textContent = t('status.evidenceGenerating');
+  btn.querySelector('[data-i18n]').textContent = t('status.evidenceGenerating') + ' (' + auditsToSend.length + ')';
   try {
     const cfg = getLLMConfig();
-    const report = await generateEvidenceReport({ ...cfg, audits: _lastAuditsForEvidence, decisionCard: _lastDecisionCardForEvidence });
-    renderEvidenceReport(report, _lastAuditsForEvidence);
+    const report = await generateEvidenceReport({ ...cfg, audits: auditsToSend, decisionCard: _lastDecisionCardForEvidence });
+    renderEvidenceReport(report, auditsToSend);
     switchTab('evidence');
   } catch (e) {
     alert(e.message);
   } finally {
-    btn.disabled = false;
+    btn.disabled = confirmState.confirmedAuditIndices.size === 0;
     btn.querySelector('[data-i18n]').textContent = t('btn.evidence');
   }
 });
@@ -2509,12 +2927,12 @@ function renderEvidenceReport(report, audits) {
   $('evidenceEmptyCard').style.display = 'none';
 
   const sections = [
-    { key: 'issueOverview', titleKey: 'evidence.issueOverview', render: renderIssueOverview },
-    { key: 'hypotheses',    titleKey: 'evidence.hypotheses',    render: renderHypotheses },
-    { key: 'researchDesign',titleKey: 'evidence.researchDesign',render: renderResearchDesign },
-    { key: 'results',       titleKey: 'evidence.results',       render: renderResults },
+    { key: 'researchPlan',     titleKey: 'evidence.researchPlan',     render: renderResearchPlan },
+    { key: 'hypotheses',       titleKey: 'evidence.hypotheses',       render: renderHypotheses },
+    { key: 'moduleA',          titleKey: 'evidence.moduleA',          render: (d) => renderModule(d, 'A') },
+    { key: 'moduleB',          titleKey: 'evidence.moduleB',          render: (d) => renderModule(d, 'B') },
     { key: 'issueDefinitions', titleKey: 'evidence.issueDefinitions', render: (d) => renderIssueDefsOrInsights(d, audits, 'definition') },
-    { key: 'userInsights',  titleKey: 'evidence.userInsights',  render: (d) => renderIssueDefsOrInsights(d, audits, 'insight') },
+    { key: 'userInsights',     titleKey: 'evidence.userInsights',     render: (d) => renderIssueDefsOrInsights(d, audits, 'insight') },
   ];
 
   sections.forEach(({ key, titleKey, render }, idx) => {
@@ -2544,13 +2962,27 @@ function evidenceItem(label, text) {
   return el;
 }
 
-function renderIssueOverview(d) {
-  return [
-    evidenceItem(t('evidence.issueSummary'),  d.issueSummary  || ''),
-    evidenceItem(t('evidence.sharedPatterns'),d.sharedPatterns|| ''),
-    evidenceItem(t('evidence.rootCauses'),    d.rootCauses    || ''),
-    evidenceItem(t('evidence.modulesCoverage'),d.modulesCoverage || ''),
-  ];
+function renderResearchPlan(d) {
+  const items = [];
+  if (d.problemTypes) items.push(evidenceItem(t('evidence.problemTypes'), d.problemTypes));
+  if (d.modulesJustification) items.push(evidenceItem(t('evidence.modulesJustification'), d.modulesJustification));
+  if (Array.isArray(d.rootCauseGroups) && d.rootCauseGroups.length) {
+    const el = document.createElement('div');
+    el.className = 'evidence-item';
+    el.innerHTML = '<div class="evidence-item-label">' + t('evidence.rootCauseGroups') + '</div>';
+    d.rootCauseGroups.forEach((g) => {
+      const row = document.createElement('div');
+      row.className = 'ev-rcg';
+      const issueChips = (g.issues || []).map((iss) => '<span class="ev-rcg-chip">' + esc(String(iss)) + '</span>').join('');
+      row.innerHTML =
+        '<div class="ev-rcg-name">' + esc(g.groupName || '') + '</div>' +
+        (issueChips ? '<div class="ev-rcg-chips">' + issueChips + '</div>' : '') +
+        (g.sharedRootCause ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(g.sharedRootCause) + '</div>' : '');
+      el.appendChild(row);
+    });
+    items.push(el);
+  }
+  return items;
 }
 
 function renderHypotheses(arr) {
@@ -2558,64 +2990,115 @@ function renderHypotheses(arr) {
     const el = document.createElement('div');
     el.className = 'evidence-item';
     el.innerHTML =
-      '<div class="evidence-item-label">' + esc(h.id || '') + '</div>' +
-      '<div class="evidence-item-text" style="font-weight:600">' + esc(h.statement || '') + '</div>' +
-      '<div class="evidence-item-text">' + esc(h.mechanism || '') + '</div>' +
-      '<div class="evidence-item-text" style="color:var(--text-sec);margin-top:2px">🧪 ' + esc(h.testable || '') + '</div>';
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">' +
+        '<span class="ev-hyp-id">' + esc(h.id || '') + '</span>' +
+        '<span class="evidence-item-text" style="font-weight:600;flex:1">' + esc(h.statement || '') + '</span>' +
+      '</div>' +
+      (h.mechanism ? '<div class="evidence-item-text" style="color:var(--text-sec)">🧠 ' + esc(h.mechanism) + '</div>' : '') +
+      (h.testable ? '<div class="evidence-item-text" style="color:var(--accent);margin-top:2px">🧪 ' + esc(h.testable) + '</div>' : '');
     return el;
   });
 }
 
-function renderResearchDesign(d) {
+function renderModule(m, label) {
   const items = [];
-  ['moduleA', 'moduleB'].forEach((mod) => {
-    if (!d[mod]) return;
-    const m = d[mod];
-    const el = document.createElement('div');
-    el.className = 'evidence-item';
-    el.innerHTML =
-      '<div class="evidence-item-label">' + (mod === 'moduleA' ? t('evidence.moduleA') : t('evidence.moduleB')) + '</div>' +
-      '<div class="evidence-item-text"><strong>' + esc(m.method || '') + '</strong> · ' + esc(m.sampleSize || '') + '</div>' +
-      (m.segments ? '<div class="evidence-item-text">' + esc(m.segments) + '</div>' : '') +
-      (m.tasks ? '<div class="evidence-item-text">' + esc(m.tasks) + '</div>' : '') +
-      (m.metrics ? '<div class="evidence-item-text">' + esc(m.metrics) + '</div>' : '') +
-      '<div class="evidence-item-text" style="color:var(--text-sec)">Covers: ' + esc(m.issuesCovered || '') + '</div>';
-    items.push(el);
-  });
-  return items;
-}
+  const meta = document.createElement('div');
+  meta.className = 'evidence-item ev-module-meta';
+  const coversChips = (m.issuesCovered || []).map((iss) => '<span class="ev-covers-chip">' + esc(String(iss)) + '</span>').join('');
+  meta.innerHTML =
+    '<div class="ev-module-method"><strong>' + esc(m.method || '') + '</strong></div>' +
+    (m.whyThisMethod ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(m.whyThisMethod) + '</div>' : '') +
+    (coversChips ? '<div class="ev-covers-row">' + t('evidence.issuesCovered') + ': ' + coversChips + '</div>' : '') +
+    '<div class="ev-module-detail-grid">' +
+      (m.sampleSize ? '<span><em>' + t('evidence.sampleSize') + '</em> ' + esc(m.sampleSize) + '</span>' : '') +
+      (m.segments   ? '<span><em>' + esc(m.segments) + '</em></span>' : '') +
+      (m.timeRange  ? '<span><em>' + t('evidence.timeRange') + '</em> ' + esc(m.timeRange) + '</span>' : '') +
+    '</div>' +
+    (m.tasks    ? '<div class="evidence-item-text">' + esc(m.tasks)    + '</div>' : '') +
+    (m.setting  ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(m.setting)  + '</div>' : '') +
+    (Array.isArray(m.coreMetrics) && m.coreMetrics.length ? '<div class="evidence-item-text">' + m.coreMetrics.map(esc).join(' · ') + '</div>' : '') +
+    (Array.isArray(m.analysisDimensions) && m.analysisDimensions.length ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + m.analysisDimensions.map(esc).join(', ') + '</div>' : '');
+  items.push(meta);
 
-function renderResults(d) {
-  const items = [];
-  ['moduleA', 'moduleB'].forEach((mod) => {
-    if (!d[mod]) return;
-    const r = d[mod];
-    const el = document.createElement('div');
-    el.className = 'evidence-item';
-    const findings = Array.isArray(r.keyFindings || r.coreMetrics) ? (r.keyFindings || r.coreMetrics) : [];
-    const visuals  = Array.isArray(r.suggestedVisualizations) ? r.suggestedVisualizations : [];
-    el.innerHTML =
-      '<div class="evidence-item-label">' + (mod === 'moduleA' ? t('evidence.moduleA') : t('evidence.moduleB')) + ' — ' + t('evidence.results') + '</div>' +
-      (r.sampleBreakdown || r.sampleSize ? '<div class="evidence-item-text">n=' + esc(r.sampleBreakdown || r.sampleSize || '') + '</div>' : '') +
-      findings.map((f) => '<div class="evidence-item-text">• ' + esc(f) + '</div>').join('') +
-      (r.hypothesesSupported ? '<div class="evidence-item-text" style="color:var(--text-sec);margin-top:4px">' + esc(r.hypothesesSupported) + '</div>' : '') +
-      (visuals.length ? '<div class="evidence-item-text" style="color:var(--accent);margin-top:4px">📊 ' + visuals.map(esc).join(' · ') + '</div>' : '');
-    items.push(el);
-  });
+  if (Array.isArray(m.findings) && m.findings.length) {
+    const findingsEl = document.createElement('div');
+    findingsEl.className = 'evidence-item';
+    findingsEl.innerHTML = '<div class="evidence-item-label">' + t('evidence.findings') + '</div>';
+    m.findings.forEach((f) => {
+      const sev = (f.severity || '').toLowerCase();
+      const sevColor = sev === 'critical' ? 'var(--red)' : sev === 'major' ? 'var(--orange)' : 'var(--text-ter)';
+      const supportedText = f.supported === false ? '✗ refutes ' : '✓ supports ';
+      const row = document.createElement('div');
+      row.className = 'ev-finding';
+      row.innerHTML =
+        '<div style="display:flex;align-items:flex-start;gap:6px">' +
+          '<span class="ev-finding-sev" style="color:' + sevColor + '">' + esc(f.severity || '') + '</span>' +
+          '<span class="evidence-item-text" style="flex:1">' + esc(f.finding || '') + '</span>' +
+        '</div>' +
+        (f.hypothesisRef ? '<div class="ev-finding-meta">' + supportedText + '<strong>' + esc(f.hypothesisRef) + '</strong>' + (f.visualization ? ' · 📊 ' + esc(f.visualization) : '') + '</div>' : '');
+      findingsEl.appendChild(row);
+    });
+    items.push(findingsEl);
+  }
   return items;
 }
 
 function renderIssueDefsOrInsights(arr, audits, kind) {
   return (arr || []).map((item) => {
-    const audit = audits[item.auditIndex] || {};
+    const auditFromArr = audits[item.auditIndex] || {};
+    const frameName = item.frameName || auditFromArr.targetFrameName || '';
+    const severity  = item.severity  || auditFromArr.severity || '';
+    const sevColor = severity === 'critical' ? 'var(--red)' : severity === 'warning' ? 'var(--orange)' : severity === 'suggestion' ? 'var(--accent)' : 'var(--text-ter)';
     const el = document.createElement('div');
     el.className = 'evidence-item';
     const text = kind === 'definition' ? item.definition : item.insight;
-    const extra = kind === 'insight' ? (item.cognitiveOrBehavioralMechanism ? '<div class="evidence-item-text" style="color:var(--text-sec)">🧠 ' + esc(item.cognitiveOrBehavioralMechanism) + '</div>' : '') + (item.designImplication ? '<div class="evidence-item-text" style="color:var(--accent)">→ ' + esc(item.designImplication) + '</div>' : '') : '';
+    const extra = kind === 'insight'
+      ? (item.cognitiveOrBehavioralMechanism ? '<div class="evidence-item-text" style="color:var(--text-sec);margin-top:3px">🧠 ' + esc(item.cognitiveOrBehavioralMechanism) + '</div>' : '')
+        + (item.designImplication ? '<div class="evidence-item-text" style="color:var(--accent);margin-top:2px">→ ' + esc(item.designImplication) + '</div>' : '')
+      : '';
     el.innerHTML =
       '<div class="evidence-item-text">' + esc(text || '') + '</div>' +
       extra +
-      (audit.targetFrameName ? '<span class="evidence-link-badge">' + esc(audit.targetFrameName) + (audit.severity ? ' · ' + esc(audit.severity) : '') + '</span>' : '');
+      '<div class="ev-issue-ref-row">' +
+        (frameName ? '<span class="evidence-link-badge">' + esc(frameName) + '</span>' : '') +
+        (severity  ? '<span class="ev-sev-badge" style="color:' + sevColor + '">' + esc(severity) + '</span>' : '') +
+      '</div>';
+
+    // Stage 2→3 confirm button — map filtered index back to original
+    const originalIndex = _evidenceAuditIndexMap[item.auditIndex] ?? item.auditIndex;
+    const confirmBtnRow = document.createElement('div');
+    confirmBtnRow.className = 'ev-confirm-row';
+
+    const currentEntry = confirmState.confirmedInsights.get(originalIndex) || {};
+    const isConfirmed = Boolean(currentEntry[kind]);
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'ev-confirm-btn' + (isConfirmed ? ' ev-confirmed' : '');
+    confirmBtn.textContent = isConfirmed ? t('confirm.confirmed') : t('confirm.confirm');
+    confirmBtn.addEventListener('click', () => {
+      const entry = confirmState.confirmedInsights.get(originalIndex) || {};
+      if (entry[kind]) {
+        delete entry[kind];
+        confirmBtn.classList.remove('ev-confirmed');
+        confirmBtn.textContent = t('confirm.confirm');
+      } else {
+        entry[kind] = kind === 'definition' ? item.definition : item.insight;
+        if (kind === 'insight') {
+          entry.cognitiveOrBehavioralMechanism = item.cognitiveOrBehavioralMechanism;
+          entry.designImplication = item.designImplication;
+        }
+        confirmBtn.classList.add('ev-confirmed');
+        confirmBtn.textContent = t('confirm.confirmed');
+      }
+      if (Object.keys(entry).length > 0) {
+        confirmState.confirmedInsights.set(originalIndex, entry);
+      } else {
+        confirmState.confirmedInsights.delete(originalIndex);
+      }
+    });
+
+    confirmBtnRow.appendChild(confirmBtn);
+    el.appendChild(confirmBtnRow);
     return el;
   });
 }
@@ -2631,9 +3114,13 @@ async function openDRD(audit) {
   body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-ter)">' + t('drd.generating') + '</div>';
   overlay.classList.add('open');
 
+  // Look up confirmed research context for this specific audit item
+  const originalIndex = audit._auditIndex != null ? audit._auditIndex : _lastAuditsForEvidence.indexOf(audit);
+  const confirmedContext = originalIndex >= 0 ? (confirmState.confirmedInsights.get(originalIndex) || null) : null;
+
   try {
     const cfg = getLLMConfig();
-    const result = await generateDRD({ ...cfg, audit, decisionCard: _lastDecisionCardForEvidence });
+    const result = await generateDRD({ ...cfg, audit, decisionCard: _lastDecisionCardForEvidence, confirmedContext });
     renderDRDPanel(body, result);
   } catch (e) {
     body.innerHTML = '<div style="padding:16px;color:var(--red)">' + esc(e.message) + '</div>';
@@ -2654,17 +3141,23 @@ function renderDRDPanel(body, result) {
     solutions.forEach((sol, i) => {
       const tab = document.createElement('button');
       tab.className = 'drd-sol-tab' + (i === recommended ? ' active' : '');
-      tab.textContent = sol.name || ('Solution ' + (i + 1));
+      tab.innerHTML =
+        '<span>' + esc(sol.name || ('Solution ' + (i + 1))) + '</span>' +
+        (sol.dimension ? '<span class="drd-dim-badge">' + esc(sol.dimension) + '</span>' : '');
       const card = document.createElement('div');
       card.className = 'drd-solution-card' + (i === recommended ? ' active' : '');
+      const ba = sol.beforeAfter || {};
       card.innerHTML =
-        drdField(t('drd.coreDirection'), sol.coreDiection || sol.coreDirection || '') +
+        drdField(t('drd.coreDirection'), sol.coreDirection || sol.coreDiection || '') +
         drdField(t('drd.coreApproach'), sol.coreApproach || '') +
         (sol.specificChanges ? drdField(t('drd.infoArch'), sol.specificChanges.informationArchitecture || '') +
           drdField(t('drd.interaction'), sol.specificChanges.interactionPath || '') +
           drdField(t('drd.visualHierarchy'), sol.specificChanges.visualHierarchy || '') +
           drdField(t('drd.keyElements'), sol.specificChanges.keyElements || '') : '') +
-        (sol.beforeAfter ? drdField(t('drd.before'), sol.beforeAfter.before || '') + drdField(t('drd.after'), sol.beforeAfter.after || '') : '') +
+        drdField(t('drd.before'), ba.before || '') +
+        drdField(t('drd.after'), ba.after || '') +
+        drdField(t('drd.interactionPathChange'), ba.interactionPathChange || '') +
+        drdField(t('drd.meaningfulChangeEvidence'), ba.meaningfulChangeEvidence || '') +
         drdField(t('drd.whyBetter'), sol.whyBetter || '') +
         drdField(t('drd.impactMetric'), sol.impactOnMetric || '');
       tab.addEventListener('click', () => {
@@ -2691,11 +3184,11 @@ function renderDRDPanel(body, result) {
     bdy.className = 'evidence-section-body';
     const table = document.createElement('table');
     table.className = 'drd-comparison-table';
-    table.innerHTML = '<thead><tr>' + [t('drd.solution'), t('drd.suitableFor'), t('drd.scope'), t('drd.risk'), t('drd.bizBenefit'), t('drd.timeline')].map((h) => '<th>' + esc(h) + '</th>').join('') + '</tr></thead>';
+    table.innerHTML = '<thead><tr>' + [t('drd.solution'), t('drd.dimension'), t('drd.scope'), t('drd.risk'), t('drd.bizBenefit'), t('drd.timeline')].map((h) => '<th>' + esc(h) + '</th>').join('') + '</tr></thead>';
     const tbody = document.createElement('tbody');
     result.comparisonTable.forEach((row) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = [row.solution, row.suitableFor, row.scopeOfChange, row.risk, row.businessBenefit, row.timelineFit].map((v) => '<td>' + esc(v || '') + '</td>').join('');
+      tr.innerHTML = [row.solution, row.dimension, row.scopeOfChange, row.risk, row.businessBenefit, row.timelineFit].map((v) => '<td>' + esc(v || '') + '</td>').join('');
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);

@@ -365,24 +365,38 @@ export async function runContextualAudit({ provider, model, apiKey, payload, lan
   const variableSummary = summarizeDesignVariables(payload.designVariables);
 
   const systemPrompt = [
-    'You are an interrogative UX Director.',
-    'Cross-reference the attached visuals with the Logic Graph summary to find broken links, dead ends, and missing states.',
-    'Critique the flow strictly against the provided Guardrails, Constraints, and business/experience metrics in the DecisionCard.',
-    'If the DecisionCard includes touchpoints (e.g. "TV (remote control)"), evaluate interaction patterns specifically for those device types — e.g. focus management, D-pad navigation, remote-friendly tap targets — not generic touch/mouse conventions.',
+    'You are a senior UX Director and product strategist. Your response has two mandatory sequential parts in a single JSON object.',
+    '',
+    'PART 1 — Business Analysis: Analyse the DecisionCard to surface what this flow is really trying to accomplish.',
+    'Required fields:',
+    '  coreAction: The single highest-value action a user must complete in this flow (string).',
+    '  whyItMatters: Why completing that action directly moves the primary business metric — one sentence (string).',
+    '  businessMetrics: Array of 3-5 objects, each with "metric" (string), "direction" ("↑" or "↓"), "segment" (string — user group most affected).',
+    '  businessLogic: Plain-language causal chain: UI condition → user behavior → business outcome (string).',
+    '  summary: 2-sentence synthesis connecting the coreAction to the top business metric (string).',
+    '',
+    'PART 2 — UX Issues: Cross-reference the attached visuals with the flow graph. Identify exactly 3–5 UX issues that most directly threaten the business metrics from Part 1.',
+    'Sort items by business impact: critical first, then warning, then suggestion.',
+    'Required fields for each item:',
+    '  targetFrameName: exact frame name from the flow (string).',
+    '  what: one-sentence plain-English label of the issue (string).',
+    '  where: exact UI location — component name, screen zone, or element type (string).',
+    '  critiqueType: "Broken Link" | "Missing State" | "Guardrail Conflict" | "Constraint Risk" | "Flow Ambiguity".',
+    '  severity: "critical" | "warning" | "suggestion".',
+    '  impactedMetric: metric with ↑/↓ direction, referencing DecisionCard metrics where possible (string).',
+    '  why: why this issue blocks or degrades the coreAction — 1 sentence (string).',
+    '  causalMechanism: [UI condition] → [user response] → [metric consequence]. 1-2 sentences (string).',
+    '  guardrailRef: exact guardrail from DecisionCard if violated, else null.',
+    '  suggestion: one concrete actionable fix (string).',
+    '  provocativeQuestion: a sharp question a stakeholder should ask about this issue (string).',
+    '',
+    'If the DecisionCard includes touchpoints, evaluate interaction patterns specific to those devices (e.g. TV remote: focus management, D-pad navigation; Mobile: thumb zones, 44px tap targets).',
     'Do not suggest removing friction if that friction serves a business constraint.',
-    'Return only valid JSON in this exact shape:',
-    '{"audits":[{',
-    '"targetFrameName":"string",',
-    '"critiqueType":"Broken Link | Missing State | Guardrail Conflict | Constraint Risk | Flow Ambiguity",',
-    '"severity":"critical | warning | suggestion",',
-    '"impactedMetric":"which business or experience metric this issue affects, with ↑/↓ direction (e.g. \'completion rate ↓\'). Must reference a metric from the DecisionCard businessMetrics or experienceMetrics where possible.",',
-    '"causalMechanism":"[UI condition] → [user cognitive/behavioral response] → [metric consequence]. 1-2 sentences. No vague claims.",',
-    '"guardrailRef":"exact guardrail string from DecisionCard, or null if not applicable",',
-    '"suggestion":"one concrete actionable fix",',
-    '"provocativeQuestion":"string"',
-    '}]}',
-    'severity rules: critical=user cannot complete their goal or a guardrail is violated; warning=significant friction or ambiguity; suggestion=improvement opportunity.',
-  ].join(' ');
+    'severity rules: critical=user cannot complete goal or guardrail violated; warning=significant friction or ambiguity; suggestion=improvement opportunity.',
+    '',
+    'Return ONLY valid JSON:',
+    '{"businessAnalysis":{"coreAction":"string","whyItMatters":"string","businessMetrics":[{"metric":"string","direction":"↑ or ↓","segment":"string"}],"businessLogic":"string","summary":"string"},"auditItems":[{"targetFrameName":"string","what":"string","where":"string","critiqueType":"string","severity":"string","impactedMetric":"string","why":"string","causalMechanism":"string","guardrailRef":"string or null","suggestion":"string","provocativeQuestion":"string"}]}',
+  ].join('\n');
 
   const userPrompt = [
     'Evaluate the following tri-modal payload.',
@@ -413,15 +427,20 @@ export async function runContextualAudit({ provider, model, apiKey, payload, lan
   });
 
   const parsed = extractJson(raw);
-  const rawAudits = Array.isArray(parsed.audits) ? parsed.audits : [];
+  const rawAudits = Array.isArray(parsed.auditItems) ? parsed.auditItems
+    : Array.isArray(parsed.audits) ? parsed.audits : [];
   if (!rawAudits.length) {
     throw new Error('The model returned no audits.');
   }
 
+  let businessAnalysis = parsed.businessAnalysis || null;
   let audits = resolveFrameIds(rawAudits, payload.flowGraph);
 
   if (language === 'zh') {
     const translatableFields = audits.map((a) => ({
+      what:                a.what,
+      where:               a.where,
+      why:                 a.why,
       critiqueType:        a.critiqueType,
       impactedMetric:      a.impactedMetric,
       causalMechanism:     a.causalMechanism,
@@ -433,6 +452,9 @@ export async function runContextualAudit({ provider, model, apiKey, payload, lan
     const translatedArr = Array.isArray(translated) ? translated : [];
     audits = audits.map((a, i) => ({
       ...a,
+      what:                translatedArr[i]?.what                || a.what,
+      where:               translatedArr[i]?.where               || a.where,
+      why:                 translatedArr[i]?.why                 || a.why,
       critiqueType:        translatedArr[i]?.critiqueType        || a.critiqueType,
       impactedMetric:      translatedArr[i]?.impactedMetric      || a.impactedMetric,
       causalMechanism:     translatedArr[i]?.causalMechanism     || a.causalMechanism,
@@ -440,12 +462,35 @@ export async function runContextualAudit({ provider, model, apiKey, payload, lan
       suggestion:          translatedArr[i]?.suggestion          || a.suggestion,
       provocativeQuestion: translatedArr[i]?.provocativeQuestion || a.provocativeQuestion,
     }));
+
+    if (businessAnalysis) {
+      const baSource = [{
+        coreAction:      businessAnalysis.coreAction,
+        whyItMatters:    businessAnalysis.whyItMatters,
+        businessLogic:   businessAnalysis.businessLogic,
+        summary:         businessAnalysis.summary,
+      }];
+      try {
+        const baTranslated = await translateToZh({ provider, model, apiKey, source: baSource });
+        const bt = Array.isArray(baTranslated) ? baTranslated[0] : null;
+        if (bt) {
+          businessAnalysis = {
+            ...businessAnalysis,
+            coreAction:    bt.coreAction    || businessAnalysis.coreAction,
+            whyItMatters:  bt.whyItMatters  || businessAnalysis.whyItMatters,
+            businessLogic: bt.businessLogic || businessAnalysis.businessLogic,
+            summary:       bt.summary       || businessAnalysis.summary,
+          };
+        }
+      } catch (_) { /* keep English */ }
+    }
   }
 
   const score = calculateAuditScore(audits);
 
   return {
     audits,
+    businessAnalysis,
     score,
     meta: {
       attachedVisualFrames: selectedVisuals.map((item) => item.name),
@@ -632,33 +677,63 @@ export async function analyzeJourney({ provider, model, apiKey, flowGraph, flowM
 }
 
 export async function generateEvidenceReport({ provider, model, apiKey, audits, decisionCard }) {
-  // Cap at 20 items to stay within token budget
   const cappedAudits = (audits || []).slice(0, 20);
-  const systemPrompt = 'You are a senior UX researcher and data analysis expert. Reconstruct a realistic UX research process that would have discovered and validated the provided issues. Output only valid JSON matching the requested schema. No markdown or commentary.';
+  const systemPrompt = 'You are a senior UX researcher. You design holistic research plans — not one study per issue. Output only valid JSON matching the requested schema. No markdown or commentary.';
+
   const userPrompt = [
-    'UX AUDIT FINDINGS:',
-    JSON.stringify(cappedAudits, null, 2),
+    'UX AUDIT FINDINGS (read all together before planning):',
+    JSON.stringify(cappedAudits.map((a, i) => ({ index: i, frameName: a.targetFrameName, what: a.what, severity: a.severity, impactedMetric: a.impactedMetric })), null, 2),
     '',
-    'DECISION CARD CONTEXT:',
+    'DECISION CARD:',
     JSON.stringify(decisionCard, null, 2),
     '',
-    'INSTRUCTIONS:',
-    'Read ALL issues first. Identify shared patterns and root causes, then plan 1-2 research modules that cover all issues together. Do NOT treat each issue as a separate study.',
+    'INSTRUCTIONS — follow all 5 steps:',
     '',
-    'Return JSON with this exact structure:',
+    'Step 1 — Read ALL issues together. Identify what types of problems they are (cognition / behavior / information architecture / decision overload / trust / etc.), which issues share a root cause, and the minimum number of research modules needed.',
+    '',
+    'Step 2 — Design 1–2 research modules (NOT one per issue):',
+    '  moduleA (Qualitative — answers "Why"): method (user interviews / think-aloud / contextual inquiry), issuesCovered (list), whyThisMethod (plain language), sampleSize (n=?), segments, tasks (interview guide outline), setting.',
+    '  moduleB (Quantitative — answers "How many / Where"): method (funnel analysis / clickstream / heatmap / session recording / A/B test), issuesCovered, whyThisMethod, timeRange, sampleSize, coreMetrics, analysisDimensions.',
+    '',
+    'Step 3 — Simulated findings for each module (realistic, not fabricated):',
+    '  Each finding must include a concrete number or percentage (e.g. "8 of 12 users hesitated at step 3", "drop-off rate: 34%"), a severity (Critical / Major / Minor), the hypothesis it supports or refutes, and a visualization suggestion.',
+    '',
+    'Step 4 — For each original audit issue, output:',
+    '  issueDefinitions: "In [user + context], because of [design problem], users [behavior], which ultimately impacts [business metric]."',
+    '  userInsights: evidence-based insight pointing to a cognitive or decision-making mechanism. NOT a restatement of the UI problem. Include designImplication.',
+    '',
+    'Step 5 — 2–4 research hypotheses covering the full issue set. Each must point to a user cognition, decision-making, or behavior mechanism, and be testable.',
+    '',
+    'Return ONLY valid JSON in this exact shape:',
     JSON.stringify({
-      issueOverview: { issueSummary: 'string', sharedPatterns: 'string', rootCauses: 'string', modulesCoverage: 'string' },
+      researchPlan: {
+        problemTypes: 'string',
+        rootCauseGroups: [{ groupName: 'string', issues: ['string'], sharedRootCause: 'string' }],
+        modulesJustification: 'string',
+      },
       hypotheses: [{ id: 'H1', statement: 'string', mechanism: 'string', testable: 'string' }],
-      researchDesign: {
-        moduleA: { method: 'string', sampleSize: 'string', segments: 'string', tasks: 'string', issuesCovered: 'string', whyQualitative: 'string' },
-        moduleB: { method: 'string', timeRange: 'string', sampleSize: 'string', metrics: 'string', analysisDimensions: 'string', issuesCovered: 'string', whyQuantitative: 'string' },
+      moduleA: {
+        method: 'string',
+        whyThisMethod: 'string',
+        issuesCovered: ['string'],
+        sampleSize: 'string',
+        segments: 'string',
+        tasks: 'string',
+        setting: 'string',
+        findings: [{ finding: 'string', severity: 'Critical | Major | Minor', hypothesisRef: 'H1', supported: true, visualization: 'string' }],
       },
-      results: {
-        moduleA: { sampleBreakdown: 'string', keyFindings: ['string'], severityRatings: 'string', hypothesesSupported: 'string', suggestedVisualizations: ['string'] },
-        moduleB: { sampleSize: 'string', coreMetrics: ['string'], hypothesesSupported: 'string', suggestedVisualizations: ['string'] },
+      moduleB: {
+        method: 'string',
+        whyThisMethod: 'string',
+        issuesCovered: ['string'],
+        timeRange: 'string',
+        sampleSize: 'string',
+        coreMetrics: ['string'],
+        analysisDimensions: ['string'],
+        findings: [{ finding: 'string', severity: 'Critical | Major | Minor', hypothesisRef: 'H1', supported: true, visualization: 'string' }],
       },
-      issueDefinitions: [{ auditIndex: 0, definition: 'In [user + context], because of [design problem], users [behavioral consequence], which impacts [business metric].' }],
-      userInsights: [{ auditIndex: 0, insight: 'string', cognitiveOrBehavioralMechanism: 'string', designImplication: 'string' }],
+      issueDefinitions: [{ auditIndex: 0, frameName: 'string', severity: 'string', definition: 'In [user + context], because of [design problem], users [behavior], which ultimately impacts [business metric].' }],
+      userInsights: [{ auditIndex: 0, frameName: 'string', severity: 'string', insight: 'string', cognitiveOrBehavioralMechanism: 'string', designImplication: 'string' }],
     }),
   ].join('\n');
 
@@ -673,26 +748,50 @@ export async function generateDRD({ provider, model, apiKey, audit, decisionCard
     `Frame: ${audit.targetFrameName || ''}`,
     `Critique type: ${audit.critiqueType || ''}`,
     `Severity: ${audit.severity || ''}`,
-    `Problem: ${audit.suggestion || ''}`,
+    `Problem: ${audit.what || audit.suggestion || ''}`,
+    `Where: ${audit.where || ''}`,
     `Impacted metric: ${audit.impactedMetric || 'unknown'}`,
-    `Why it matters: ${audit.causalMechanism || ''}`,
+    `Why it matters: ${audit.why || audit.causalMechanism || ''}`,
     '',
     'BUSINESS CONTEXT:',
     JSON.stringify(decisionCard, null, 2),
     '',
+    'MANDATORY DIFFERENTIATION CONSTRAINT:',
+    'Before generating the 3 solutions, declare upfront in dimensionDeclaration which design dimension each solution primarily targets:',
+    '  Solution 1 must primarily address one of: information architecture / content hierarchy / interaction path',
+    '  Solution 2 must primarily address one of: visual weight / affordance / feedback mechanisms',
+    '  Solution 3 must primarily address one of: defaults / progressive disclosure / error prevention / copy and guidance',
+    'These three dimensions must be different from each other. Solutions that address the same underlying dimension are not acceptable even if they look different.',
+    '',
+    'For each solution, the beforeAfter section must explicitly answer four questions:',
+    '  before: What does the user see and what do they do in the current design?',
+    '  after: What is the FIRST thing the user notices that is different — not the last, the first?',
+    '  interactionPathChange: Which specific interaction path is shortened, removed, or restructured?',
+    '  meaningfulChangeEvidence: Why would someone looking at before and after side by side immediately understand this is a meaningful change and not a cosmetic one?',
+    '',
+    'COMPARISON TABLE CONSTRAINT:',
+    'The three solutions must differ in scope (one minimal/surgical, one medium, one structural), risk level, and implementation timeline. These differences must be immediately obvious from the table.',
+    '',
     'Generate exactly 3 redesign solutions, then produce a DRD for the recommended one.',
     'Return JSON with this exact structure:',
     JSON.stringify({
+      dimensionDeclaration: { solution1: 'string — chosen dimension', solution2: 'string — chosen dimension', solution3: 'string — chosen dimension' },
       solutions: [{
         name: 'string',
+        dimension: 'string — the design dimension this solution primarily addresses',
         coreDirection: 'string',
         coreApproach: 'string',
         specificChanges: { informationArchitecture: 'string', interactionPath: 'string', visualHierarchy: 'string', keyElements: 'string' },
-        beforeAfter: { before: 'string', after: 'string' },
+        beforeAfter: {
+          before: 'string — what does the user see and what do they do?',
+          after: 'string — what is the FIRST thing the user notices that is different?',
+          interactionPathChange: 'string — which specific interaction path is shortened, removed, or restructured?',
+          meaningfulChangeEvidence: 'string — why is this a meaningful change and not cosmetic?',
+        },
         whyBetter: 'string',
         impactOnMetric: 'string',
       }],
-      comparisonTable: [{ solution: 'string', suitableFor: 'string', scopeOfChange: 'string', risk: 'string', businessBenefit: 'string', timelineFit: 'string' }],
+      comparisonTable: [{ solution: 'string', dimension: 'string', suitableFor: 'string', scopeOfChange: 'Minimal/Surgical | Medium | Structural', risk: 'string', businessBenefit: 'string', timelineFit: 'string' }],
       recommendedIndex: 0,
       drd: {
         background: { currentProblem: 'string', rootCause: 'string', businessImpact: 'string' },
