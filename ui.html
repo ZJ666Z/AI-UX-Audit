@@ -295,21 +295,28 @@
       -webkit-font-smoothing: antialiased;
     }
     .btn-primary {
-      background: linear-gradient(180deg, #2b84ff 0%, var(--accent) 100%);
+      background: var(--accent);
       color: #fff;
-      box-shadow: 0 1px 4px rgba(26,115,232,.3), 0 0 0 1px rgba(26,115,232,.15);
     }
-    .btn-primary:hover  { background: linear-gradient(180deg, #1e7de0 0%, var(--accent-d) 100%); box-shadow: 0 2px 8px rgba(26,115,232,.35); }
-    .btn-primary:active { transform: scale(.98); box-shadow: 0 1px 2px rgba(26,115,232,.2); }
+    .btn-primary:hover  { background: var(--accent-d); }
+    .btn-primary:active { opacity: .88; }
 
     .btn-secondary {
-      background: var(--surface);
+      background: transparent;
       color: var(--text-sec);
       border: 1px solid var(--border-med);
       font-weight: 500;
-      box-shadow: 0 1px 2px rgba(0,0,0,.04);
     }
-    .btn-secondary:hover { background: var(--surface3); color: var(--text); border-color: rgba(0,0,0,.15); }
+    .btn-secondary:hover { background: var(--fill); color: var(--text); }
+
+    /* Tonal — accent-tinted background, used for contextual actions like Generate DRD */
+    .btn-tonal {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid rgba(26,115,232,.18);
+      font-weight: 600;
+    }
+    .btn-tonal:hover { background: rgba(26,115,232,.17); }
 
     .btn-danger {
       background: rgba(217,48,37,.07);
@@ -353,9 +360,9 @@
       box-shadow: 0 1px 2px rgba(0,0,0,.05);
     }
     .step-item.done   { color: var(--green);  }
-    .step-item.done   .step-dot { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 6px rgba(30,142,62,.25); }
+    .step-item.done   .step-dot { background: var(--green); border-color: var(--green); color: #fff; }
     .step-item.active { color: var(--accent); }
-    .step-item.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(26,115,232,.3); }
+    .step-item.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
 
     /* progress bar */
     .progress-track {
@@ -467,14 +474,20 @@
     }
     .frame-focus-link {
       cursor: pointer;
-      text-decoration: underline;
-      text-decoration-color: rgba(32,33,36,.22);
-      text-decoration-style: dotted;
-      text-underline-offset: 2px;
-      border-radius: 2px;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 10px;
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 1px 5px 1px 5px;
+      border-radius: 4px;
+      background: var(--accent-light);
+      border: 1px solid rgba(26,115,232,.16);
+      text-decoration: none;
+      transition: background var(--transition);
+      vertical-align: baseline;
     }
-    .frame-focus-link::after { content: ' →'; font-size: 9px; opacity: .4; }
-    .frame-focus-link:hover { text-decoration-color: var(--text-sec); }
+    .frame-focus-link::after { content: ' ↗'; font-size: 8px; opacity: .75; }
+    .frame-focus-link:hover { background: rgba(26,115,232,.17); }
     .frame-focus-link:hover::after { opacity: 1; }
     .audit-question { font-size: 12px; line-height: 1.5; color: var(--text); }
 
@@ -500,7 +513,25 @@
       display: flex; align-items: flex-start; gap: 8px;
       cursor: pointer; padding: 2px 0;
     }
-    .checklist-cb { width: auto; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+    .checklist-cb {
+      -webkit-appearance: none; appearance: none;
+      width: 15px !important; height: 15px !important; min-width: 15px;
+      padding: 0 !important; box-shadow: none !important;
+      border: 1.5px solid var(--border-med) !important;
+      border-radius: 4px !important;
+      background: var(--surface) !important;
+      cursor: pointer; flex-shrink: 0; margin-top: 1px;
+      display: grid; place-content: center;
+      transition: all var(--transition);
+    }
+    .checklist-cb:hover { border-color: var(--accent) !important; }
+    .checklist-cb:checked { background: var(--accent) !important; border-color: var(--accent) !important; }
+    .checklist-cb:checked::before {
+      content: '';
+      width: 7px; height: 5px;
+      border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
     .checklist-content { display: flex; flex-direction: column; gap: 1px; }
     .checklist-section-label {
       font-size: 9px; font-weight: 700;
@@ -1115,14 +1146,16 @@
     }
     .ax-label { font-size: 10px; fill: var(--text-ter); }
 
+    .history-entry { border-bottom: 1px solid var(--separator); }
+    .history-entry:last-child { border-bottom: none; }
     .history-row {
       display: flex; align-items: center;
       padding: 9px 14px;
-      border-bottom: 1px solid var(--separator);
-      gap: 8px;
-      font-size: 12px;
+      gap: 8px; font-size: 12px;
+      cursor: pointer; user-select: none;
+      transition: background var(--transition);
     }
-    .history-row:last-child { border-bottom: none; }
+    .history-row:hover { background: var(--fill); }
     .history-time { color: var(--text-ter); font-size: 11px; flex: 1; }
     .sev-badges { display: flex; gap: 4px; }
     .sev-badge {
@@ -1133,6 +1166,74 @@
     .sev-badge.w { background: rgba(255,149,0,.12); color: var(--orange); }
     .sev-badge.s { background: rgba(0,122,255,.1);  color: var(--accent); }
     .history-score { font-size: 15px; font-weight: 800; }
+    .history-expand-icon { font-size: 9px; color: var(--text-ter); transition: transform .15s; flex-shrink: 0; }
+    .history-entry.open .history-expand-icon { transform: rotate(90deg); }
+    .history-del-btn {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: none; background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--text-ter);
+      flex-shrink: 0; transition: all var(--transition);
+    }
+    .history-del-btn:hover { background: rgba(217,48,37,.1); color: var(--red); }
+    .history-detail {
+      display: none; flex-direction: column;
+      padding: 0 14px 10px;
+      gap: 4px;
+    }
+    .history-entry.open .history-detail { display: flex; }
+    .history-finding-row {
+      display: flex; align-items: flex-start; gap: 7px;
+      padding: 4px 0;
+      border-top: 1px solid var(--separator);
+      font-size: 11px;
+    }
+    .history-finding-row:first-child { border-top: none; }
+    .hf-sev {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      padding: 2px 5px; border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+    }
+    .hf-sev.c { background: rgba(217,48,37,.1); color: var(--red); }
+    .hf-sev.w { background: rgba(227,116,0,.1); color: var(--orange); }
+    .hf-sev.s { background: var(--accent-light); color: var(--accent); }
+    .hf-body { flex: 1; min-width: 0; }
+    .hf-frame { font-size: 10px; font-weight: 600; color: var(--text-ter); margin-bottom: 1px; }
+    .hf-q { color: var(--text-sec); line-height: 1.4; }
+
+    /* ── Inline audit sections (Findings / Evidence / Journey within Audit pane) ── */
+    .audit-section { margin-top: 6px; }
+    .audit-section-label {
+      font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .6px;
+      color: var(--text-ter);
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 2px 8px;
+    }
+    .audit-section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--separator);
+    }
+    .audit-section-badge {
+      font-size: 9px; font-weight: 700;
+      background: var(--fill-sec); color: var(--text-ter);
+      border-radius: 99px; padding: 1px 6px;
+    }
+
+    /* ── Setup flow hint ── */
+    .setup-step-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--separator);
+      background: var(--surface2);
+    }
+    .setup-step-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 9px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .setup-step-label { font-size: 11px; font-weight: 600; color: var(--text-sec); flex: 1; }
+    .setup-step-check { color: var(--green); font-size: 12px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -1159,19 +1260,12 @@
 <!-- ══ TAB BAR ══ -->
 <div class="tabbar">
   <button class="tab active" data-tab="setup" data-i18n="tab.setup">Setup</button>
-  <button class="tab" data-tab="audit" data-i18n="tab.audit">Audit</button>
-  <button class="tab" data-tab="results">
-    <span data-i18n="tab.results">Results</span>
+  <button class="tab" data-tab="audit">
+    <span data-i18n="tab.audit">Audit</span>
     <span id="resultsBadge" class="tab-badge"></span>
   </button>
-  <button class="tab" data-tab="history" data-i18n="tab.trend">Trend</button>
-</div>
-
-<!-- ══ SUB-TAB BAR (Results group) ══ -->
-<div class="sub-tabbar" id="resultsSubTabs">
-  <button class="sub-tab active" data-subtab="results" data-i18n="subtab.findings">Findings</button>
-  <button class="sub-tab" data-subtab="evidence" data-i18n="subtab.evidence">Evidence</button>
-  <button class="sub-tab" data-subtab="journey" data-i18n="subtab.journey">Journey</button>
+  <button class="tab" data-tab="journey" data-i18n="tab.journey">Journey</button>
+  <button class="tab" data-tab="history" data-i18n="tab.history">History</button>
 </div>
 
 <!-- ══ BODY ══ -->
@@ -1302,159 +1396,112 @@
           </div>
         </div>
 
-      </div>
     </div>
   </div>
+</div><!-- /pane-setup -->
 
   <!-- ── AUDIT ── -->
   <div class="pane" id="pane-audit">
+
+    <!-- Launch card -->
     <div class="card">
-      <div class="card-header"><span class="card-title" data-i18n="audit.frames">Selected Frames</span></div>
+      <div class="card-header">
+        <span class="card-title" data-i18n="audit.frames">Selected Frames</span>
+      </div>
       <div class="card-body tight">
         <div id="selectionChips" class="chip-row">
           <span style="color:var(--text-ter);font-size:12px" data-i18n="audit.noFrames">No frames selected in Figma.</span>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header"><span class="card-title" data-i18n="audit.progress">Audit Progress</span></div>
       <div class="stepper">
-        <div class="step-item" id="si-inspect">
-          <div class="step-dot">1</div><span data-i18n="step.inspect">Inspect</span>
-        </div>
-        <div class="step-item" id="si-audit">
-          <div class="step-dot">2</div><span data-i18n="step.analyse">Analyse</span>
-        </div>
-        <div class="step-item" id="si-write">
-          <div class="step-dot">3</div><span data-i18n="step.write">Write back</span>
-        </div>
+        <div class="step-item" id="si-inspect"><div class="step-dot">1</div><span data-i18n="step.inspect">Inspect</span></div>
+        <div class="step-item" id="si-audit"><div class="step-dot">2</div><span data-i18n="step.analyse">Analyse</span></div>
+        <div class="step-item" id="si-write"><div class="step-dot">3</div><span data-i18n="step.write">Write back</span></div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="progressFill" style="width:0%"></div>
-      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       <div class="status-row" id="statusRow">
         <span id="statusText" data-i18n="status.idle">Select frames in Figma, then start the audit.</span>
       </div>
-      <div style="padding:0 14px 14px">
-        <button class="btn btn-primary" id="auditBtn" style="width:100%;padding:9px 16px;font-size:13px;border-radius:var(--radius-m)"><span data-i18n="btn.audit">Start Audit</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── RESULTS ── -->
-  <div class="pane" id="pane-results">
-    <div class="card" style="overflow:visible">
-      <div class="toggle-row">
-        <span class="toggle-label" data-i18n="results.compare">Compare mode</span>
-        <label class="ios-toggle">
-          <input type="checkbox" id="compareToggle" />
-          <span class="ios-slider"></span>
-        </label>
+      <div style="padding:0 14px 16px">
+        <button class="btn btn-primary" id="auditBtn" style="width:100%;padding:13px 16px;font-size:14px;font-weight:700;letter-spacing:-.2px;border-radius:var(--radius-m)">
+          <span data-i18n="btn.audit">Start Audit</span>
+        </button>
       </div>
     </div>
 
-    <!-- normal view -->
-    <div id="normalView">
+    <!-- Findings section — always visible, shows empty state then results -->
+    <div id="findingsSection">
+      <div class="audit-section-label">
+        <span data-i18n="section.findings">Findings</span>
+        <span id="findingsBadge" class="audit-section-badge" style="display:none"></span>
+      </div>
+      <!-- Empty state — hidden after first audit -->
+      <div id="findingsEmptyCard" class="card">
+        <div class="card-body" style="align-items:center;padding:28px 14px;text-align:center">
+          <div style="font-size:30px;margin-bottom:10px">🔍</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px" data-i18n="results.empty">Run an audit to see results.</div>
+          <div style="font-size:12px;color:var(--text-ter)" data-i18n="audit.hint">Select frames in Figma with prototype arrows, then click Start Audit.</div>
+        </div>
+      </div>
       <div id="businessAnalysisSection"></div>
-      <div id="resultGroups" style="display:flex;flex-direction:column;gap:8px">
-        <div style="color:var(--text-ter);font-size:12px;padding:8px 2px" data-i18n="results.empty">Run an audit to see results.</div>
-      </div>
-      <div id="evidenceBtnRow" style="display:none;padding:4px 0 8px;display:flex;flex-direction:column;gap:5px">
-        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:11px;padding:6px 14px" disabled>
+      <div id="resultGroups" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div id="evidenceBtnRow" style="display:none;padding:8px 0;display:flex;flex-direction:column;gap:5px">
+        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:12px;padding:8px 14px" disabled>
           <span data-i18n="btn.evidence">Generate Evidence Report</span>
         </button>
         <div id="confirmSummary" class="confirm-summary" style="display:none"></div>
       </div>
     </div>
 
-    <!-- compare view -->
-    <div id="compareView" style="display:none;flex-direction:column;gap:8px">
-      <div class="card">
-        <div class="card-body">
-          <div class="field-row">
-            <div class="field">
-              <div class="field-label" data-i18n="cmp.snapA">Snapshot A (older)</div>
-              <select id="snapA" class="snapshot-sel"></select>
-            </div>
-            <div class="field">
-              <div class="field-label" data-i18n="cmp.snapB">Snapshot B (newer)</div>
-              <select id="snapB" class="snapshot-sel"></select>
-            </div>
-          </div>
-          <button class="btn btn-secondary" id="runCmpBtn" data-i18n="btn.compare">Compare snapshots</button>
-        </div>
+    <!-- Evidence section — shown after evidence report is generated -->
+    <div id="evidenceSectionWrap" style="display:none">
+      <div class="audit-section-label">
+        <span data-i18n="section.evidence">Evidence</span>
       </div>
-      <div class="compare-grid" id="cmpGrid">
-        <div class="compare-col">
-          <div class="compare-col-head">
-            <span id="cmpHeadA">A</span>
-            <span id="cmpScoreA" class="compare-score-num" style="color:var(--text-ter)">—</span>
-          </div>
-          <div class="compare-items" id="cmpItemsA"></div>
-        </div>
-        <div class="compare-col">
-          <div class="compare-col-head">
-            <span id="cmpHeadB">B</span>
-            <span id="cmpScoreB" class="compare-score-num" style="color:var(--text-ter)">—</span>
-          </div>
-          <div class="compare-items" id="cmpItemsB"></div>
-        </div>
-      </div>
+      <div id="evidenceSections" style="display:flex;flex-direction:column;gap:10px"></div>
     </div>
-  </div>
 
-  <!-- ── EVIDENCE ── -->
-  <div class="pane" id="pane-evidence">
-    <div class="card" id="evidenceEmptyCard">
-      <div class="card-body" style="align-items:center;padding:24px 14px">
-        <div style="font-size:28px;margin-bottom:8px">🔬</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="evidence.empty">Run an audit, then generate the evidence report.</div>
-        <div style="font-size:12px;color:var(--text-ter);margin-top:4px;text-align:center" data-i18n="evidence.hint">The report simulates UX research that would have discovered these issues.</div>
-      </div>
-    </div>
-    <div id="evidenceSections" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- ── JOURNEY ── -->
   <div class="pane" id="pane-journey">
-    <!-- empty state -->
+    <!-- Empty state — before any audit -->
     <div class="card" id="journeyEmptyCard">
-      <div class="card-body" style="align-items:center;padding:24px 14px">
-        <div style="font-size:28px;margin-bottom:8px">🗺</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="journey.empty">Run an audit first, then analyze the journey.</div>
-        <div style="font-size:12px;color:var(--text-ter);margin-top:4px;text-align:center" data-i18n="journey.hint">Journey audit looks at the whole flow, not individual screens.</div>
+      <div class="card-body" style="align-items:center;padding:32px 14px;text-align:center">
+        <div style="font-size:30px;margin-bottom:10px">🗺</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px" data-i18n="journey.empty">Run an audit first, then analyze the journey.</div>
+        <div style="font-size:12px;color:var(--text-ter)" data-i18n="journey.hint">Journey audit looks at the whole flow, not individual screens.</div>
       </div>
     </div>
-    <!-- score banner -->
+    <!-- Score banner — shown after audit -->
     <div id="journeyScoreBanner" style="display:none">
       <div class="card">
         <div class="card-body" style="gap:8px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div>
               <div class="field-label" data-i18n="journey.healthScore">Flow Health Score</div>
-              <div id="journeyHealthNum" style="font-size:28px;font-weight:800;line-height:1.1">—</div>
+              <div id="journeyHealthNum" style="font-size:30px;font-weight:800;line-height:1.1">—</div>
             </div>
             <div style="text-align:right">
               <div class="field-label" data-i18n="journey.cognitiveScore">Cognitive Complexity</div>
-              <div id="journeyCognitiveNum" style="font-size:28px;font-weight:800;line-height:1.1">—</div>
+              <div id="journeyCognitiveNum" style="font-size:30px;font-weight:800;line-height:1.1">—</div>
             </div>
           </div>
           <div id="journeySummaryText" style="font-size:12px;line-height:1.55;color:var(--text-sec)"></div>
         </div>
       </div>
     </div>
-    <!-- "Analyze Journey" button -->
+    <!-- Analyze Journey CTA — primary, shown after audit -->
     <div id="journeyBtnRow" style="display:none">
-      <button class="btn btn-primary" id="journeyBtn" style="width:100%;border-radius:var(--radius-m)">
+      <button class="btn btn-primary" id="journeyBtn" style="width:100%;padding:11px 16px;font-size:13px;font-weight:700;border-radius:var(--radius-m)">
         <span data-i18n="btn.journey">Analyze Journey</span>
       </button>
     </div>
-    <!-- content sections (filled after LLM call) -->
+    <!-- Results -->
     <div id="journeySections" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
-  <!-- ── HISTORY ── -->
+  <!-- ── HISTORY (trend + compare) ── -->
   <div class="pane" id="pane-history">
     <div class="card">
       <div class="card-header">
@@ -1467,9 +1514,51 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><span class="card-title" data-i18n="history.runs">Audit Runs</span></div>
+      <div class="card-header">
+        <span class="card-title" data-i18n="history.runs">Audit Runs</span>
+        <button class="btn btn-secondary" id="clearHistoryBtn" style="font-size:11px;padding:3px 10px;color:var(--red);border-color:rgba(217,48,37,.2)" data-i18n="history.clearAll">Clear All</button>
+      </div>
       <div id="historyList">
-        <div class="history-row" style="color:var(--text-ter)">No runs recorded.</div>
+        <div class="history-row" style="color:var(--text-ter);cursor:default" data-i18n="history.noRuns">No runs recorded.</div>
+      </div>
+    </div>
+    <!-- Compare mode -->
+    <div class="card" style="overflow:visible">
+      <div class="toggle-row">
+        <span class="toggle-label" data-i18n="results.compare">Compare mode</span>
+        <label class="ios-toggle">
+          <input type="checkbox" id="compareToggle" />
+          <span class="ios-slider"></span>
+        </label>
+      </div>
+      <div id="compareView" style="display:none;flex-direction:column;gap:8px;padding:0 14px 14px">
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label" data-i18n="cmp.snapA">Snapshot A (older)</div>
+            <select id="snapA" class="snapshot-sel"></select>
+          </div>
+          <div class="field">
+            <div class="field-label" data-i18n="cmp.snapB">Snapshot B (newer)</div>
+            <select id="snapB" class="snapshot-sel"></select>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="runCmpBtn" data-i18n="btn.compare">Compare snapshots</button>
+        <div class="compare-grid" id="cmpGrid">
+          <div class="compare-col">
+            <div class="compare-col-head">
+              <span id="cmpHeadA">A</span>
+              <span id="cmpScoreA" class="compare-score-num" style="color:var(--text-ter)">—</span>
+            </div>
+            <div class="compare-items" id="cmpItemsA"></div>
+          </div>
+          <div class="compare-col">
+            <div class="compare-col-head">
+              <span id="cmpHeadB">B</span>
+              <span id="cmpScoreB" class="compare-score-num" style="color:var(--text-ter)">—</span>
+            </div>
+            <div class="compare-items" id="cmpItemsB"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1565,10 +1654,37 @@ function selectVisualsForAudit(visuals, provider) {
 }
 
 function extractJson(text) {
-  try { return JSON.parse(text); } catch (_) {
-    const m = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-    if (!m) throw new Error('Model response did not contain valid JSON.');
-    return JSON.parse(m[0]);
+  // First attempt: direct parse
+  try { return JSON.parse(text); } catch (e1) {
+    // Strip markdown fences if present
+    const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+    try { return JSON.parse(stripped); } catch (_) {}
+
+    // Extract first JSON object or array
+    const m = stripped.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    if (m) {
+      try { return JSON.parse(m[0]); } catch (e2) {
+        // Detect truncation: JSON syntax error near the end of the string
+        const errMsg = String(e2.message || '');
+        const isTruncation = errMsg.includes('Unexpected end') ||
+          errMsg.includes('Unexpected token') ||
+          errMsg.includes("Expected ',' or") ||
+          (m[0].length > 500 && !m[0].trimEnd().match(/[}\]"0-9]$/));
+        if (isTruncation) {
+          throw new Error(
+            'The model response was cut off before the JSON was complete. ' +
+            'This usually means the token budget was exceeded. ' +
+            'Try: (1) reduce the number of selected frames, ' +
+            '(2) switch to Anthropic (supports larger outputs), ' +
+            'or (3) use a model with a larger context window.'
+          );
+        }
+        throw new Error('Model response contained malformed JSON: ' + errMsg);
+      }
+    }
+
+    // No JSON found at all
+    throw new Error('Model response did not contain valid JSON. Raw response: ' + text.slice(0, 200));
   }
 }
 
@@ -1593,7 +1709,7 @@ async function callOpenAIWithRetry(request) {
   throw new Error('OpenAI request failed after multiple retry attempts.');
 }
 
-async function callLLM({ provider, model, apiKey, purpose, prompt, visuals, maxTokens = 1800 }) {
+async function callLLM({ provider, model, apiKey, purpose, prompt, visuals, maxTokens = 4000 }) {
   if (!apiKey) throw new Error('Please provide an API key first.');
   if (!model) throw new Error('Please enter a model name.');
 
@@ -1748,7 +1864,7 @@ async function generateEvidenceReport({ provider, model, apiKey, audits, decisio
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3200 });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 6000 });
   return extractJson(raw);
 }
 
@@ -1828,7 +1944,7 @@ async function generateDRD({ provider, model, apiKey, audit, decisionCard, confi
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3500 });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 6000 });
   return extractJson(raw);
 }
 
@@ -1901,7 +2017,7 @@ async function runJourneyAudit({ provider, model, apiKey, flowMetrics, frameMetr
     }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 3200 });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 6000 });
   return extractJson(raw);
 }
 
@@ -2039,8 +2155,9 @@ const $ = (id) => document.getElementById(id);
 /* ─────────── I18N ─────────── */
 const UI_STRINGS = {
   en: {
-    'tab.setup':'Setup','tab.audit':'Audit','tab.results':'Results','tab.trend':'Trend',
-    'subtab.findings':'Findings','subtab.evidence':'Evidence','subtab.journey':'Journey',
+    'tab.setup':'Setup','tab.audit':'Audit','tab.journey':'Journey','tab.history':'History',
+    'section.findings':'Findings','section.evidence':'Evidence',
+    'setup.goAudit':'→ Go to Audit',
     'setup.section.intent':'Intent','setup.section.business':'Business','setup.section.experience':'Experience','setup.section.constraints':'Guardrails & Constraints',
     'sev.critical':'Critical','sev.warning':'Warning','sev.suggestion':'Suggestion',
     'score.label':'Score',
@@ -2059,6 +2176,7 @@ const UI_STRINGS = {
     'setup.touchpoints':'Touchpoints','ph.touchpoints':'e.g. TV (remote control), Mobile (touch)',
     'setup.guardrails':'Guardrails','setup.constraints':'Constraints','ph.perline':'One per line',
     'audit.frames':'Selected Frames','audit.noFrames':'No frames selected in Figma.',
+    'audit.hint':'Select frames in Figma with prototype arrows, then click Start Audit.',
     'audit.progress':'Audit Progress',
     'step.inspect':'Inspect','step.analyse':'Analyse','step.write':'Write back',
     'status.idle':'Select frames in Figma, then start the audit.',
@@ -2073,6 +2191,9 @@ const UI_STRINGS = {
     'cmp.snapA':'Snapshot A (older)','cmp.snapB':'Snapshot B (newer)','btn.compare':'Compare snapshots',
     'cmp.added':'▲ New','cmp.removed':'✓ Resolved','cmp.same':'= Unchanged',
     'history.trend':'Score Trend','btn.refresh':'↺ Refresh','history.runs':'Audit Runs',
+    'history.delete':'Delete','history.clearAll':'Clear All',
+    'history.confirmClear':'Clear all audit history? This cannot be undone.',
+    'history.findings':'Findings',
     'audit.type':'Type','audit.suggestion':'Suggestion','audit.guardrailViolation':'Guardrail violation','audit.whyMatters':'Why this matters','audit.why':'Why it blocks the goal',
     'ba.label':'Business Analysis','ba.whyItMatters':'Why it matters','ba.businessLogic':'Business logic',
     'confirm.confirm':'✓ Confirm','confirm.dismiss':'✕ Dismiss','confirm.confirmed':'✓ Confirmed','confirm.dismissed':'✕ Dismissed',
@@ -2142,8 +2263,9 @@ const UI_STRINGS = {
     'nodes.applied':'✓ Applied',
   },
   zh: {
-    'tab.setup':'设置','tab.audit':'审计','tab.results':'结果','tab.trend':'趋势',
-    'subtab.findings':'发现','subtab.evidence':'研究报告','subtab.journey':'用户旅程',
+    'tab.setup':'设置','tab.audit':'审计','tab.journey':'旅程','tab.history':'历史',
+    'section.findings':'发现','section.evidence':'研究报告',
+    'setup.goAudit':'→ 开始审计',
     'setup.section.intent':'决策意图','setup.section.business':'业务目标','setup.section.experience':'体验目标','setup.section.constraints':'护栏与约束',
     'sev.critical':'严重','sev.warning':'警告','sev.suggestion':'建议',
     'score.label':'评分',
@@ -2162,6 +2284,7 @@ const UI_STRINGS = {
     'setup.touchpoints':'触达方式','ph.touchpoints':'每行一条，如：电视（遥控器）、手机（触摸）',
     'setup.guardrails':'护栏','setup.constraints':'约束条件','ph.perline':'每行一条',
     'audit.frames':'已选画框','audit.noFrames':'Figma 中未选择画框。',
+    'audit.hint':'在 Figma 中选择带有原型箭头的画框，然后点击开始审计。',
     'audit.progress':'审计进度',
     'step.inspect':'检查','step.analyse':'分析','step.write':'写回',
     'status.idle':'在 Figma 中选择画框，然后开始审计。',
@@ -2176,6 +2299,9 @@ const UI_STRINGS = {
     'cmp.snapA':'快照 A（较旧）','cmp.snapB':'快照 B（较新）','btn.compare':'对比快照',
     'cmp.added':'▲ 新增','cmp.removed':'✓ 已解决','cmp.same':'= 未变更',
     'history.trend':'评分趋势','btn.refresh':'↺ 刷新','history.runs':'审计记录',
+    'history.delete':'删除','history.clearAll':'清空',
+    'history.confirmClear':'清空所有审计历史？此操作不可撤销。',
+    'history.findings':'发现',
     'audit.type':'类型','audit.suggestion':'改进建议','audit.guardrailViolation':'护栏冲突','audit.whyMatters':'为什么重要','audit.why':'为何阻碍目标',
     'ba.label':'业务分析','ba.whyItMatters':'为什么重要','ba.businessLogic':'业务逻辑',
     'confirm.confirm':'✓ 确认','confirm.dismiss':'✕ 忽略','confirm.confirmed':'✓ 已确认','confirm.dismissed':'✕ 已忽略',
@@ -2270,37 +2396,23 @@ document.querySelectorAll('.lang-btn').forEach((btn) => {
 });
 
 /* ─────────── TABS ─────────── */
-const RESULTS_GROUP = new Set(['results', 'evidence', 'journey']);
-
 document.querySelectorAll('.tab').forEach((btn) => {
   btn.addEventListener('click', () => {
-    const tabName = btn.dataset.tab;
-    if (tabName === 'results') switchTab('results');
-    else switchTab(tabName);
-    if (tabName === 'history') loadHistory();
+    switchTab(btn.dataset.tab);
+    if (btn.dataset.tab === 'history') loadHistory();
   });
-});
-
-document.querySelectorAll('.sub-tab').forEach((btn) => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.subtab));
 });
 
 function switchTab(name) {
-  const isResults = RESULTS_GROUP.has(name);
+  // Map legacy internal names to actual tab destinations
+  const tabMap = { results: 'audit', evidence: 'audit' };
+  const resolved = tabMap[name] || name;
   document.querySelectorAll('.tab[data-tab]').forEach((t) => {
-    const active = t.dataset.tab === name || (t.dataset.tab === 'results' && isResults);
-    t.classList.toggle('active', active);
+    t.classList.toggle('active', t.dataset.tab === resolved);
   });
   document.querySelectorAll('.pane').forEach((p) => {
-    p.classList.toggle('active', p.id === 'pane-' + name);
+    p.classList.toggle('active', p.id === 'pane-' + resolved);
   });
-  const subBar = $('resultsSubTabs');
-  if (subBar) {
-    subBar.classList.toggle('visible', isResults);
-    subBar.querySelectorAll('.sub-tab').forEach((t) => {
-      t.classList.toggle('active', t.dataset.subtab === name);
-    });
-  }
 }
 
 /* ─────────── STEPPER ─────────── */
@@ -2560,6 +2672,7 @@ async function runAudit(payload) {
     audits,
   };
   state.snapshots.push(snap);
+  persistSnapshots();
 
   _lastAuditsForEvidence = audits;
   _lastDecisionCardForEvidence = payload.decisionCard || null;
@@ -2570,6 +2683,13 @@ async function runAudit(payload) {
   _evidenceAuditIndexMap = audits.map((_, i) => i);
   _drdStore.clear();
   _frameNodePanels.clear();
+  // Reset findings empty state and evidence section from previous run
+  const findingsEmpty = $('findingsEmptyCard');
+  if (findingsEmpty) findingsEmpty.style.display = 'none';
+  const findingsBadge = $('findingsBadge');
+  if (findingsBadge) findingsBadge.style.display = 'none';
+  const ew = $('evidenceSectionWrap');
+  if (ew) { ew.style.display = 'none'; $('evidenceSections').innerHTML = ''; }
 
   showEvidenceButton(true);
 
@@ -2675,7 +2795,13 @@ function renderGroups(audits, businessAnalysis) {
     wrap.appendChild(section);
   });
 
-  switchTab('results');
+  // Hide findings empty state and show badge
+  const emptyCard = $('findingsEmptyCard');
+  if (emptyCard) emptyCard.style.display = 'none';
+  const badge = $('findingsBadge');
+  if (badge) { badge.textContent = audits.length; badge.style.display = ''; }
+
+  switchTab('audit');
 }
 
 function buildAuditCard(audit, sev, auditIndex) {
@@ -2822,10 +2948,10 @@ function buildAuditCard(audit, sev, auditIndex) {
   // DRD button for critical/warning items
   if (sev === 'critical' || sev === 'warning') {
     const drdBtnRow = document.createElement('div');
-    drdBtnRow.style.cssText = 'padding:0 12px 10px 24px;display:flex;justify-content:flex-end';
+    drdBtnRow.style.cssText = 'padding:8px 12px 12px;display:flex';
     const drdBtn = document.createElement('button');
-    drdBtn.className = 'btn btn-secondary';
-    drdBtn.style.cssText = 'font-size:10px;padding:4px 10px;border:1px solid var(--border)';
+    drdBtn.className = 'btn btn-tonal';
+    drdBtn.style.cssText = 'font-size:11px;padding:6px 14px;border-radius:var(--radius-s)';
     drdBtn.textContent = t('btn.drd');
     drdBtn.addEventListener('click', (e) => { e.stopPropagation(); openDRD(audit); });
     drdBtnRow.appendChild(drdBtn);
@@ -2864,10 +2990,13 @@ function journeyHealthClass(score) {
 }
 
 function showJourneyButton(show) {
-  const row = $('journeyBtnRow');
-  if (row) row.style.display = show ? '' : 'none';
+  // Show score banner + Analyze Journey button on the dedicated Journey pane
   const empty = $('journeyEmptyCard');
-  if (empty) empty.style.display = show ? 'none' : '';
+  const banner = $('journeyScoreBanner');
+  const btnRow = $('journeyBtnRow');
+  if (empty)  empty.style.display  = show ? 'none' : '';
+  if (banner) banner.style.display = show ? '' : 'none';
+  if (btnRow) btnRow.style.display = show ? '' : 'none';
 }
 
 function updateJourneyScoreBanner(preScore, postScore, cognitiveScore, summary) {
@@ -3109,6 +3238,29 @@ let _lastDecisionCardForEvidence = null;
 let _evidenceAuditIndexMap = []; // filteredIndex → originalIndex mapping
 // Map<auditIndex, drdResult> — persists DRD results so checklist survives panel close
 const _drdStore = new Map();
+
+/* ─────────── HISTORY PERSISTENCE ─────────── */
+function persistSnapshots() {
+  // Strip non-serializable properties before sending through postMessage
+  const clean = state.snapshots.slice(-30).map((s) => ({
+    timestamp: s.timestamp,
+    score: s.score,
+    severityCounts: s.severityCounts,
+    audits: (s.audits || []).map((a) => ({
+      targetFrameName:    a.targetFrameName,
+      critiqueType:       a.critiqueType,
+      severity:           a.severity,
+      impactedMetric:     a.impactedMetric,
+      provocativeQuestion:a.provocativeQuestion,
+      what:               a.what,
+      where:              a.where,
+      why:                a.why,
+      affectedFrameId:    a.affectedFrameId,
+    })),
+  }));
+  // SAVE_SNAPSHOT: { snapshots } — code.ts writes to figma.clientStorage
+  parent.postMessage({ pluginMessage: { type: 'SAVE_SNAPSHOT', snapshots: clean } }, '*');
+}
 // Map<frameId, { nodesEl, audit }> — routes NODES_RESULT to the correct card
 const _frameNodePanels = new Map();
 // Map<nodeId, { checklistItem, previewDiv, applyBtn, proposedDisplay }> — routes NODE_CHANGE_APPLIED/FAILED
@@ -3144,7 +3296,11 @@ function updateConfirmSummary() {
       summaryEl.style.display = 'none';
     }
   }
-  if (btn) btn.disabled = confirmed === 0;
+  if (btn) {
+    btn.disabled = confirmed === 0;
+    // Elevate to primary CTA once the designer has confirmed at least one finding
+    btn.className = 'btn ' + (confirmed > 0 ? 'btn-primary' : 'btn-secondary');
+  }
 }
 
 $('evidenceBtn').addEventListener('click', async () => {
@@ -3167,7 +3323,9 @@ $('evidenceBtn').addEventListener('click', async () => {
     const cfg = getLLMConfig();
     const report = await generateEvidenceReport({ ...cfg, audits: auditsToSend, decisionCard: _lastDecisionCardForEvidence });
     renderEvidenceReport(report, auditsToSend);
-    switchTab('evidence');
+    // Show evidence section inline (no tab switch needed)
+    const ew = $('evidenceSectionWrap');
+    if (ew) { ew.style.display = ''; ew.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   } catch (e) {
     alert(e.message);
   } finally {
@@ -3179,7 +3337,6 @@ $('evidenceBtn').addEventListener('click', async () => {
 function renderEvidenceReport(report, audits) {
   const container = $('evidenceSections');
   container.innerHTML = '';
-  $('evidenceEmptyCard').style.display = 'none';
 
   const sections = [
     { key: 'researchPlan',     titleKey: 'evidence.researchPlan',     render: renderResearchPlan },
@@ -3454,7 +3611,7 @@ async function generateNodeChange({ provider, model, apiKey, node, changeType, c
     'Constraints: ' + JSON.stringify(dc.constraints || []),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 300 });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 800 });
   return extractJson(raw);
 }
 
@@ -3493,7 +3650,7 @@ async function identifyTargetNodes({ provider, model, apiKey, nodes, changeDescr
     'Which nodes are the targets of this change? What type of change is needed on each?',
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 600 });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 1200 });
   return extractJson(raw);
 }
 
@@ -4037,7 +4194,6 @@ function drdToMarkdown(result) {
 /* ─────────── COMPARE ─────────── */
 $('compareToggle').addEventListener('change', () => {
   const on = $('compareToggle').checked;
-  $('normalView').style.display  = on ? 'none' : '';
   $('compareView').style.display = on ? 'flex' : 'none';
   $('compareView').style.flexDirection = 'column';
   if (on) fillSnapSelects();
@@ -4120,23 +4276,88 @@ function renderHistoryList(snaps) {
   const el = $('historyList');
   el.innerHTML = '';
   if (!snaps.length) {
-    el.innerHTML = '<div class="history-row" style="color:var(--text-ter)">' + t('history.noRuns') + '</div>';
+    el.innerHTML = '<div class="history-row" style="color:var(--text-ter);cursor:default">' + t('history.noRuns') + '</div>';
     return;
   }
+
   [...snaps].reverse().forEach((s) => {
     const sc = s.severityCounts || {};
+    const entry = document.createElement('div');
+    entry.className = 'history-entry';
+
+    // ── Row (header) ──
     const row = document.createElement('div');
     row.className = 'history-row';
     row.innerHTML =
+      '<span class="history-expand-icon">▶</span>' +
       '<span class="history-time">' + fmtTime(s.timestamp) + '</span>' +
       '<span class="sev-badges">' +
-        '<span class="sev-badge c">' + (sc.critical || 0) + 'C</span>' +
-        '<span class="sev-badge w">' + (sc.warning  || 0) + 'W</span>' +
+        '<span class="sev-badge c">' + (sc.critical   || 0) + 'C</span>' +
+        '<span class="sev-badge w">' + (sc.warning    || 0) + 'W</span>' +
         '<span class="sev-badge s">' + (sc.suggestion || 0) + 'S</span>' +
       '</span>' +
       '<span class="history-score" style="color:' + scoreColor(s.score) + '">' + (s.score != null ? s.score : '—') + '</span>';
-    el.appendChild(row);
+
+    // Delete button
+    const delBtn = document.createElement('button');
+    delBtn.className = 'history-del-btn';
+    delBtn.title = t('history.delete');
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteSnapshot(s.timestamp);
+    });
+    row.appendChild(delBtn);
+
+    // ── Detail (findings) ──
+    const detail = document.createElement('div');
+    detail.className = 'history-detail';
+    const audits = s.audits || [];
+    if (audits.length) {
+      audits.forEach((a) => {
+        const sev = a.severity || 'suggestion';
+        const sevClass = sev === 'critical' ? 'c' : sev === 'warning' ? 'w' : 's';
+        const fr = document.createElement('div');
+        fr.className = 'history-finding-row';
+        fr.innerHTML =
+          '<span class="hf-sev ' + sevClass + '">' + esc(sev.slice(0,1).toUpperCase() + sev.slice(1)) + '</span>' +
+          '<div class="hf-body">' +
+            (a.targetFrameName ? '<div class="hf-frame">' + esc(a.targetFrameName) + '</div>' : '') +
+            '<div class="hf-q">' + esc(a.what || a.provocativeQuestion || '') + '</div>' +
+          '</div>';
+        detail.appendChild(fr);
+      });
+    } else {
+      detail.innerHTML = '<div style="font-size:11px;color:var(--text-ter);padding:4px 0">' + t('history.findings') + ': —</div>';
+    }
+
+    // Toggle expand on row click
+    row.addEventListener('click', () => {
+      const isOpen = entry.classList.contains('open');
+      // Collapse all others
+      el.querySelectorAll('.history-entry.open').forEach((e) => e.classList.remove('open'));
+      if (!isOpen) entry.classList.add('open');
+    });
+
+    entry.appendChild(row);
+    entry.appendChild(detail);
+    el.appendChild(entry);
   });
+}
+
+function deleteSnapshot(timestamp) {
+  state.snapshots = state.snapshots.filter((s) => s.timestamp !== timestamp);
+  persistSnapshots();
+  renderHistoryList(state.snapshots);
+  renderChart(state.snapshots);
+}
+
+function clearAllHistory() {
+  if (!confirm(t('history.confirmClear'))) return;
+  state.snapshots = [];
+  persistSnapshots();
+  renderHistoryList(state.snapshots);
+  renderChart(state.snapshots);
 }
 
 function scoreColor(s) {
@@ -4227,6 +4448,16 @@ window.onmessage = async (event) => {
   const msg = event.data && event.data.pluginMessage;
   if (!msg) return;
 
+  // HISTORY_LOADED: { snapshots } — sent by code.ts on startup from figma.clientStorage
+  if (msg.type === 'HISTORY_LOADED') {
+    const incoming = Array.isArray(msg.snapshots) ? msg.snapshots : [];
+    const existingTs = new Set(state.snapshots.map((s) => s.timestamp));
+    // Prepend persisted snapshots that aren't already in memory (oldest first)
+    const toAdd = incoming.filter((s) => !existingTs.has(s.timestamp));
+    state.snapshots = [...toAdd, ...state.snapshots];
+    return;
+  }
+
   if (msg.type === 'selection-info') {
     state.selection = msg;
     if (msg.fileKey) {
@@ -4316,6 +4547,7 @@ $('bridgeUrl').addEventListener('change', () => {
 });
 
 $('refreshBtn').addEventListener('click', loadHistory);
+$('clearHistoryBtn').addEventListener('click', clearAllHistory);
 
 /* ─────────── BOOT ─────────── */
 initBridge(); // silent — bridge is optional

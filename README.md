@@ -144,12 +144,12 @@ The audit LLM returns a two-part JSON object:
 
 ### Audit card UI
 
-**Business Analysis card** — appears at the top of the Findings sub-tab before individual audit items. Shows `coreAction`, business metric chips, `whyItMatters`, `businessLogic`, and a `summary`.
+**Business Analysis card** — appears at the top of the Findings area before individual audit items. Shows `coreAction`, business metric chips, `whyItMatters`, `businessLogic`, and a `summary`.
 
 **Audit result cards** — one per `auditItems` entry, showing:
 
 - Severity chip (Critical / Warning / Suggestion) + left border tint
-- **Frame name** (dotted underline, clickable) — pans Figma viewport to that frame and selects it; does not change zoom so nearby canvas annotations stay visible
+- **Frame name chip** (blue tonal pill with ↗ icon, clickable) — pans Figma viewport to center on that frame and selects it; zoom level is unchanged so nearby sticky note annotations stay visible
 - Provocative question (always visible)
 - **✓ / ✕ confirm buttons** — designer marks each finding as confirmed or dismissed
 - **Type** tag + **Impact badge** (purple, shows `impactedMetric`) — visible when expanded
@@ -158,11 +158,11 @@ The audit LLM returns a two-part JSON object:
 - **Suggestion** callout (green)
 - **Guardrail violation** callout (amber) — when applicable
 - **Why this matters** — collapsible section showing `causalMechanism`
-- **Generate DRD** button — visible on `critical` and `warning` items
+- **Generate DRD** button (tonal style, blue-tinted) — visible on `critical` and `warning` items
 
 After a DRD is generated, an **Implementation Checklist** and a **Frame Nodes** panel appear below the card (see Canvas Editing Workflow section).
 
-A **confirmation summary** below the cards shows how many findings are confirmed (e.g. `2 / 4 confirmed`). The **Generate Evidence Report** button is disabled until at least one finding is confirmed.
+A **confirmation summary** below the cards shows how many findings are confirmed (e.g. `2 / 4 confirmed`). The **Generate Evidence Report** button upgrades to primary (blue) once at least one finding is confirmed; it is disabled (gray) otherwise.
 
 ### Severity and score
 
@@ -185,7 +185,7 @@ Annotation frames written to the Figma canvas include:
 
 ## Plugin Tabs
 
-The plugin uses a **4-tab navigation** (Setup · Audit · Results · Trend). The Results tab expands into three sub-tabs.
+The plugin uses a **4-tab navigation**: Setup · Audit · Journey · History.
 
 ### Setup tab
 
@@ -200,46 +200,43 @@ All fields are editable after extraction.
 
 ### Audit tab
 
-Shows the currently selected Figma frames as chips, an audit progress stepper (Inspect → Analyse → Write back), and the **Start Audit** button.
+The Audit tab is the primary workspace. It contains:
 
-### Results tab
+**Launch card** — selected frames (as chips), audit progress stepper (Inspect → Analyse → Write back), status text, and the **Start Audit** button (large primary CTA).
 
-Contains three sub-tabs:
+**Findings section** — always visible below the launch card. Before the first audit it shows an empty state. After audit completes:
+- Business Analysis card at the top
+- Audit cards grouped by severity
+- Confirmation summary + **Generate Evidence Report** button (upgrades to primary blue once ≥1 finding is confirmed)
+- Clicking **Generate DRD** opens a slide-over panel for that finding
 
-#### Findings sub-tab
+**Evidence section** — appears below Findings after an Evidence Report is generated. Contains Research Plan, Hypotheses, Module A, Module B, Issue Definitions, and User Insights (all collapsible).
 
-Shows graded audit findings grouped by severity. After an audit completes:
-- Click any card to expand it and see the full critique detail
-- Click **Generate DRD** on a `critical` or `warning` card to open the DRD slide-over
-- Click **Generate Evidence Report** to generate a full UX research simulation
+### Journey tab
 
-#### Evidence sub-tab
+A dedicated page for flow-level analysis. Shows an empty state before any audit has been run.
 
-The Evidence Report uses a **holistic research planning** approach: all confirmed audit findings are read together first to identify shared root causes and overlapping patterns before any research module is designed. This produces 1–2 research modules maximum (not one study per issue) and realistic simulated findings with concrete numbers.
+After an audit completes:
+- **Flow Health Score** and **Cognitive Complexity Score** — computed deterministically from the Figma prototype graph, no LLM required
+- **Analyze Journey** button (primary CTA) — sends flow metrics and audit findings to the LLM to add:
+  - **Happy Path Assessment** — does the path make sense? Are frames misplaced? Where is unnecessary friction?
+  - **Drop-off Points** — frames at risk of abandonment, with journey position and suggestion
+  - **Flow Structure Observations** — 3–5 structural issues not in the per-frame audit
+  - **Journey Score** — post-LLM score after deductions applied to the baseline
 
-Only confirmed audit findings (✓ from Stage 1) are sent to the LLM. The rendered sections appear in this order:
+### History tab
 
-1. **Research Plan** — problem types identified, root cause groups (with issue chips), modules justification (why 1–2 modules cover all issues)
-2. **Hypotheses** — 2–4 testable hypotheses, each with an ID badge, the hypothesis statement, cognitive/behavioral mechanism, and testable method
-3. **Module A** — qualitative method (interviews, usability testing, or diary study): why this method, issues covered, sample size, time range, and simulated findings with severity ratings, hypothesis references, and visualization suggestions
-4. **Module B** — quantitative method (funnel analysis, heatmap, clickstream, or A/B test): same structure as Module A
-5. **Issue Definitions** — one per confirmed finding, format: "In [user + context], because of [design problem], users [behavioral consequence], which impacts [business metric]." Each has a **✓ confirm button** for Stage 2→3 gating.
-6. **User Insights** — one per confirmed finding, with cognitive/behavioral mechanism and design implication. Each has a **✓ confirm button** for Stage 2→3 gating.
+Score trend chart + audit run log with full history management.
 
-Confirmed issue definitions and user insights are injected as research context into the subsequent DRD call for that finding.
+**Viewing runs:** Click any row to expand it and see all findings from that run (severity badge + frame name + issue description). Click again or click another row to collapse.
 
-#### Journey sub-tab
+**Deleting runs:** Click the × button on any row to delete that run. The deletion is immediate and persisted.
 
-After a completed audit, this sub-tab shows a **Flow Health Score** and **Cognitive Complexity Score** computed deterministically from the Figma graph (no LLM needed). Click **Analyze Journey** to run an LLM call that adds:
+**Clear All:** The "Clear All" button (red, in the card header) removes all history after a confirmation prompt.
 
-- **Happy Path Assessment** — does the computed path make sense? Are frames misplaced? Where is unnecessary friction?
-- **Drop-off Points** — frames at risk of user abandonment, with journey position (early/mid/late), drop-off type, and concrete suggestion
-- **Flow Structure Observations** — 3–5 structural issues not in the per-frame audit (loops, missing error recovery, orphaned frames, asymmetric flows)
-- **Journey Score** — post-LLM score after applying penalty deductions to the pre-computed baseline
+**Compare mode:** Toggle at the bottom of the History tab — select two snapshots to diff them side by side (added / resolved / unchanged findings).
 
-### Trend tab
-
-Score history chart and audit run log. Shows all audit runs in the current session.
+**Persistence:** History is stored in `figma.clientStorage` (local, per-user, per-plugin). It survives plugin restarts and code updates. Maximum 30 runs are stored (older runs are trimmed automatically).
 
 ---
 
@@ -423,10 +420,31 @@ If the Figma file uses local variables, the plugin exports them as a token summa
 
 ---
 
-## Audit History and Comparison
+## Audit History
 
-- Previous audit results are stored in-session and accessible under the **Trend** tab
-- The **Compare** mode in the Results (Findings) sub-tab diffs two audit runs to show added, removed, and unchanged critique items (matched by `targetFrameName` + `critiqueType` + `provocativeQuestion`)
+### Persistence
+
+Audit history is stored in `figma.clientStorage` — Figma's built-in key-value store, local to the user's machine, scoped to this plugin. History survives:
+- Plugin restarts
+- Code updates and reinstalls
+- Figma version updates
+
+History does **not** sync across machines. Maximum 30 snapshots are stored; when a new run is added and the limit is exceeded, the oldest run is dropped.
+
+### Management
+
+From the **History** tab:
+
+| Action | How |
+|---|---|
+| View a run's findings | Click any row to expand it |
+| Collapse | Click the expanded row again |
+| Delete one run | Click × on the right side of the row |
+| Delete all runs | Click **Clear All** (confirmation required) |
+
+### Comparison
+
+The **Compare mode** toggle (bottom of the History tab) diffs two selected snapshots side by side, showing added, resolved, and unchanged findings matched by `targetFrameName + critiqueType + provocativeQuestion`.
 
 ---
 
@@ -476,9 +494,9 @@ The plugin will:
 - Write colour-coded annotation frames to the Figma canvas (red = critical, amber = warning, blue = suggestion), each showing the impacted metric
 
 After the audit:
-- Explore **Results → Evidence** to generate a structured UX research report
-- Explore **Results → Journey** to see the Flow Health Score and run the journey-level analysis
-- Click **Trend** to track score history across runs
+- Scroll down in the **Audit** tab to see the Findings section — confirm findings and generate an Evidence Report
+- Switch to the **Journey** tab to see the Flow Health Score and run the journey-level analysis
+- Switch to the **History** tab to track score history, view past findings, or compare two runs
 
 ---
 
@@ -599,17 +617,24 @@ The plugin includes several guardrails to keep LLM request sizes manageable:
 - `generateDRD` sends a single audit item — no capping needed
 - `runJourneyAudit` filters to risky frames only when `totalFrames > 20`
 
-Each LLM function uses a per-call token ceiling tuned to its output size:
+Each LLM function uses a per-call token ceiling. Budgets were raised in v1.6 to handle the more verbose JSON output of GPT-5 series and future models:
 
 | Function | `max_completion_tokens` / `max_tokens` |
 |---|---|
-| `runContextualAudit`, `extractDecisionCard`, translation | 1800 |
-| `generateEvidenceReport`, `runJourneyAudit`, `analyzeJourney` | 3200 |
-| `generateDRD` | 3500 |
-| `identifyTargetNodes` (Layer 3b) | 600 |
-| `generateNodeChange` (Layer 3c) | 300 |
+| `runContextualAudit`, `extractDecisionCard`, translation (default) | 4000 |
+| `generateEvidenceReport`, `runJourneyAudit`, `analyzeJourney`, `generateDRD` | 6000 |
+| `identifyTargetNodes` (Layer 3b) | 1200 |
+| `generateNodeChange` (Layer 3c) | 800 |
 
-If you hit rate limits, reduce the number of selected frames and re-run.
+If you still hit truncation errors, reduce the number of selected frames or switch to Anthropic (which generally handles larger JSON outputs more reliably).
+
+### JSON error detection
+
+The plugin's `extractJson()` function detects when a response was cut off mid-JSON and surfaces a specific actionable error instead of a raw syntax error:
+
+> *"The model response was cut off before the JSON was complete. Try: (1) reduce the number of selected frames, (2) switch to Anthropic, or (3) use a model with a larger context window."*
+
+`extractJson()` also strips markdown code fences (` ```json `) before parsing, which is necessary for models that ignore `json_object` response format.
 
 ---
 
@@ -629,13 +654,20 @@ The bridge only has payload data after the designer has clicked **Start Audit** 
 
 ### Journey tab shows empty state after audit
 
-Make sure `code.js` is up to date — run `npm run build`. The journey metrics are computed in `code.ts` (compiled to `code.js`); if the compiled file is stale, `flowMetrics` will not be included in the payload and the Journey sub-tab will not activate.
+Make sure `code.js` is up to date — run `npm run build`. The journey metrics are computed in `code.ts` (compiled to `code.js`); if the compiled file is stale, `flowMetrics` will not be included in the payload and the Journey tab score banner will not appear.
 
 ### Journey analysis is blank after clicking "Analyze Journey"
 
 Two common causes:
 1. **Frames have no prototype links** — the happy path will be empty and the LLM returns empty arrays. Connect your frames with at least one prototype arrow.
-2. **Token truncation** — rare with the current 3200-token ceiling, but if you see a parsing error alert, reduce the number of selected frames.
+2. **Token truncation** — if you see an error about the response being cut off, reduce the number of selected frames. The plugin will show a descriptive error message in this case.
+
+### JSON parse error / response was cut off (GPT-5 series)
+
+Newer OpenAI models (GPT-5, GPT-5.4, etc.) generate more verbose JSON than GPT-4. If you see a message about the response being truncated, try:
+1. Reducing the number of selected frames (the main audit payload is the largest output)
+2. Switching to an Anthropic model — Anthropic's API handles large structured outputs more consistently
+3. If you must use OpenAI, `gpt-4o` is typically more concise than GPT-5 series models
 
 ### OpenAI 429 / request too large
 

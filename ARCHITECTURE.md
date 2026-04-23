@@ -147,13 +147,14 @@ callLLM({ provider, model, apiKey, purpose, prompt, visuals, maxTokens })
 Output → raw string → extractJson() → parsed object
 ```
 
-**Token budgets per function:**
+**Token budgets per function** (raised in v1.6 for GPT-5 series compatibility):
 
 | Function | `maxTokens` |
 |---|---|
-| `runContextualAudit`, `extractDecisionCard`, `translateToZh` | 1800 |
-| `generateEvidenceReport`, `runJourneyAudit`, `analyzeJourney` | 3200 |
-| `generateDRD` | 3500 |
+| `runContextualAudit`, `extractDecisionCard`, `translateToZh` (default) | 4000 |
+| `generateEvidenceReport`, `runJourneyAudit`, `analyzeJourney`, `generateDRD` | 6000 |
+| `identifyTargetNodes` (Layer 3b) | 1200 |
+| `generateNodeChange` (Layer 3c) | 800 |
 
 ---
 
@@ -521,7 +522,7 @@ USER PROMPT
    then unwraps after parsing — required for OpenAI json_object mode]
 
 VISUALS  []
-maxTokens  1800 (default)
+maxTokens  4000 (default)
 
 OUTPUT  same shape as input, all string values translated
 ```
@@ -610,22 +611,22 @@ bridge/mcp-server.mjs
   │
   ├── extract_decision_card
   │     → core.extractDecisionCard(provider, model, apiKey, notes)
-  │       → callLLM  [maxTokens 1800]
+  │       → callLLM  [maxTokens 4000]
   │
   ├── run_contextual_audit
   │     GET /api/session/context → full payload
   │     → core.runContextualAudit(provider, model, apiKey, payload)
-  │       → callLLM  [maxTokens 1800, with visuals]
+  │       → callLLM  [maxTokens 4000, with visuals]
   │
   ├── generate_evidence_report
   │     (uses session audits + decisionCard from context, or passed directly)
   │     → core.generateEvidenceReport(provider, model, apiKey, audits, dc)
-  │       → callLLM  [maxTokens 3200]
+  │       → callLLM  [maxTokens 6000]
   │
   ├── generate_drd
   │     GET /api/session/context → session.audits[auditItemIndex]
   │     → core.generateDRD(provider, model, apiKey, audit, decisionCard)
-  │       → callLLM  [maxTokens 3500]
+  │       → callLLM  [maxTokens 6000]
   │       Note: bridge generateDRD does not inject confirmedContext
   │             (confirmation state is plugin-session-only)
   │
@@ -633,7 +634,7 @@ bridge/mcp-server.mjs
   │     GET /api/session/context → flowGraph, decisionCard, existingAudits
   │     → core.computeGraphMetrics(flowGraph)  [no LLM]
   │     → core.analyzeJourney(provider, model, apiKey, ...)
-  │       → callLLM  [maxTokens 3200]
+  │       → callLLM  [maxTokens 6000]
   │
   └── write_audit_feedback
         → core.prepareWriteAuditFeedback(audits, frameNames)
@@ -651,15 +652,26 @@ All LLM responses pass through `extractJson(text)` before use:
 
 ```
 extractJson(text)
-  1. JSON.parse(text)          → success → return
-  2. strip markdown fences     → JSON.parse() → success → return
-     (```json ... ``` or ``` ... ```)
-  3. regex: first { ... }      → JSON.parse() → success → return
-  4. regex: first [ ... ]      → JSON.parse() → success → return
-  5. all fail                  → return {}
+  1. JSON.parse(text)                        → success → return
+  2. strip markdown fences (```json...```)   → JSON.parse() → success → return
+  3. regex first { ... } or [ ... ]          → JSON.parse() → success → return
+  4. step 3 matched but JSON.parse() failed:
+       detect truncation heuristics:
+         – error message contains "Unexpected end", "Unexpected token",
+           or "Expected ',' or"
+         – OR match is >500 chars and does not end with } ] " or digit
+       if truncation detected:
+         throw actionable error:
+           "The model response was cut off before the JSON was complete.
+            Try: (1) reduce selected frames, (2) switch to Anthropic,
+            (3) use a model with a larger context window."
+       else:
+         throw "Model response contained malformed JSON: {original error}"
+  5. no JSON found at all:
+       throw "Model response did not contain valid JSON. Raw: {first 200 chars}"
 ```
 
-This ensures the LLM can return JSON with surrounding commentary (or wrapped in fences) without breaking the parser.
+**Why truncation detection matters:** GPT-5 series models produce more verbose JSON than GPT-4. A response can be syntactically valid mid-way but get cut off before the closing `}` or `]`, producing an error like `Expected ',' or ']' after array element in JSON at position N`. Without truncation detection this surfaces as a confusing syntax error; with it, the designer gets a direct instruction to switch models or reduce frames.
 
 ---
 
@@ -702,7 +714,7 @@ ui.html → code.ts
       (pans without changing zoom so nearby sticky notes stay visible)
 ```
 
-Triggered by clicking the dotted-underlined frame name on any audit card header or DRD panel title. `affectedFrameId` is set on each audit item by `resolveFrameIds()` which maps `targetFrameName → frame.id` from the flow graph.
+Triggered by clicking the **frame name chip** (blue tonal pill — `background: var(--accent-light)`, `color: var(--accent)`, `↗` suffix) on any audit card header or DRD panel title. The chip replaces the previous dotted-underline approach for better visibility. `affectedFrameId` is set on each audit item by `resolveFrameIds()` which maps `targetFrameName → frame.id` from the flow graph.
 
 ### Layer 3a — INSPECT_NODES / NODES_RESULT
 
@@ -750,7 +762,7 @@ USER PROMPT
    Before state: {beforeState}
    After state:  {afterState}"
 
-maxTokens: 600
+maxTokens: 1200
 OUTPUT: { matches: [ { nodeId, nodeName, reason, changeType } ] }
 ```
 
@@ -774,7 +786,7 @@ SYSTEM PROMPT
    layout:       only include keys that change (layoutMode, padding, itemSpacing, alignment)
    position:     { x, y }"
 
-maxTokens: 300
+maxTokens: 800
 
 After preview is shown and designer clicks Apply:
 
@@ -815,3 +827,84 @@ const serializableAudits = audits.map((a) => ({
 ```
 
 Only plain-data fields are included. DOM refs and session-only props are excluded.
+
+---
+
+## 16. History persistence (clientStorage)
+
+Audit history is persisted across plugin sessions using Figma's `figma.clientStorage` API. The storage key is `'audit_history'`.
+
+### Startup load
+
+```
+code.ts (plugin startup)
+  figma.clientStorage.getAsync('audit_history')
+    → on success with non-empty array:
+        figma.ui.postMessage({ type: 'HISTORY_LOADED', snapshots: data })
+    → on error or empty: silently skip (start with no history)
+
+ui.html window.onmessage
+  type: 'HISTORY_LOADED'
+  payload: { snapshots: SnapshotRecord[] }
+
+  Handler:
+    incoming = snapshots from storage
+    existingTs = Set of timestamps already in state.snapshots
+    toAdd = incoming.filter(s => !existingTs.has(s.timestamp))
+    state.snapshots = [...toAdd, ...state.snapshots]
+    (prepend older stored runs before any in-memory runs from this session)
+```
+
+### Save on new run
+
+After each audit completes and `state.snapshots.push(snap)` is called:
+
+```
+ui.html
+  persistSnapshots()
+    Serializes state.snapshots (last 30, strips DOM refs):
+      per snapshot: { timestamp, score, severityCounts, audits[] }
+      per audit:    { targetFrameName, critiqueType, severity,
+                      impactedMetric, provocativeQuestion,
+                      what, where, why, affectedFrameId }
+    →  parent.postMessage({ pluginMessage: {
+          type: 'SAVE_SNAPSHOT', snapshots: clean
+       } }, '*')
+
+code.ts
+  if msg.type === 'SAVE_SNAPSHOT':
+    figma.clientStorage.setAsync('audit_history', msg.snapshots).catch(() => {})
+    return
+```
+
+The 30-run cap prevents the `clientStorage` from growing indefinitely (Figma enforces ~1 MB per plugin).
+
+### Delete / Clear All
+
+Both actions call `persistSnapshots()` after mutating `state.snapshots`:
+
+```javascript
+// Delete one
+function deleteSnapshot(timestamp) {
+  state.snapshots = state.snapshots.filter(s => s.timestamp !== timestamp);
+  persistSnapshots();
+  renderHistoryList(state.snapshots);
+  renderChart(state.snapshots);
+}
+
+// Clear all (after confirm())
+function clearAllHistory() {
+  state.snapshots = [];
+  persistSnapshots();
+  renderHistoryList(state.snapshots);
+  renderChart(state.snapshots);
+}
+```
+
+Because `persistSnapshots()` always writes the full current array (including empty `[]`), deleting and clearing are handled by the same mechanism as saving.
+
+### History row expand/collapse
+
+Each history row is a `.history-entry` with a `.history-row` header and a `.history-detail` collapsible body. Clicking the header toggles `entry.classList.toggle('open')`. Only one entry is open at a time — clicking a new row collapses all others first.
+
+The `.history-detail` shows each audit item as a `.history-finding-row`: severity badge + frame name + `what` (or `provocativeQuestion` as fallback).

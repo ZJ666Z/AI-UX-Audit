@@ -427,7 +427,7 @@ These features are only available in the Figma plugin UI. They are not exposed a
 
 ### Layer 1 — Frame Focus
 
-Click the dotted-underlined frame name on any audit card → Figma pans to that frame and selects it. The viewport zoom level is unchanged so nearby sticky note annotations remain visible. The DRD panel title also has a clickable frame name.
+Click the **blue frame name chip** (`[Frame Name ↗]`) on any audit card → Figma pans to center on that frame and selects it. Zoom level is unchanged so nearby sticky note annotations remain visible. The DRD panel title has the same clickable chip.
 
 ### Layer 2 — Implementation Checklist
 
@@ -444,3 +444,17 @@ Each checklist item has a "Find nodes" button. Clicking triggers an LLM call (60
 ### Layer 3c — Suggest Edit + Apply
 
 "Suggest edit" on a matched node triggers an LLM call (300 tokens) to generate the exact new property value. A current / proposed preview with Apply / Dismiss appears. Apply writes the change directly to the Figma canvas via the plugin sandbox (`APPLY_NODE_CHANGE` message → `code.ts`). Success auto-checks the checklist item.
+
+---
+
+## History Persistence (Plugin UI only)
+
+Audit history is stored in `figma.clientStorage` (local, per-user, per-plugin). History survives plugin restarts and code updates.
+
+- **Max 30 runs** stored; oldest are trimmed automatically
+- **View findings** — click any history row to expand and see that run's audit items
+- **Delete one run** — click × on a row
+- **Clear all** — "Clear All" button with confirmation
+- **Storage key** — `'audit_history'` in `figma.clientStorage`
+
+The `SAVE_SNAPSHOT` / `HISTORY_LOADED` message protocol is described in ARCHITECTURE.md §16.

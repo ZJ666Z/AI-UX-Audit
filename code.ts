@@ -115,7 +115,9 @@ type UIMessage =
   // INSPECT_NODES: { frameId } — walk the frame's node tree; response is NODES_RESULT
   | { type: 'INSPECT_NODES'; frameId: string }
   // APPLY_NODE_CHANGE: { nodeId, changeType, value } — apply a property edit to a Figma node
-  | { type: 'APPLY_NODE_CHANGE'; nodeId: string; changeType: string; value: Record<string, unknown> };
+  | { type: 'APPLY_NODE_CHANGE'; nodeId: string; changeType: string; value: Record<string, unknown> }
+  // SAVE_SNAPSHOT: { snapshots } — persist audit history to clientStorage
+  | { type: 'SAVE_SNAPSHOT'; snapshots: unknown[] };
 
 type StickyCapableFigma = PluginAPI & {
   createSticky?: () => StickyNode;
@@ -127,6 +129,13 @@ const MAX_EXPORT_WIDTH = 512;
 
 figma.showUI(__html__, { width: FIGMA_UI_WIDTH, height: FIGMA_UI_HEIGHT });
 sendSelectionInfo();
+
+// Load persisted audit history and send to the UI once it's ready
+figma.clientStorage.getAsync('audit_history').then((data) => {
+  if (Array.isArray(data) && data.length > 0) {
+    figma.ui.postMessage({ type: 'HISTORY_LOADED', snapshots: data });
+  }
+}).catch(() => { /* storage unavailable — start fresh */ });
 
 function isFrameNode(node: SceneNode): node is FrameNode {
   return node.type === 'FRAME';
@@ -666,6 +675,12 @@ figma.ui.onmessage = async (msg: UIMessage) => {
         // Always send a result so ui.html never stays in the loading state
         figma.ui.postMessage({ type: 'NODES_RESULT', frameId: msg.frameId, nodes: [], truncated: false });
       }
+      return;
+    }
+
+    // SAVE_SNAPSHOT: { snapshots } — persist audit run history to clientStorage
+    if (msg.type === 'SAVE_SNAPSHOT') {
+      figma.clientStorage.setAsync('audit_history', msg.snapshots).catch(() => {});
       return;
     }
 
