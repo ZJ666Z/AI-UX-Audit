@@ -109,7 +109,13 @@ type AuditItem = {
 
 type UIMessage =
   | { type: 'prepare-audit-payload'; decisionCard: DecisionCard }
-  | { type: 'write-audit-feedback'; audits: AuditItem[] };
+  | { type: 'write-audit-feedback'; audits: AuditItem[] }
+  // FOCUS_FRAME: { frameId } — pan viewport to the frame and select it
+  | { type: 'FOCUS_FRAME'; frameId: string }
+  // INSPECT_NODES: { frameId } — walk the frame's node tree; response is NODES_RESULT
+  | { type: 'INSPECT_NODES'; frameId: string }
+  // APPLY_NODE_CHANGE: { nodeId, changeType, value } — apply a property edit to a Figma node
+  | { type: 'APPLY_NODE_CHANGE'; nodeId: string; changeType: string; value: Record<string, unknown> };
 
 type StickyCapableFigma = PluginAPI & {
   createSticky?: () => StickyNode;
@@ -584,7 +590,158 @@ figma.ui.onmessage = async (msg: UIMessage) => {
     if (msg.type === 'write-audit-feedback') {
       await writeAuditFeedback(msg.audits);
       figma.notify('AI audit complete. Feedback has been placed next to the audited frames.');
+      return;
     }
+
+    if (msg.type === 'FOCUS_FRAME') {
+      const node = await figma.getNodeByIdAsync(msg.frameId);
+      if (node && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+        const sceneNode = node as SceneNode;
+        figma.currentPage.selection = [sceneNode];
+        // Pan to center on the frame without changing zoom level, so nearby
+        // sticky notes (placed to the right of the frame) stay visible
+        const bb = sceneNode.absoluteBoundingBox;
+        if (bb) {
+          figma.viewport.center = { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 };
+        }
+      }
+      return;
+    }
+    // INSPECT_NODES: walk the focused frame's node tree (depth-first, cap 60)
+    if (msg.type === 'INSPECT_NODES') {
+      // Own try/catch so any error still resolves the loading state in ui.html
+      try {
+        const baseNode = await figma.getNodeByIdAsync(msg.frameId);
+        if (!baseNode || baseNode.type !== 'FRAME') {
+          figma.ui.postMessage({ type: 'NODES_RESULT', frameId: msg.frameId, nodes: [], truncated: false });
+          return;
+        }
+        const frame = baseNode as FrameNode;
+
+        type NodeRecord = {
+          id: string; name: string; type: string;
+          characters?: string;
+          fills: Array<{ type: string; color?: { r: number; g: number; b: number } }>;
+          visible: boolean; width: number; height: number; parentName: string;
+        };
+
+        const collected: NodeRecord[] = [];
+        const CAP = 60;
+        let truncated = false;
+
+        // Arrow function avoids block-scoped function declaration issues in strict ES6
+        const walk = (node: SceneNode): void => {
+          if (collected.length >= CAP) { truncated = true; return; }
+          const bb = 'absoluteBoundingBox' in node ? node.absoluteBoundingBox : null;
+          const rawFills = 'fills' in node && node.fills !== figma.mixed
+            ? (node.fills as readonly Paint[])
+            : [];
+          const fills = rawFills.map((f) => ({
+            type: f.type,
+            color: f.type === 'SOLID' ? (f as SolidPaint).color : undefined,
+          }));
+          collected.push({
+            id: node.id, name: node.name, type: node.type,
+            characters: node.type === 'TEXT' ? (node as TextNode).characters : undefined,
+            fills,
+            visible: node.visible,
+            width: bb?.width ?? 0, height: bb?.height ?? 0,
+            parentName: node.parent && 'name' in node.parent ? (node.parent as { name: string }).name : '',
+          });
+          if ('children' in node) {
+            for (const child of (node as FrameNode).children) {
+              if (collected.length >= CAP) { truncated = true; break; }
+              walk(child as SceneNode);
+            }
+          }
+        };
+
+        for (const child of frame.children) {
+          if (collected.length >= CAP) { truncated = true; break; }
+          walk(child);
+        }
+
+        figma.ui.postMessage({ type: 'NODES_RESULT', frameId: msg.frameId, nodes: collected, truncated });
+      } catch (_err) {
+        // Always send a result so ui.html never stays in the loading state
+        figma.ui.postMessage({ type: 'NODES_RESULT', frameId: msg.frameId, nodes: [], truncated: false });
+      }
+      return;
+    }
+
+    // APPLY_NODE_CHANGE: apply a property edit to a Figma node; posts NODE_CHANGE_APPLIED or NODE_CHANGE_FAILED
+    if (msg.type === 'APPLY_NODE_CHANGE') {
+      try {
+        const baseNode = await figma.getNodeByIdAsync(msg.nodeId);
+        if (!baseNode) {
+          figma.ui.postMessage({ type: 'NODE_CHANGE_FAILED', nodeId: msg.nodeId, reason: 'Node not found' });
+          return;
+        }
+
+        switch (msg.changeType) {
+          case 'text_content': {
+            if (baseNode.type !== 'TEXT') break;
+            const tn = baseNode as TextNode;
+            const fonts = new Set<string>();
+            for (let i = 0; i < tn.characters.length; i++) {
+              const f = tn.getRangeFontName(i, i + 1);
+              if (f !== figma.mixed) fonts.add(JSON.stringify(f));
+            }
+            if (fonts.size === 0) fonts.add(JSON.stringify({ family: 'Inter', style: 'Regular' }));
+            await Promise.all([...fonts].map((f) => figma.loadFontAsync(JSON.parse(f) as FontName)));
+            tn.characters = String(msg.value.newText ?? '');
+            break;
+          }
+          case 'fill_color': {
+            const r = Number(msg.value.r ?? 0);
+            const g = Number(msg.value.g ?? 0);
+            const b = Number(msg.value.b ?? 0);
+            if ('fills' in baseNode) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (baseNode as any).fills = [{ type: 'SOLID', color: { r, g, b }, opacity: 1 }];
+            }
+            break;
+          }
+          case 'visibility': {
+            if ('visible' in baseNode) {
+              (baseNode as SceneNode).visible = Boolean(msg.value.visible);
+            }
+            break;
+          }
+          case 'layout': {
+            if (baseNode.type !== 'FRAME' && baseNode.type !== 'COMPONENT' && baseNode.type !== 'INSTANCE') break;
+            const n = baseNode as FrameNode;
+            const v = msg.value;
+            if (v.layoutMode            !== undefined) n.layoutMode            = v.layoutMode as 'NONE' | 'HORIZONTAL' | 'VERTICAL';
+            if (v.primaryAxisAlignItems !== undefined) n.primaryAxisAlignItems = v.primaryAxisAlignItems as 'MIN' | 'MAX' | 'CENTER' | 'SPACE_BETWEEN';
+            if (v.counterAxisAlignItems !== undefined) n.counterAxisAlignItems = v.counterAxisAlignItems as 'MIN' | 'MAX' | 'CENTER' | 'BASELINE';
+            if (v.paddingTop    !== undefined) n.paddingTop    = Number(v.paddingTop);
+            if (v.paddingBottom !== undefined) n.paddingBottom = Number(v.paddingBottom);
+            if (v.paddingLeft   !== undefined) n.paddingLeft   = Number(v.paddingLeft);
+            if (v.paddingRight  !== undefined) n.paddingRight  = Number(v.paddingRight);
+            if (v.itemSpacing   !== undefined) n.itemSpacing   = Number(v.itemSpacing);
+            break;
+          }
+          case 'position': {
+            if ('x' in baseNode && 'y' in baseNode) {
+              (baseNode as SceneNode & { x: number; y: number }).x = Number(msg.value.x ?? 0);
+              (baseNode as SceneNode & { x: number; y: number }).y = Number(msg.value.y ?? 0);
+            }
+            break;
+          }
+        }
+
+        figma.ui.postMessage({ type: 'NODE_CHANGE_APPLIED', nodeId: msg.nodeId, changeType: msg.changeType });
+      } catch (applyErr) {
+        figma.ui.postMessage({
+          type: 'NODE_CHANGE_FAILED',
+          nodeId: msg.nodeId,
+          reason: applyErr instanceof Error ? applyErr.message : 'Apply failed',
+        });
+      }
+      return;
+    }
+
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown plugin error.';
     figma.ui.postMessage({ type: 'error', message });

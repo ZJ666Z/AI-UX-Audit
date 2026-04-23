@@ -418,3 +418,29 @@ If the DecisionCard includes `touchpoints` (e.g. `["TV (remote control)"]`), the
 - **Web / mouse + keyboard** — hover states, keyboard accessibility, cursor affordances
 
 Set touchpoints in the Setup tab or include device context in the raw meeting notes passed to `extract_decision_card`.
+
+---
+
+## Canvas Editing (Plugin UI only — Layers 1–3)
+
+These features are only available in the Figma plugin UI. They are not exposed as MCP tools because they depend on real-time DOM state and in-session confirmation state.
+
+### Layer 1 — Frame Focus
+
+Click the dotted-underlined frame name on any audit card → Figma pans to that frame and selects it. The viewport zoom level is unchanged so nearby sticky note annotations remain visible. The DRD panel title also has a clickable frame name.
+
+### Layer 2 — Implementation Checklist
+
+After generating a DRD, an **Implementation Checklist** appears below the audit card. It contains the four `specificChanges` fields from the recommended solution as checkboxes, plus a collapsible Before → After section. The checklist persists as long as the session is active. Re-running the audit clears it.
+
+### Layer 3a — Frame Nodes
+
+Clicking a frame name also inspects the node tree (depth-first, ≤60 nodes). A "Frame Nodes" panel appears below the checklist. Each row: name | type | text preview or fill hex.
+
+### Layer 3b — Node Matching
+
+Each checklist item has a "Find nodes" button. Clicking triggers an LLM call (600 tokens) to identify which node(s) the change targets and what property type to edit (`text_content`, `fill_color`, `visibility`, `layout`, `position`). Results are cached per item.
+
+### Layer 3c — Suggest Edit + Apply
+
+"Suggest edit" on a matched node triggers an LLM call (300 tokens) to generate the exact new property value. A current / proposed preview with Apply / Dismiss appears. Apply writes the change directly to the Figma canvas via the plugin sandbox (`APPLY_NODE_CHANGE` message → `code.ts`). Success auto-checks the checklist item.

@@ -4,35 +4,46 @@
   <meta charset="UTF-8" />
   <title>AI UX Audit</title>
   <style>
-    /* ── Enterprise design system (Google Material + Apple SF) ── */
+    /* ── Design system ── */
     :root {
-      --bg:          #f1f3f4;
-      --surface:     #ffffff;
-      --surface2:    #f8f9fa;
-      --border:      rgba(0,0,0,.12);
-      --separator:   rgba(0,0,0,.08);
-      --text:        #202124;
-      --text-sec:    #5f6368;
-      --text-ter:    #9aa0a6;
-      --accent:      #1a73e8;
-      --accent-d:    #1557b0;
+      --bg:           #eef0f4;
+      --surface:      #ffffff;
+      --surface2:     #f7f8fa;
+      --surface3:     #f0f2f6;
+      --border:       rgba(0,0,0,.08);
+      --border-med:   rgba(0,0,0,.13);
+      --separator:    rgba(0,0,0,.06);
+      --text:         #1d2026;
+      --text-sec:     #5a6070;
+      --text-ter:     #99a0ac;
+      --accent:       #1a73e8;
+      --accent-d:     #1261c4;
       --accent-light: rgba(26,115,232,.1);
-      --green:       #1e8e3e;
-      --orange:      #e37400;
-      --red:         #d93025;
-      --purple:      #7b61ff;
-      --fill:        rgba(32,33,36,.06);
-      --fill-sec:    rgba(32,33,36,.10);
-      --radius-s:    6px;
-      --radius-m:    8px;
-      --radius-l:    12px;
-      --shadow-s:    0 1px 2px rgba(60,64,67,.2), 0 1px 3px rgba(60,64,67,.1);
-      --shadow-m:    0 2px 6px rgba(60,64,67,.15), 0 1px 2px rgba(60,64,67,.1);
-      --font:        -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", sans-serif;
-      --mono:        "SF Mono", "Fira Mono", monospace;
+      --green:        #1e8e3e;
+      --green-light:  rgba(30,142,62,.1);
+      --orange:       #e37400;
+      --red:          #d93025;
+      --purple:       #7b61ff;
+      --fill:         rgba(29,32,38,.05);
+      --fill-sec:     rgba(29,32,38,.09);
+      --radius-s:     6px;
+      --radius-m:     10px;
+      --radius-l:     14px;
+      --shadow-s:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-m:     0 4px 12px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.06);
+      --shadow-card:  0 2px 8px rgba(0,0,0,.07), 0 0 1px rgba(0,0,0,.06);
+      --font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
+      --mono:         "SF Mono", "Fira Mono", ui-monospace, monospace;
+      --transition:   .15s cubic-bezier(.4,0,.2,1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Thin ghost scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.14); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.24); }
 
     body {
       font-family: var(--font);
@@ -51,7 +62,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px 10px;
+      padding: 9px 14px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
@@ -59,58 +70,59 @@
     }
     .header-left { display: flex; align-items: center; gap: 8px; }
     .app-icon {
-      width: 24px; height: 24px;
-      background: linear-gradient(135deg, #1a73e8, #4285f4);
-      border-radius: 6px;
+      width: 26px; height: 26px;
+      background: linear-gradient(145deg, #2b84ff 0%, #1a73e8 55%, #1261c4 100%);
+      border-radius: 7px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      flex-shrink: 0;
+      font-size: 11px; font-weight: 800; letter-spacing: -.5px;
+      color: #fff; flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(26,115,232,.3);
     }
-    .app-name { font-weight: 600; font-size: 13px; letter-spacing: -.2px; color: var(--text); }
-    .app-name span { color: var(--accent); }
+    .app-name { font-weight: 700; font-size: 13px; letter-spacing: -.3px; color: var(--text); }
+    .app-name span { color: var(--accent); font-weight: 600; }
 
-    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-right { display: flex; align-items: center; gap: 7px; }
     .score-pill {
       display: flex; align-items: center; gap: 5px;
       background: var(--fill);
       border-radius: var(--radius-s);
       padding: 4px 9px;
-      font-size: 11px; font-weight: 500;
+      font-size: 10px; font-weight: 600; letter-spacing: .1px;
       color: var(--text-sec);
-      transition: all .3s;
+      transition: background var(--transition), border-color var(--transition);
       border: 1px solid var(--border);
     }
     .score-num {
-      font-weight: 700; font-size: 14px; line-height: 1;
+      font-weight: 800; font-size: 15px; line-height: 1;
       transition: color .3s;
     }
-    .score-num.good   { color: var(--green);  }
-    .score-num.warn   { color: var(--orange); }
-    .score-num.bad    { color: var(--red);    }
+    .score-num.good { color: var(--green);  }
+    .score-num.warn { color: var(--orange); }
+    .score-num.bad  { color: var(--red);    }
 
     /* language segment */
     .lang-seg {
       display: flex;
       background: var(--fill);
-      border-radius: var(--radius-s);
+      border-radius: 7px;
       padding: 2px;
       gap: 2px;
       border: 1px solid var(--border);
     }
     .lang-btn {
-      padding: 3px 8px;
+      padding: 3px 9px;
       border: none;
-      border-radius: 4px;
+      border-radius: 5px;
       background: transparent;
-      font: 500 11px var(--font);
-      color: var(--text-sec);
+      font: 600 11px var(--font);
+      color: var(--text-ter);
       cursor: pointer;
-      transition: all .15s;
+      transition: all var(--transition);
     }
     .lang-btn.active {
       background: var(--surface);
       color: var(--text);
-      box-shadow: 0 1px 2px rgba(0,0,0,.12);
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
     }
 
     /* ══ TAB BAR ══ */
@@ -119,26 +131,27 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
-      padding: 0 4px;
+      padding: 0 6px;
     }
     .tab {
       flex: 1;
-      height: 38px;
+      height: 40px;
       border: none;
       background: transparent;
       font: 500 12px var(--font);
       color: var(--text-ter);
       cursor: pointer;
       position: relative;
-      transition: color .15s;
+      transition: color var(--transition);
       display: flex; align-items: center; justify-content: center; gap: 4px;
       letter-spacing: .1px;
     }
+    .tab:hover { color: var(--text-sec); }
     .tab.active { color: var(--accent); font-weight: 600; }
     .tab.active::after {
       content: '';
       position: absolute;
-      bottom: 0; left: 8%; right: 8%;
+      bottom: 0; left: 12%; right: 12%;
       height: 2px;
       background: var(--accent);
       border-radius: 2px 2px 0 0;
@@ -148,10 +161,10 @@
       color: #fff;
       font-size: 9px; font-weight: 700;
       border-radius: 99px;
-      padding: 1px 4px;
-      min-width: 15px;
+      padding: 1px 5px;
+      min-width: 16px;
       text-align: center;
-      line-height: 13px;
+      line-height: 14px;
       display: none;
     }
     .tab-badge.visible { display: inline-block; }
@@ -162,7 +175,7 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
-      padding: 0 12px;
+      padding: 0 14px;
       gap: 0;
     }
     .sub-tabbar.visible { display: flex; }
@@ -174,10 +187,11 @@
       color: var(--text-sec);
       cursor: pointer;
       position: relative;
-      transition: color .15s;
+      transition: color var(--transition);
       padding: 0 12px;
       white-space: nowrap;
     }
+    .sub-tab:hover { color: var(--text); }
     .sub-tab.active { color: var(--accent); font-weight: 600; }
     .sub-tab.active::after {
       content: '';
@@ -192,7 +206,7 @@
     .body {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
+      padding: 12px 12px 16px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -223,19 +237,19 @@
       background: var(--surface);
       border-radius: var(--radius-l);
       border: 1px solid var(--border);
-      box-shadow: var(--shadow-s);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
     }
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 11px 14px 10px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--separator);
       background: var(--surface2);
     }
     .card-title {
-      font-size: 12px; font-weight: 600;
+      font-size: 11px; font-weight: 700;
       color: var(--text-sec);
-      letter-spacing: .1px;
+      letter-spacing: .2px; text-transform: uppercase;
     }
     .card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
     .card-body.tight { gap: 6px; }
@@ -248,19 +262,22 @@
     input, select, textarea {
       width: 100%;
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-med);
       border-radius: var(--radius-s);
       padding: 7px 10px;
       font: inherit; font-size: 12px;
       color: var(--text);
-      transition: border-color .15s, box-shadow .15s;
+      transition: border-color var(--transition), box-shadow var(--transition);
       -webkit-appearance: none;
       appearance: none;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(26,115,232,.15);
+      box-shadow: 0 0 0 3px rgba(26,115,232,.12);
+    }
+    input:hover:not(:focus), select:hover:not(:focus), textarea:hover:not(:focus) {
+      border-color: rgba(0,0,0,.2);
     }
     textarea { resize: vertical; min-height: 60px; }
     input::placeholder, textarea::placeholder { color: var(--text-ter); }
@@ -269,37 +286,39 @@
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
       border: none; border-radius: var(--radius-m);
-      padding: 7px 16px;
-      font: 500 12px var(--font);
+      padding: 8px 18px;
+      font: 600 12px var(--font);
       cursor: pointer;
-      transition: background .15s, box-shadow .15s, transform .1s;
+      transition: background var(--transition), box-shadow var(--transition), transform .1s;
       white-space: nowrap;
       letter-spacing: .1px;
+      -webkit-font-smoothing: antialiased;
     }
     .btn-primary {
-      background: var(--accent);
+      background: linear-gradient(180deg, #2b84ff 0%, var(--accent) 100%);
       color: #fff;
-      box-shadow: 0 1px 3px rgba(26,115,232,.25);
-      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(26,115,232,.3), 0 0 0 1px rgba(26,115,232,.15);
     }
-    .btn-primary:hover  { background: var(--accent-d); box-shadow: 0 2px 6px rgba(26,115,232,.3); }
-    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:hover  { background: linear-gradient(180deg, #1e7de0 0%, var(--accent-d) 100%); box-shadow: 0 2px 8px rgba(26,115,232,.35); }
+    .btn-primary:active { transform: scale(.98); box-shadow: 0 1px 2px rgba(26,115,232,.2); }
 
     .btn-secondary {
       background: var(--surface);
       color: var(--text-sec);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-med);
       font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
     }
-    .btn-secondary:hover { background: var(--fill); color: var(--text); }
+    .btn-secondary:hover { background: var(--surface3); color: var(--text); border-color: rgba(0,0,0,.15); }
 
     .btn-danger {
-      background: rgba(217,48,37,.08);
+      background: rgba(217,48,37,.07);
       color: var(--red);
-      border: 1px solid rgba(217,48,37,.2);
+      border: 1px solid rgba(217,48,37,.18);
     }
+    .btn-danger:hover { background: rgba(217,48,37,.12); }
 
-    .btn:disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+    .btn:disabled { opacity: .38; cursor: not-allowed; pointer-events: none; }
     .btn-row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
 
     /* ══ STEPPER ══ */
@@ -326,20 +345,21 @@
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 10px; font-weight: 700;
-      background: var(--fill);
+      background: var(--surface);
       color: var(--text-ter);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-med);
       flex-shrink: 0;
       transition: all .2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
     }
     .step-item.done   { color: var(--green);  }
-    .step-item.done   .step-dot { background: var(--green); border-color: var(--green); color: #fff; }
+    .step-item.done   .step-dot { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 6px rgba(30,142,62,.25); }
     .step-item.active { color: var(--accent); }
-    .step-item.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .step-item.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(26,115,232,.3); }
 
     /* progress bar */
     .progress-track {
-      height: 3px;
+      height: 2px;
       background: var(--fill-sec);
       border-radius: 99px;
       overflow: hidden;
@@ -347,26 +367,27 @@
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
       border-radius: 99px;
-      transition: width .5s cubic-bezier(.4,0,.2,1);
+      transition: width .55s cubic-bezier(.4,0,.2,1);
     }
 
     /* ══ STATUS ══ */
     .status-row {
       display: flex; align-items: center; gap: 7px;
       padding: 0 14px 12px;
-      font-size: 12px; color: var(--text-sec);
-      min-height: 32px;
+      font-size: 11px; color: var(--text-sec);
+      min-height: 30px;
+      letter-spacing: .1px;
     }
     .status-row.error { color: var(--red); }
     .status-row.ok    { color: var(--green); }
     .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid var(--fill-sec);
+      width: 13px; height: 13px;
+      border: 2px solid rgba(26,115,232,.2);
       border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin .7s linear infinite;
+      animation: spin .65s linear infinite;
       flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -376,10 +397,11 @@
     .chip {
       background: var(--accent-light);
       color: var(--accent);
-      border-radius: var(--radius-s);
-      padding: 3px 9px;
-      font-size: 11px; font-weight: 500;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px; font-weight: 600;
       border: 1px solid rgba(26,115,232,.15);
+      letter-spacing: .1px;
     }
 
     /* ══ SEVERITY RESULTS ══ */
@@ -405,19 +427,21 @@
       background: var(--surface);
       border-radius: var(--radius-m);
       border: 1px solid var(--border);
-      box-shadow: var(--shadow-s);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
       margin-bottom: 6px;
+      transition: box-shadow var(--transition);
     }
-    .audit-card.critical { border-left: 3px solid var(--red); }
-    .audit-card.warning  { border-left: 3px solid var(--orange); }
-    .audit-card.suggestion { border-left: 3px solid var(--accent); }
+    .audit-card:hover { box-shadow: var(--shadow-s); }
+    .audit-card.critical  { border-left: 3px solid var(--red);    }
+    .audit-card.warning   { border-left: 3px solid var(--orange);  }
+    .audit-card.suggestion{ border-left: 3px solid var(--accent);  }
     .audit-card-header {
       display: flex; align-items: flex-start; gap: 9px;
-      padding: 10px 12px;
+      padding: 11px 12px 10px;
       cursor: pointer;
       user-select: none;
-      transition: background .12s;
+      transition: background var(--transition);
     }
     .audit-card-header:hover { background: var(--fill); }
     .sev-bar { display: none; }
@@ -426,22 +450,153 @@
       display: inline-block;
       font-size: 9px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .5px;
-      border-radius: 4px; padding: 2px 6px;
+      border-radius: 5px; padding: 2px 7px;
       flex-shrink: 0; margin-top: 1px;
     }
-    .critical  .sev-label { background: rgba(217,48,37,.1);  color: var(--red); }
-    .warning   .sev-label { background: rgba(227,116,0,.1);  color: var(--orange); }
+    .critical   .sev-label { background: rgba(217,48,37,.1);  color: var(--red); }
+    .warning    .sev-label { background: rgba(227,116,0,.1);  color: var(--orange); }
     .suggestion .sev-label { background: var(--accent-light); color: var(--accent); }
 
     .audit-card-text { flex: 1; min-width: 0; }
     .audit-frame-name {
       font-size: 10px; font-weight: 600;
       color: var(--text-ter);
-      letter-spacing: .3px;
+      letter-spacing: .2px;
       margin-bottom: 3px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .frame-focus-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(32,33,36,.22);
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+      border-radius: 2px;
+    }
+    .frame-focus-link::after { content: ' →'; font-size: 9px; opacity: .4; }
+    .frame-focus-link:hover { text-decoration-color: var(--text-sec); }
+    .frame-focus-link:hover::after { opacity: 1; }
     .audit-question { font-size: 12px; line-height: 1.5; color: var(--text); }
+
+    /* ── DRD Change Checklist ── */
+    .drd-checklist-panel {
+      display: block;
+      border-top: 2px solid rgba(26,115,232,.15);
+      padding: 10px 12px 12px 12px;
+      background: rgba(26,115,232,.04);
+    }
+    .checklist-header {
+      font-size: 9px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .7px;
+      color: var(--accent); margin-bottom: 6px;
+    }
+    .checklist-counter {
+      font-size: 10px; font-weight: 600; color: var(--text-ter);
+      margin-bottom: 8px; letter-spacing: .2px;
+    }
+    .checklist-counter strong { color: var(--accent); }
+    .checklist-items { display: flex; flex-direction: column; gap: 5px; margin-bottom: 2px; }
+    .checklist-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      cursor: pointer; padding: 2px 0;
+    }
+    .checklist-cb { width: auto; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+    .checklist-content { display: flex; flex-direction: column; gap: 1px; }
+    .checklist-section-label {
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px; color: var(--accent);
+    }
+    .checklist-text { font-size: 11px; line-height: 1.45; color: var(--text-sec); }
+    .checklist-item.done .checklist-text { text-decoration: line-through; color: var(--text-ter); opacity: .75; }
+    .checklist-ba-section { margin-top: 8px; }
+
+    /* ── Frame Nodes Panel (3a) ── */
+    .frame-nodes-panel {
+      border-top: 1px solid var(--separator);
+      padding: 8px 12px 10px;
+      background: var(--surface2);
+    }
+    .nodes-panel-header {
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--text-ter); margin-bottom: 5px;
+    }
+    .nodes-loading { font-size: 11px; color: var(--text-ter); font-style: italic; }
+    .nodes-empty   { font-size: 11px; color: var(--text-ter); }
+    .nodes-truncated { font-size: 10px; color: var(--text-ter); margin-bottom: 4px; }
+    .nodes-list { display: flex; flex-direction: column; gap: 1px; }
+    .node-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 3px 4px; border-radius: 4px;
+    }
+    .node-row:hover { background: var(--fill); }
+    .node-name {
+      color: var(--text); font-size: 11px; font-weight: 500;
+      flex: 1; min-width: 0; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .node-type {
+      color: var(--text-ter); font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .4px; flex-shrink: 0;
+    }
+    .node-preview {
+      color: var(--text-sec); font-size: 10px; font-family: var(--mono);
+      flex-shrink: 0; max-width: 110px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── 3b: Node matching ── */
+    .checklist-expand-btn {
+      display: inline-block; margin-top: 4px; align-self: flex-start;
+      font-size: 9px; font-weight: 600;
+      padding: 2px 7px; border: 1px solid var(--border);
+      border-radius: var(--radius-s); background: none;
+      cursor: pointer; color: var(--text-ter); transition: all .12s;
+    }
+    .checklist-expand-btn:hover { background: var(--fill); color: var(--accent); border-color: var(--accent); }
+    .checklist-expand-btn.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+    .checklist-match-panel { margin: 4px 0 4px 20px; display: flex; flex-direction: column; gap: 5px; }
+    .nodes-matching { font-size: 11px; color: var(--text-ter); font-style: italic; }
+    .match-no-match { font-size: 11px; color: var(--text-sec); }
+    .match-row {
+      border: 1px solid var(--border); border-radius: var(--radius-s);
+      padding: 6px 8px; background: var(--surface);
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .match-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .match-node-name { font-size: 11px; font-weight: 600; color: var(--text); }
+    .match-change-type {
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px;
+      background: var(--accent-light); color: var(--accent); border-radius: 4px; padding: 1px 5px;
+    }
+    .match-reason { font-size: 10px; color: var(--text-sec); line-height: 1.4; }
+    .match-suggest-btn {
+      align-self: flex-start; margin-top: 3px;
+      font-size: 10px; padding: 2px 8px;
+      border: 1px solid var(--border); border-radius: var(--radius-s);
+      background: var(--fill); color: var(--text-sec); cursor: pointer;
+      transition: all .12s;
+    }
+    .match-suggest-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+    .match-suggest-btn:disabled { color: var(--text-ter); cursor: not-allowed; }
+    /* ── 3c: Change preview ── */
+    .change-preview {
+      margin-top: 6px; padding: 8px 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-s);
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .preview-row { display: flex; flex-direction: column; gap: 1px; }
+    .preview-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-ter); }
+    .preview-val { font-size: 11px; color: var(--text); word-break: break-word; }
+    .preview-val.proposed { color: var(--green); font-weight: 600; }
+    .preview-rationale { font-size: 10px; color: var(--text-sec); font-style: italic; }
+    .preview-btns { display: flex; gap: 6px; margin-top: 2px; }
+    .preview-apply-btn { font-size: 10px; padding: 3px 10px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-s); cursor: pointer; font-weight: 600; }
+    .preview-apply-btn:hover { background: var(--accent-d); }
+    .preview-apply-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .preview-dismiss-btn { font-size: 10px; padding: 3px 10px; background: var(--fill); border: 1px solid var(--border); border-radius: var(--radius-s); cursor: pointer; color: var(--text-sec); }
+    .preview-applied { font-size: 11px; color: var(--green); font-weight: 600; }
+    .preview-error { font-size: 10px; color: var(--red); margin-top: 3px; }
     .audit-chevron {
       color: var(--text-ter); font-size: 10px;
       transition: transform .2s; padding-top: 2px; flex-shrink: 0;
@@ -455,18 +610,19 @@
     .confirm-btn {
       width: 22px; height: 22px;
       border-radius: 50%;
-      border: 1px solid var(--border);
-      background: var(--fill);
+      border: 1px solid var(--border-med);
+      background: var(--surface);
       cursor: pointer;
-      font-size: 11px; font-weight: 700;
+      font-size: 10px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       color: var(--text-ter);
-      transition: all .15s;
+      transition: all var(--transition);
       flex-shrink: 0; line-height: 1;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
     }
-    .confirm-btn:hover { background: var(--fill-sec); color: var(--text-sec); }
-    .confirm-btn.cb-yes.confirmed  { background: rgba(30,142,62,.12); border-color: rgba(30,142,62,.3); color: var(--green); }
-    .confirm-btn.cb-no.dismissed   { background: rgba(217,48,37,.08); border-color: rgba(217,48,37,.2); color: var(--red); }
+    .confirm-btn:hover { background: var(--fill-sec); color: var(--text-sec); border-color: rgba(0,0,0,.18); }
+    .confirm-btn.cb-yes.confirmed  { background: var(--green-light); border-color: rgba(30,142,62,.3); color: var(--green); box-shadow: none; }
+    .confirm-btn.cb-no.dismissed   { background: rgba(217,48,37,.07); border-color: rgba(217,48,37,.18); color: var(--red); box-shadow: none; }
 
     .confirm-summary {
       font-size: 11px; color: var(--text-ter); padding: 1px 0;
@@ -487,16 +643,15 @@
 
     .audit-card-body {
       display: none;
-      flex-direction: column; gap: 8px;
-      padding: 0 12px 12px 12px;
+      flex-direction: column; gap: 9px;
+      padding: 10px 12px 12px;
       border-top: 1px solid var(--separator);
-      padding-top: 10px;
     }
     .audit-card.open .audit-card-body { display: flex; }
 
     .detail-block { display: flex; flex-direction: column; gap: 3px; }
     .detail-label {
-      font-size: 10px; font-weight: 700;
+      font-size: 9px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .5px;
       color: var(--text-ter);
     }
@@ -512,20 +667,26 @@
     .callout {
       border-radius: var(--radius-s);
       padding: 8px 11px;
-      font-size: 12px; line-height: 1.5;
+      font-size: 12px; line-height: 1.55;
       border: 1px solid transparent;
     }
     .callout-guardrail {
-      background: rgba(227,116,0,.08);
-      border-color: rgba(227,116,0,.2);
+      background: rgba(227,116,0,.07);
+      border-color: rgba(227,116,0,.18);
       border-left: 3px solid var(--orange);
-      color: #7a3b00;
+      color: #6b3300;
     }
     .callout-suggestion {
-      background: rgba(30,142,62,.08);
-      border-color: rgba(30,142,62,.2);
+      background: rgba(30,142,62,.07);
+      border-color: rgba(30,142,62,.18);
       border-left: 3px solid var(--green);
-      color: #0a4019;
+      color: #0d4a1f;
+    }
+    .callout-why {
+      background: rgba(26,115,232,.05);
+      border-color: rgba(26,115,232,.14);
+      border-left: 3px solid var(--accent);
+      color: var(--text-sec);
     }
 
     /* impact badge */
@@ -571,13 +732,6 @@
       font-size: 10px; color: var(--text-ter);
       font-weight: 500;
     }
-    .callout-why {
-      background: rgba(26,115,232,.06);
-      border-color: rgba(26,115,232,.18);
-      border-left: 3px solid var(--accent);
-      color: var(--text-sec);
-    }
-
     /* ── Business Analysis card ── */
     .ba-card {
       background: linear-gradient(135deg, #f8f9ff 0%, #f1f3f4 100%);
@@ -797,8 +951,8 @@
       display: flex; flex-direction: column; align-items: center;
       gap: 2px;
     }
-    .stat-value { font-size: 18px; font-weight: 800; }
-    .stat-label { font-size: 9px; font-weight: 700; color: var(--text-ter); text-transform: uppercase; letter-spacing: .4px; }
+    .stat-value { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+    .stat-label { font-size: 9px; font-weight: 700; color: var(--text-ter); text-transform: uppercase; letter-spacing: .4px; margin-top: 1px; }
     .entry-exit-row {
       display: flex; flex-direction: column; gap: 6px;
       padding: 0 14px 12px;
@@ -809,18 +963,19 @@
     /* ══ DRD PANEL ══ */
     .drd-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,.4);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(8px) saturate(1.2);
+      -webkit-backdrop-filter: blur(8px) saturate(1.2);
       z-index: 100;
       display: none;
       align-items: flex-end;
     }
     .drd-overlay.open { display: flex; }
     .drd-panel {
-      width: 100%; max-height: 85vh;
+      width: 100%; max-height: 88vh;
       background: var(--surface);
-      border-radius: var(--radius-l) var(--radius-l) 0 0;
-      box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 -8px 40px rgba(0,0,0,.2), 0 -1px 0 rgba(0,0,0,.06);
       display: flex; flex-direction: column;
       overflow: hidden;
     }
@@ -829,15 +984,18 @@
       padding: 14px 16px 12px;
       border-bottom: 1px solid var(--separator);
       flex-shrink: 0;
+      background: var(--surface);
     }
-    .drd-panel-title { font-size: 13px; font-weight: 700; }
+    .drd-panel-title { font-size: 14px; font-weight: 700; letter-spacing: -.2px; }
     .drd-close-btn {
-      width: 26px; height: 26px; border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       background: var(--fill-sec); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; color: var(--text-sec);
+      transition: background var(--transition);
     }
-    .drd-panel-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .drd-close-btn:hover { background: rgba(0,0,0,.12); }
+    .drd-panel-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
     .drd-solution-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
     .drd-sol-tab {
       padding: 5px 12px 6px; border-radius: var(--radius-s);
@@ -1967,6 +2125,21 @@ const UI_STRINGS = {
     'drd.currentProblem':'Current Problem','drd.rootCause':'Root Cause','drd.bizImpact':'Business Impact',
     'drd.strategy':'Strategy','drd.module':'Module','drd.validation':'Risks & Validation',
     'drd.copyMarkdown':'Copy DRD as Markdown','drd.copied':'Copied!',
+    'checklist.done':'done','checklist.beforeAfter':'Before → After',
+    'checklist.title':'Implementation Checklist',
+    'nodes.header':'Frame Nodes',
+    'nodes.loading':'Reading frame…',
+    'nodes.empty':'No nodes found in this frame.',
+    'nodes.truncated':'Showing first 60 nodes.',
+    'nodes.matchFind':'Find nodes',
+    'nodes.matching':'Matching…',
+    'nodes.noMatch':'No matching node — apply this change manually in Figma.',
+    'nodes.noNodes':'Click the frame name first to inspect nodes.',
+    'nodes.suggestEdit':'Suggest edit',
+    'nodes.generating':'Generating…',
+    'nodes.current':'Current','nodes.proposed':'Proposed',
+    'nodes.rationale':'Why','nodes.apply':'Apply','nodes.dismiss':'Dismiss',
+    'nodes.applied':'✓ Applied',
   },
   zh: {
     'tab.setup':'设置','tab.audit':'审计','tab.results':'结果','tab.trend':'趋势',
@@ -2055,6 +2228,21 @@ const UI_STRINGS = {
     'drd.currentProblem':'当前问题','drd.rootCause':'根因','drd.bizImpact':'业务影响',
     'drd.strategy':'设计策略','drd.module':'模块','drd.validation':'风险与验证',
     'drd.copyMarkdown':'复制为 Markdown','drd.copied':'已复制！',
+    'checklist.done':'已完成','checklist.beforeAfter':'改动前 → 改动后',
+    'checklist.title':'实施清单',
+    'nodes.header':'画框节点',
+    'nodes.loading':'正在读取画框…',
+    'nodes.empty':'此画框中未找到节点。',
+    'nodes.truncated':'显示前 60 个节点。',
+    'nodes.matchFind':'查找节点',
+    'nodes.matching':'匹配中…',
+    'nodes.noMatch':'未找到匹配节点 — 请在 Figma 中手动应用此更改。',
+    'nodes.noNodes':'请先点击画框名称以检查节点。',
+    'nodes.suggestEdit':'建议编辑',
+    'nodes.generating':'生成中…',
+    'nodes.current':'当前值','nodes.proposed':'建议值',
+    'nodes.rationale':'原因','nodes.apply':'应用','nodes.dismiss':'取消',
+    'nodes.applied':'✓ 已应用',
   },
 };
 
@@ -2376,10 +2564,12 @@ async function runAudit(payload) {
   _lastAuditsForEvidence = audits;
   _lastDecisionCardForEvidence = payload.decisionCard || null;
 
-  // Reset confirmation state for the new audit
+  // Reset confirmation state, DRD store, and node panel routing for the new audit
   confirmState.confirmedAuditIndices.clear();
   confirmState.confirmedInsights.clear();
   _evidenceAuditIndexMap = audits.map((_, i) => i);
+  _drdStore.clear();
+  _frameNodePanels.clear();
 
   showEvidenceButton(true);
 
@@ -2400,7 +2590,22 @@ async function runAudit(payload) {
 
   setStep(3);
   setStatus(t('status.write'), 'busy');
-  parent.postMessage({ pluginMessage: { type: 'write-audit-feedback', audits, lang: state.lang } }, '*');
+  // Strip DOM element refs (_checklistEl) and session-only props before structured-clone serialization
+  const serializableAudits = audits.map((a) => ({
+    targetFrameName: a.targetFrameName,
+    critiqueType:    a.critiqueType,
+    severity:        a.severity,
+    impactedMetric:  a.impactedMetric,
+    causalMechanism: a.causalMechanism,
+    guardrailRef:    a.guardrailRef,
+    suggestion:      a.suggestion,
+    provocativeQuestion: a.provocativeQuestion,
+    affectedFrameId: a.affectedFrameId,
+    what:  a.what,
+    where: a.where,
+    why:   a.why,
+  }));
+  parent.postMessage({ pluginMessage: { type: 'write-audit-feedback', audits: serializableAudits, lang: state.lang } }, '*');
 }
 
 function countSev(audits) {
@@ -2484,15 +2689,34 @@ function buildAuditCard(audit, sev, auditIndex) {
   hdr.className = 'audit-card-header';
   const sevLabelText = sev === 'critical' ? t('sev.critical') : sev === 'warning' ? t('sev.warning') : t('sev.suggestion');
   const whereHtml = audit.where ? '<span class="audit-where">' + esc(audit.where) + '</span>' : '';
+  // Wrap frame name in a clickable span when affectedFrameId is available
+  const frameNameInner = audit.affectedFrameId
+    ? '<span class="frame-focus-link">' + esc(audit.targetFrameName || '') + '</span>'
+    : esc(audit.targetFrameName || '');
   hdr.innerHTML =
     '<div class="sev-label">' + sevLabelText + '</div>' +
     '<div class="audit-card-text">' +
-      '<div class="audit-frame-name">' + esc(audit.targetFrameName || '') + (whereHtml ? ' · ' + whereHtml : '') + '</div>' +
+      '<div class="audit-frame-name">' + frameNameInner + (whereHtml ? ' · ' + whereHtml : '') + '</div>' +
       (audit.what ? '<div class="audit-what">' + esc(audit.what) + '</div>' : '') +
       '<div class="audit-question">' + esc(audit.provocativeQuestion || '') + '</div>' +
     '</div>' +
     '<div class="audit-chevron">▶</div>';
   hdr.addEventListener('click', () => card.classList.toggle('open'));
+  // Attach FOCUS_FRAME + INSPECT_NODES listeners; stopPropagation prevents card toggle
+  const focusLink = hdr.querySelector('.frame-focus-link');
+  if (focusLink) {
+    focusLink.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // FOCUS_FRAME: { frameId } — pan Figma viewport to the frame and select it
+      parent.postMessage({ pluginMessage: { type: 'FOCUS_FRAME', frameId: audit.affectedFrameId } }, '*');
+      // INSPECT_NODES: { frameId } — request node tree; response arrives as NODES_RESULT
+      parent.postMessage({ pluginMessage: { type: 'INSPECT_NODES', frameId: audit.affectedFrameId } }, '*');
+      if (audit._nodesEl) {
+        audit._nodesEl.style.display = 'block';
+        audit._nodesEl.innerHTML = '<div class="nodes-loading">' + t('nodes.loading') + '</div>';
+      }
+    });
+  }
 
   // Confirm / dismiss buttons — inserted before chevron
   const confirmRow = document.createElement('div');
@@ -2576,6 +2800,25 @@ function buildAuditCard(audit, sev, auditIndex) {
     body.appendChild(wrapper);
   }
 
+  // Checklist panel — hidden until DRD is generated for this item
+  const checklistPanel = document.createElement('div');
+  checklistPanel.className = 'drd-checklist-panel';
+  checklistPanel.style.display = 'none';
+  audit._checklistEl = checklistPanel;
+  if (auditIndex != null && _drdStore.has(auditIndex)) {
+    populateChecklist(audit, _drdStore.get(auditIndex));
+  }
+
+  // Nodes panel — hidden until the frame name is clicked (3a)
+  const nodesPanel = document.createElement('div');
+  nodesPanel.className = 'frame-nodes-panel';
+  nodesPanel.style.display = 'none';
+  audit._nodesEl  = nodesPanel;
+  audit._nodesData = [];
+  if (audit.affectedFrameId) {
+    _frameNodePanels.set(audit.affectedFrameId, { nodesEl: nodesPanel, audit });
+  }
+
   // DRD button for critical/warning items
   if (sev === 'critical' || sev === 'warning') {
     const drdBtnRow = document.createElement('div');
@@ -2589,10 +2832,12 @@ function buildAuditCard(audit, sev, auditIndex) {
     card.appendChild(hdr);
     card.appendChild(body);
     card.appendChild(drdBtnRow);
+    card.appendChild(checklistPanel);
   } else {
     card.appendChild(hdr);
     card.appendChild(body);
   }
+  card.appendChild(nodesPanel);
   return card;
 }
 
@@ -2862,6 +3107,16 @@ function renderObservationsSection(container, observations) {
 let _lastAuditsForEvidence = [];
 let _lastDecisionCardForEvidence = null;
 let _evidenceAuditIndexMap = []; // filteredIndex → originalIndex mapping
+// Map<auditIndex, drdResult> — persists DRD results so checklist survives panel close
+const _drdStore = new Map();
+// Map<frameId, { nodesEl, audit }> — routes NODES_RESULT to the correct card
+const _frameNodePanels = new Map();
+// Map<nodeId, { checklistItem, previewDiv, applyBtn, proposedDisplay }> — routes NODE_CHANGE_APPLIED/FAILED
+const _pendingNodeChanges = new Map();
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map((v) => Math.round((v || 0) * 255).toString(16).padStart(2, '0')).join('');
+}
 
 /* ─────────── CONFIRMATION STATE ─────────── */
 const confirmState = {
@@ -3103,14 +3358,494 @@ function renderIssueDefsOrInsights(arr, audits, kind) {
   });
 }
 
+/* ─────────── FRAME NODES (3a) ─────────── */
+function renderNodesList(container, nodes, truncated) {
+  container.innerHTML = '';
+  container.style.display = 'block';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'nodes-panel-header';
+  hdr.textContent = t('nodes.header');
+  container.appendChild(hdr);
+
+  if (!nodes || nodes.length === 0) {
+    const el = document.createElement('div');
+    el.className = 'nodes-empty';
+    el.textContent = t('nodes.empty');
+    container.appendChild(el);
+    return;
+  }
+
+  if (truncated) {
+    const el = document.createElement('div');
+    el.className = 'nodes-truncated';
+    el.textContent = t('nodes.truncated');
+    container.appendChild(el);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'nodes-list';
+
+  nodes.forEach((node) => {
+    const row = document.createElement('div');
+    row.className = 'node-row';
+    row.dataset.nodeId = node.id;
+
+    let preview = '';
+    if (node.type === 'TEXT' && node.characters) {
+      preview = node.characters.length > 50 ? node.characters.slice(0, 50) + '…' : node.characters;
+    } else if (node.fills && node.fills.length > 0) {
+      const f = node.fills[0];
+      if (f.type === 'SOLID' && f.color) {
+        const { r, g, b } = f.color;
+        preview = '#' + [r, g, b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+      }
+    }
+
+    row.innerHTML =
+      '<span class="node-name">' + esc(node.name) + '</span>' +
+      '<span class="node-type">' + esc(node.type) + '</span>' +
+      (preview ? '<span class="node-preview">' + esc(preview) + '</span>' : '');
+    list.appendChild(row);
+  });
+
+  container.appendChild(list);
+}
+
+/* ─────────── 3c: LLM NODE CHANGE GENERATION ─────────── */
+async function generateNodeChange({ provider, model, apiKey, node, changeType, changeDescription, beforeState, afterState }) {
+  const dc = _lastDecisionCardForEvidence || {};
+
+  let currentValue = '(unknown)';
+  if (changeType === 'text_content' && node.characters) {
+    currentValue = node.characters.slice(0, 200);
+  } else if (changeType === 'fill_color') {
+    const f0 = node.fills && node.fills[0];
+    if (f0 && f0.type === 'SOLID' && f0.color) currentValue = rgbToHex(f0.color.r, f0.color.g, f0.color.b);
+  } else if (changeType === 'visibility') {
+    currentValue = node.visible ? 'visible' : 'hidden';
+  } else if (changeType === 'position') {
+    currentValue = 'x and y from Figma canvas';
+  } else if (changeType === 'layout') {
+    currentValue = 'layout properties from Figma canvas';
+  }
+
+  const systemPrompt = [
+    'You are a Figma property editor. Given a node\'s current state and a design change description,',
+    'output the exact new property value to apply.',
+    'Output only valid JSON matching the changeType:',
+    'text_content: { "newText": "string", "rationale": "string" }',
+    'fill_color: { "r": 0-1, "g": 0-1, "b": 0-1, "rationale": "string" }  (values 0 to 1, NOT 0 to 255)',
+    'visibility: { "visible": true|false }',
+    'layout: only include keys that should change: { layoutMode?, paddingTop?, paddingBottom?, paddingLeft?, paddingRight?, itemSpacing?, primaryAxisAlignItems?, counterAxisAlignItems? }',
+    'position: { "x": number, "y": number }',
+    'No markdown or commentary.',
+  ].join(' ');
+
+  const userPrompt = [
+    'Node name: ' + (node.name || ''),
+    'Node type: ' + (node.type || ''),
+    'Change type: ' + changeType,
+    'Current value: ' + currentValue,
+    'Change description: ' + changeDescription,
+    'Before: ' + (beforeState || '(not specified)'),
+    'After: ' + (afterState || '(not specified)'),
+    'Guardrails: ' + JSON.stringify(dc.guardrails || []),
+    'Constraints: ' + JSON.stringify(dc.constraints || []),
+  ].join('\n');
+
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 300 });
+  return extractJson(raw);
+}
+
+/* ─────────── 3b: LLM NODE MATCHING ─────────── */
+async function identifyTargetNodes({ provider, model, apiKey, nodes, changeDescription, beforeState, afterState }) {
+  const systemPrompt = [
+    'You are a Figma node analyst. Given a list of nodes inside a Figma frame and a design change description,',
+    'identify which node IDs are the targets of that change.',
+    'Output only valid JSON: { "matches": [ { "nodeId": "string", "nodeName": "string", "reason": "string",',
+    '"changeType": "text_content | fill_color | visibility | layout | position" } ] }',
+    'changeType must be one of those five exact strings.',
+    'If no node is a confident match, return matches: [].',
+    'Do not guess. Only match when confident. No markdown or commentary.',
+  ].join(' ');
+
+  const nodesSummary = (nodes || []).map((n) => {
+    const f0 = n.fills && n.fills[0];
+    const fillHex = (f0 && f0.type === 'SOLID' && f0.color)
+      ? '#' + ['r', 'g', 'b'].map((k) => Math.round((f0.color[k] || 0) * 255).toString(16).padStart(2, '0')).join('')
+      : undefined;
+    return {
+      id: n.id, name: n.name, type: n.type,
+      characters: n.characters ? n.characters.slice(0, 80) : undefined,
+      fillHex,
+      width: Math.round(n.width || 0), height: Math.round(n.height || 0),
+    };
+  });
+
+  const userPrompt = [
+    'Frame nodes:\n' + JSON.stringify(nodesSummary, null, 2),
+    '',
+    'Change description: ' + changeDescription,
+    'Before state: ' + (beforeState || '(not specified)'),
+    'After state: ' + (afterState || '(not specified)'),
+    '',
+    'Which nodes are the targets of this change? What type of change is needed on each?',
+  ].join('\n');
+
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 600 });
+  return extractJson(raw);
+}
+
+/* ─────────── DRD CHANGE CHECKLIST ─────────── */
+function populateChecklist(audit, result) {
+  const panel = audit._checklistEl;
+  if (!panel) return;
+
+  const solutions = Array.isArray(result.solutions) ? result.solutions : [];
+  const recommended = typeof result.recommendedIndex === 'number' ? result.recommendedIndex : 0;
+  const sol = solutions[recommended];
+  if (!sol) return;
+
+  const sc = sol.specificChanges || {};
+  const ba = sol.beforeAfter || {};
+
+  const sections = [
+    { labelKey: 'drd.infoArch',       value: sc.informationArchitecture },
+    { labelKey: 'drd.interaction',     value: sc.interactionPath },
+    { labelKey: 'drd.visualHierarchy', value: sc.visualHierarchy },
+    { labelKey: 'drd.keyElements',     value: sc.keyElements },
+  ].filter((s) => s.value && s.value.trim());
+
+  const hasBA = ba.before || ba.after || ba.interactionPathChange;
+  if (!sections.length && !hasBA) return;
+
+  // Repopulate (handles DRD re-generation)
+  panel.innerHTML = '';
+  panel.style.display = 'block';
+
+  const hdrLbl = document.createElement('div');
+  hdrLbl.className = 'checklist-header';
+  hdrLbl.textContent = t('checklist.title');
+  panel.appendChild(hdrLbl);
+
+  // "X / Y done" counter
+  const counterEl = document.createElement('div');
+  counterEl.className = 'checklist-counter';
+  panel.appendChild(counterEl);
+
+  let checkedCount = 0;
+  const total = sections.length;
+  function updateCounter() {
+    counterEl.innerHTML = '<strong>' + checkedCount + '</strong> / ' + total + ' ' + t('checklist.done');
+  }
+  updateCounter();
+
+  // Checkboxes + 3b expand-to-match
+  if (sections.length) {
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = 'checklist-items';
+
+    // Tracks the currently open match panel (one at a time)
+    let activeRef = null; // { panel, btn }
+
+    sections.forEach(({ labelKey, value }) => {
+      const item = document.createElement('label');
+      item.className = 'checklist-item';
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'checklist-cb';
+
+      const content = document.createElement('span');
+      content.className = 'checklist-content';
+
+      const lbl = document.createElement('span');
+      lbl.className = 'checklist-section-label';
+      lbl.textContent = t(labelKey);
+
+      const txt = document.createElement('span');
+      txt.className = 'checklist-text';
+      txt.textContent = value;
+
+      // "Find nodes" expand button — triggers identifyTargetNodes LLM call
+      const expandBtn = document.createElement('button');
+      expandBtn.className = 'checklist-expand-btn';
+      expandBtn.textContent = t('nodes.matchFind');
+
+      content.appendChild(lbl);
+      content.appendChild(txt);
+      content.appendChild(expandBtn);
+      item.appendChild(cb);
+      item.appendChild(content);
+
+      // Match panel — sibling of item, hidden until expanded
+      const matchPanel = document.createElement('div');
+      matchPanel.className = 'checklist-match-panel';
+      matchPanel.style.display = 'none';
+
+      cb.addEventListener('change', () => {
+        if (cb.checked) { checkedCount++; item.classList.add('done'); }
+        else            { checkedCount--; item.classList.remove('done'); }
+        updateCounter();
+      });
+
+      expandBtn.addEventListener('click', async (e) => {
+        e.preventDefault();   // prevent label from toggling checkbox
+        e.stopPropagation();
+
+        // Collapse any previously open panel
+        if (activeRef && activeRef.panel !== matchPanel) {
+          activeRef.panel.style.display = 'none';
+          activeRef.btn.classList.remove('active');
+          activeRef = null;
+        }
+
+        // Toggle this panel
+        if (matchPanel.style.display !== 'none') {
+          matchPanel.style.display = 'none';
+          expandBtn.classList.remove('active');
+          activeRef = null;
+          return;
+        }
+
+        // Open this panel
+        matchPanel.style.display = 'flex';
+        matchPanel.style.flexDirection = 'column';
+        expandBtn.classList.add('active');
+        activeRef = { panel: matchPanel, btn: expandBtn };
+
+        // LLM already ran for this item — don't re-run
+        if (matchPanel.dataset.loaded === '1') return;
+
+        // Check nodes are available
+        const nodes = audit._nodesData || [];
+        if (!nodes.length) {
+          matchPanel.innerHTML = '<div class="match-no-match">' + esc(t('nodes.noNodes')) + '</div>';
+          matchPanel.dataset.loaded = '1';
+          return;
+        }
+
+        matchPanel.innerHTML = '<div class="nodes-matching">' + esc(t('nodes.matching')) + '</div>';
+
+        try {
+          const cfg = getLLMConfig();
+          const result = await identifyTargetNodes({
+            ...cfg,
+            nodes,
+            changeDescription: value,
+            beforeState: ba.before,
+            afterState: ba.after,
+          });
+
+          const matches = Array.isArray(result.matches) ? result.matches : [];
+          matchPanel.innerHTML = '';
+          matchPanel.dataset.loaded = '1';
+
+          if (!matches.length) {
+            const el = document.createElement('div');
+            el.className = 'match-no-match';
+            el.textContent = t('nodes.noMatch');
+            matchPanel.appendChild(el);
+            return;
+          }
+
+          matches.forEach((match) => {
+            const row = document.createElement('div');
+            row.className = 'match-row';
+            row.dataset.nodeId = match.nodeId || '';
+
+            const top = document.createElement('div');
+            top.className = 'match-top';
+
+            const nameEl = document.createElement('span');
+            nameEl.className = 'match-node-name';
+            nameEl.textContent = match.nodeName || match.nodeId || '';
+
+            const typeBadge = document.createElement('span');
+            typeBadge.className = 'match-change-type';
+            typeBadge.textContent = match.changeType || '';
+
+            top.appendChild(nameEl);
+            top.appendChild(typeBadge);
+
+            const reasonEl = document.createElement('div');
+            reasonEl.className = 'match-reason';
+            reasonEl.textContent = match.reason || '';
+
+            // "Suggest edit" — active in 3c: calls generateNodeChange, shows preview
+            const suggestBtn = document.createElement('button');
+            suggestBtn.className = 'match-suggest-btn';
+            suggestBtn.textContent = t('nodes.suggestEdit');
+
+            // Preview div — shown after generateNodeChange returns
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'change-preview';
+            previewDiv.style.display = 'none';
+
+            suggestBtn.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              suggestBtn.disabled = true;
+              suggestBtn.textContent = t('nodes.generating');
+              previewDiv.style.display = 'none';
+              previewDiv.innerHTML = '';
+
+              const nodeData = (audit._nodesData || []).find((n) => n.id === match.nodeId) || {
+                id: match.nodeId, name: match.nodeName, type: '', characters: undefined, fills: [], visible: true, width: 0, height: 0,
+              };
+
+              try {
+                const cfg = getLLMConfig();
+                const res = await generateNodeChange({
+                  ...cfg,
+                  node: nodeData,
+                  changeType: match.changeType,
+                  changeDescription: value,
+                  beforeState: ba.before,
+                  afterState: ba.after,
+                });
+
+                // Build human-readable current / proposed strings
+                let currentDisplay = '(unknown)';
+                let proposedDisplay = '';
+                if (match.changeType === 'text_content') {
+                  currentDisplay = nodeData.characters ? nodeData.characters.slice(0, 100) : '(no text)';
+                  proposedDisplay = String(res.newText ?? '');
+                } else if (match.changeType === 'fill_color' && res.r != null) {
+                  const f0 = nodeData.fills && nodeData.fills[0];
+                  if (f0 && f0.type === 'SOLID' && f0.color) currentDisplay = rgbToHex(f0.color.r, f0.color.g, f0.color.b);
+                  proposedDisplay = rgbToHex(res.r, res.g, res.b);
+                } else if (match.changeType === 'visibility') {
+                  currentDisplay = nodeData.visible ? 'visible' : 'hidden';
+                  proposedDisplay = res.visible ? 'visible' : 'hidden';
+                } else {
+                  proposedDisplay = JSON.stringify(res);
+                }
+
+                // Render preview rows
+                previewDiv.innerHTML = '';
+                previewDiv.style.display = 'flex';
+                previewDiv.style.flexDirection = 'column';
+
+                [[t('nodes.current'), currentDisplay, ''], [t('nodes.proposed'), proposedDisplay, 'proposed']].forEach(([label, val, cls]) => {
+                  if (!val) return;
+                  const r = document.createElement('div'); r.className = 'preview-row';
+                  r.innerHTML = '<span class="preview-label">' + esc(label) + '</span><span class="preview-val ' + cls + '">' + esc(val) + '</span>';
+                  previewDiv.appendChild(r);
+                });
+                if (res.rationale) {
+                  const rat = document.createElement('div'); rat.className = 'preview-rationale';
+                  rat.textContent = res.rationale; previewDiv.appendChild(rat);
+                }
+
+                // Apply / Dismiss
+                const btnRow = document.createElement('div'); btnRow.className = 'preview-btns';
+                const applyBtn = document.createElement('button'); applyBtn.className = 'preview-apply-btn'; applyBtn.textContent = t('nodes.apply');
+                const dismissBtn = document.createElement('button'); dismissBtn.className = 'preview-dismiss-btn'; dismissBtn.textContent = t('nodes.dismiss');
+
+                applyBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  applyBtn.disabled = true;
+                  // Register for NODE_CHANGE_APPLIED/FAILED routing
+                  _pendingNodeChanges.set(match.nodeId, { checklistItem: item, previewDiv, applyBtn, proposedDisplay, changeType: match.changeType });
+                  // APPLY_NODE_CHANGE: { nodeId, changeType, value } — code.ts writes the change to Figma
+                  parent.postMessage({ pluginMessage: { type: 'APPLY_NODE_CHANGE', nodeId: match.nodeId, changeType: match.changeType, value: res } }, '*');
+                });
+
+                dismissBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  previewDiv.style.display = 'none';
+                  suggestBtn.disabled = false;
+                  suggestBtn.textContent = t('nodes.suggestEdit');
+                });
+
+                btnRow.appendChild(applyBtn); btnRow.appendChild(dismissBtn);
+                previewDiv.appendChild(btnRow);
+              } catch (err) {
+                previewDiv.style.display = 'flex'; previewDiv.style.flexDirection = 'column';
+                previewDiv.innerHTML = '<div class="preview-error">' + esc(err.message || 'Error generating change') + '</div>';
+                suggestBtn.disabled = false;
+                suggestBtn.textContent = t('nodes.suggestEdit');
+              }
+            });
+
+            row.appendChild(top);
+            row.appendChild(reasonEl);
+            row.appendChild(suggestBtn);
+            row.appendChild(previewDiv);
+            matchPanel.appendChild(row);
+          });
+        } catch (err) {
+          matchPanel.innerHTML = '<div class="match-no-match">' + esc(err.message || 'Error identifying nodes') + '</div>';
+          matchPanel.dataset.loaded = '1';
+        }
+      });
+
+      itemsWrap.appendChild(item);
+      itemsWrap.appendChild(matchPanel);
+    });
+    panel.appendChild(itemsWrap);
+  }
+
+  // Before → After — collapsed by default, reuses existing .why-toggle / .why-body pattern
+  if (hasBA) {
+    const baSection = document.createElement('div');
+    baSection.className = 'checklist-ba-section';
+
+    const baToggle = document.createElement('button');
+    baToggle.className = 'why-toggle';
+    baToggle.innerHTML = '<span class="why-chevron">▶</span><span>' + esc(t('checklist.beforeAfter')) + '</span>';
+
+    const baBody = document.createElement('div');
+    baBody.className = 'why-body';
+
+    [
+      { label: t('drd.before'),               val: ba.before },
+      { label: t('drd.after'),                 val: ba.after },
+      { label: t('drd.interactionPathChange'), val: ba.interactionPathChange },
+    ].forEach(({ label, val }) => {
+      if (!val) return;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;flex-direction:column;gap:1px;margin-bottom:6px';
+      const lbl = document.createElement('span');
+      lbl.className = 'detail-label';
+      lbl.textContent = label;
+      const valEl = document.createElement('span');
+      valEl.style.cssText = 'font-size:12px;line-height:1.5';
+      valEl.textContent = val;
+      row.appendChild(lbl);
+      row.appendChild(valEl);
+      baBody.appendChild(row);
+    });
+
+    baToggle.addEventListener('click', () => {
+      baToggle.classList.toggle('open');
+      baBody.classList.toggle('open');
+    });
+
+    baSection.appendChild(baToggle);
+    baSection.appendChild(baBody);
+    panel.appendChild(baSection);
+  }
+}
+
 /* ─────────── DRD PANEL ─────────── */
 $('drdCloseBtn').addEventListener('click', () => $('drdOverlay').classList.remove('open'));
 $('drdOverlay').addEventListener('click', (e) => { if (e.target === $('drdOverlay')) $('drdOverlay').classList.remove('open'); });
 
 async function openDRD(audit) {
-  const overlay = $('drdOverlay');
-  const body    = $('drdPanelBody');
-  $('drdPanelTitle').textContent = t('drd.title') + ' — ' + (audit.targetFrameName || '');
+  const overlay  = $('drdOverlay');
+  const body     = $('drdPanelBody');
+  const titleEl  = $('drdPanelTitle');
+  // Frame name in DRD header is also clickable when affectedFrameId is present
+  if (audit.affectedFrameId) {
+    titleEl.innerHTML = esc(t('drd.title')) + ' — <span class="frame-focus-link">' + esc(audit.targetFrameName || '') + '</span>';
+    titleEl.querySelector('.frame-focus-link').addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'FOCUS_FRAME', frameId: audit.affectedFrameId } }, '*');
+    });
+  } else {
+    titleEl.textContent = t('drd.title') + ' — ' + (audit.targetFrameName || '');
+  }
   body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-ter)">' + t('drd.generating') + '</div>';
   overlay.classList.add('open');
 
@@ -3122,6 +3857,10 @@ async function openDRD(audit) {
     const cfg = getLLMConfig();
     const result = await generateDRD({ ...cfg, audit, decisionCard: _lastDecisionCardForEvidence, confirmedContext });
     renderDRDPanel(body, result);
+    // Persist result and populate the checklist below the audit card
+    const idx = audit._auditIndex != null ? audit._auditIndex : _lastAuditsForEvidence.indexOf(audit);
+    if (idx >= 0) _drdStore.set(idx, result);
+    populateChecklist(audit, result);
   } catch (e) {
     body.innerHTML = '<div style="padding:16px;color:var(--red)">' + esc(e.message) + '</div>';
   }
@@ -3503,6 +4242,51 @@ window.onmessage = async (event) => {
     setStatus(msg.message, 'error');
     $('auditBtn').disabled = false;
     setStep(0);
+    return;
+  }
+
+  // NODES_RESULT: { frameId, nodes[], truncated } — response from INSPECT_NODES handler in code.ts
+  if (msg.type === 'NODES_RESULT') {
+    const entry = _frameNodePanels.get(msg.frameId);
+    if (entry) {
+      entry.audit._nodesData = msg.nodes || [];
+      renderNodesList(entry.nodesEl, msg.nodes, msg.truncated);
+    }
+    return;
+  }
+
+  // NODE_CHANGE_APPLIED: { nodeId, changeType } — edit was successfully written to Figma canvas
+  if (msg.type === 'NODE_CHANGE_APPLIED') {
+    const pending = _pendingNodeChanges.get(msg.nodeId);
+    if (pending) {
+      // Show success in preview
+      pending.previewDiv.innerHTML = '<div class="preview-applied">' + esc(t('nodes.applied')) + '</div>';
+      // Auto-check the checklist item (tick it as done)
+      const cb = pending.checklistItem && pending.checklistItem.querySelector('.checklist-cb');
+      if (cb && !cb.checked) cb.click();
+      // Update the matching node-row preview in the 3a node list
+      document.querySelectorAll('.node-row').forEach((row) => {
+        if (row.dataset.nodeId === msg.nodeId) {
+          const previewEl = row.querySelector('.node-preview');
+          if (previewEl && pending.proposedDisplay) previewEl.textContent = pending.proposedDisplay;
+        }
+      });
+      _pendingNodeChanges.delete(msg.nodeId);
+    }
+    return;
+  }
+
+  // NODE_CHANGE_FAILED: { nodeId, reason } — edit failed; show error inline without collapsing preview
+  if (msg.type === 'NODE_CHANGE_FAILED') {
+    const pending = _pendingNodeChanges.get(msg.nodeId);
+    if (pending) {
+      const errEl = document.createElement('div');
+      errEl.className = 'preview-error';
+      errEl.textContent = msg.reason || 'Failed to apply change';
+      pending.previewDiv.appendChild(errEl);
+      pending.applyBtn.disabled = false;
+    }
+    _pendingNodeChanges.delete(msg.nodeId);
     return;
   }
 

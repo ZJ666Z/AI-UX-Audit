@@ -149,7 +149,8 @@ The audit LLM returns a two-part JSON object:
 **Audit result cards** — one per `auditItems` entry, showing:
 
 - Severity chip (Critical / Warning / Suggestion) + left border tint
-- Frame name + provocative question (always visible)
+- **Frame name** (dotted underline, clickable) — pans Figma viewport to that frame and selects it; does not change zoom so nearby canvas annotations stay visible
+- Provocative question (always visible)
 - **✓ / ✕ confirm buttons** — designer marks each finding as confirmed or dismissed
 - **Type** tag + **Impact badge** (purple, shows `impactedMetric`) — visible when expanded
 - **What** — description of the problem
@@ -158,6 +159,8 @@ The audit LLM returns a two-part JSON object:
 - **Guardrail violation** callout (amber) — when applicable
 - **Why this matters** — collapsible section showing `causalMechanism`
 - **Generate DRD** button — visible on `critical` and `warning` items
+
+After a DRD is generated, an **Implementation Checklist** and a **Frame Nodes** panel appear below the card (see Canvas Editing Workflow section).
 
 A **confirmation summary** below the cards shows how many findings are confirmed (e.g. `2 / 4 confirmed`). The **Generate Evidence Report** button is disabled until at least one finding is confirmed.
 
@@ -270,6 +273,79 @@ The panel contains:
   - 4.5 Risks and validation (side effects, metrics to monitor, validation method)
 
 - **Copy DRD as Markdown** button — exports the document to clipboard for pasting into Notion, Confluence, or a doc
+
+---
+
+## Canvas Editing Workflow
+
+After a DRD is generated for a `critical` or `warning` audit card, the plugin enables a four-layer progressive canvas-editing workflow. Each layer builds on the previous one.
+
+### Layer 1 — Frame Focus
+
+Click the **dotted-underlined frame name** on any audit card header or on the DRD panel title. Figma pans the viewport to center on that frame and selects it. Zoom level is preserved — sticky note annotations placed to the right of frames stay visible.
+
+This is purely a pan, not a zoom. The frame name in the DRD slide-over header also triggers the same behavior.
+
+### Layer 2 — Implementation Checklist
+
+After a DRD is generated, an **Implementation Checklist** panel appears below the audit card (outside the collapsible card body — always visible). It shows the four `specificChanges` fields from the recommended DRD solution as checkboxes:
+
+- Information Architecture
+- Interaction Path
+- Visual Hierarchy
+- Key Elements
+
+Empty fields are skipped. A **"X / Y done"** counter tracks progress. Checking an item strikes through its text. A collapsible **Before → After** section shows the before state, after state, and interaction path change from the DRD.
+
+Checklist state is in-memory. Generating a new audit resets it. Re-opening a DRD panel for the same item does not reset the checklist.
+
+### Layer 3a — Frame Nodes
+
+When the frame name is clicked (Layer 1), the plugin simultaneously sends `INSPECT_NODES` to code.ts. The Figma sandbox walks the frame's child tree depth-first (capped at 60 nodes) and returns a node list.
+
+A **Frame Nodes** panel appears below the checklist showing each node as a row:
+
+```
+node name  |  node type  |  content preview
+```
+
+Content preview: first 50 characters of text for TEXT nodes; solid fill hex color for non-text nodes with a solid fill; blank otherwise. If the frame has more than 60 descendants, a "Showing first 60 nodes." note appears.
+
+### Layer 3b — Node Matching
+
+Each checklist item has a **"Find nodes"** button. Clicking it:
+
+1. Shows "Matching…" spinner
+2. Calls `identifyTargetNodes` LLM (600 tokens) with the node list and the change description for that section
+3. Displays matched nodes with: node name, change type badge (`text_content` / `fill_color` / `visibility` / `layout` / `position`), and reasoning
+
+If no node is a confident match, shows: "No matching node — apply this change manually in Figma."
+
+Only one checklist item can be expanded at a time. The LLM result is cached per item — re-clicking "Find nodes" on the same item does not re-call the LLM.
+
+### Layer 3c — Suggested Edit and Apply
+
+The **"Suggest edit"** button on each matched node becomes active. Clicking it:
+
+1. Calls `generateNodeChange` LLM (300 tokens) to generate the exact new property value
+2. Shows a preview inside the expanded item:
+   - **Current** — the node's current value (text content, fill hex, or visibility state)
+   - **Proposed** — the LLM-generated new value (highlighted green)
+   - **Why** — one-sentence rationale
+   - **Apply** / **Dismiss** buttons
+
+**Apply** posts `APPLY_NODE_CHANGE` to code.ts, which writes the change to the Figma canvas:
+- `text_content` — loads all fonts used in the node, then sets `node.characters`
+- `fill_color` — replaces fills with a single solid color (`r`, `g`, `b` each 0–1)
+- `visibility` — sets `node.visible`
+- `layout` — sets only the layout keys provided (padding, spacing, alignment, layoutMode)
+- `position` — sets `node.x` and `node.y`
+
+On **success**: preview collapses to "✓ Applied", the checklist item is auto-checked, and the matching node row in the Frame Nodes panel updates to show the new value.
+
+On **failure**: the error message appears inline. The preview stays open so the designer can copy the proposed value and apply it manually in Figma.
+
+**Dismiss** hides the preview without applying.
 
 ---
 
@@ -530,6 +606,8 @@ Each LLM function uses a per-call token ceiling tuned to its output size:
 | `runContextualAudit`, `extractDecisionCard`, translation | 1800 |
 | `generateEvidenceReport`, `runJourneyAudit`, `analyzeJourney` | 3200 |
 | `generateDRD` | 3500 |
+| `identifyTargetNodes` (Layer 3b) | 600 |
+| `generateNodeChange` (Layer 3c) | 300 |
 
 If you hit rate limits, reduce the number of selected frames and re-run.
 
@@ -564,6 +642,25 @@ Two common causes:
 1. Reduce the number of selected frames
 2. Switch to a model with a larger context window
 3. Consider switching to Anthropic, which supports more visual frames per request
+
+### Frame name click does nothing
+
+The frame name link only appears when `affectedFrameId` is set on the audit item. `affectedFrameId` is populated by `resolveFrameIds()` after the audit runs by matching `targetFrameName` to the `flowGraph.frames` list. If the LLM returns a `targetFrameName` that doesn't exactly match any selected frame name, `affectedFrameId` will be null and the link won't appear.
+
+### Node tree panel stays on "Reading frame…"
+
+This means `NODES_RESULT` never arrived from code.ts. Common causes:
+
+1. **Stale `code.js`** — run `npm run build` to recompile `code.ts`
+2. **Node not found** — the frame ID may be invalid if the Figma file was modified after the audit ran. Re-run the audit to refresh frame IDs.
+
+### Sticky note annotations disappeared after clicking a frame name
+
+The frame name click pans the viewport (not zooms). Sticky notes are placed 100px to the right of each frame. If the viewport panned to center on a frame and the zoom level was already high, the notes may be off-screen to the right. Zoom out to see the full canvas area around the audited frames.
+
+### Canvas annotation write-back fails silently
+
+This is caused by the audit objects containing non-serializable properties (DOM element references) when `postMessage` is called. This is handled automatically — the plugin serializes a clean copy of audit data before sending `write-audit-feedback`. If write-back still fails, ensure the selected frames in Figma are still the same frames that were audited.
 
 ### Figma manifest rejects the bridge domain
 

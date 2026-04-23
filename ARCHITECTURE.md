@@ -676,3 +676,142 @@ Frames that exceed the cap are named in the userPrompt under
 "Frames Without Attached Visuals Due To Token Budget" so the LLM
 knows they exist but should rely on the graph summary for them.
 ```
+
+---
+
+## 15. Canvas interaction message types (Layers 1–3)
+
+All messages between ui.html and code.ts follow the same framing:
+- **ui.html → code.ts:** `parent.postMessage({ pluginMessage: { type, ...payload } }, '*')`
+- **code.ts → ui.html:** `figma.ui.postMessage({ type, ...payload })`
+
+Received in `window.onmessage` (ui.html) and `figma.ui.onmessage` (code.ts) respectively.
+
+### Layer 1 — FOCUS_FRAME
+
+```
+ui.html → code.ts
+  type: 'FOCUS_FRAME'
+  payload: { frameId: string }
+
+  Handler (async):
+    node = await figma.getNodeByIdAsync(frameId)
+    if node is not a PAGE or DOCUMENT:
+      figma.currentPage.selection = [node]
+      figma.viewport.center = { x: bb.x + bb.width/2, y: bb.y + bb.height/2 }
+      (pans without changing zoom so nearby sticky notes stay visible)
+```
+
+Triggered by clicking the dotted-underlined frame name on any audit card header or DRD panel title. `affectedFrameId` is set on each audit item by `resolveFrameIds()` which maps `targetFrameName → frame.id` from the flow graph.
+
+### Layer 3a — INSPECT_NODES / NODES_RESULT
+
+```
+ui.html → code.ts
+  type: 'INSPECT_NODES'
+  payload: { frameId: string }
+
+  Handler (async, own try/catch):
+    frame = await figma.getNodeByIdAsync(frameId)
+    if frame.type !== 'FRAME': post NODES_RESULT with nodes: [], truncated: false
+
+    DFS walk of frame.children (not the frame itself), capped at 60 nodes.
+    Per node: { id, name, type, characters?, fills[], visible, width, height, parentName }
+    fills: serializable subset — { type, color? } (color only for SOLID fills)
+    On any error: post NODES_RESULT with nodes: [], truncated: false
+    (ensures loading state always resolves in ui.html)
+
+code.ts → ui.html
+  type: 'NODES_RESULT'
+  payload: { frameId, nodes: NodeRecord[], truncated: boolean }
+```
+
+Sent simultaneously with FOCUS_FRAME on each frame name click. `_frameNodePanels` map routes the response to the correct card's nodes panel by frameId. `audit._nodesData` stores the nodes array for later use by Layer 3b.
+
+### Layer 3b — identifyTargetNodes (LLM, ui.html only)
+
+```
+INPUT
+  nodes:             audit._nodesData (from NODES_RESULT)
+  changeDescription: specificChanges field value for one checklist section
+  beforeState / afterState: solutions[recommendedIndex].beforeAfter.before / after
+
+SYSTEM PROMPT
+  "You are a Figma node analyst. Given a list of nodes inside a Figma frame
+   and a design change description, identify which node IDs are the targets
+   of that change. Output only valid JSON:
+   { matches: [ { nodeId, nodeName, reason, changeType } ] }
+   changeType: text_content | fill_color | visibility | layout | position
+   If no confident match, return matches: []. No markdown."
+
+USER PROMPT
+  "Frame nodes: {nodesSummary — id, name, type, characters?, fillHex?, width, height}
+   Change description: {changeDescription}
+   Before state: {beforeState}
+   After state:  {afterState}"
+
+maxTokens: 600
+OUTPUT: { matches: [ { nodeId, nodeName, reason, changeType } ] }
+```
+
+Triggered lazily when designer clicks "Find nodes" on a checklist item. Result is cached in `matchPanel.dataset.loaded` — the LLM is not re-called if the panel is collapsed and reopened. Only one checklist item's match panel is open at a time (`activeRef` tracks the current one).
+
+### Layer 3c — generateNodeChange (LLM) + APPLY_NODE_CHANGE
+
+```
+INPUT (generateNodeChange — ui.html LLM call)
+  node:     matched node object from audit._nodesData
+  changeType, changeDescription, beforeState, afterState
+  guardrails + constraints from _lastDecisionCardForEvidence
+
+SYSTEM PROMPT
+  "You are a Figma property editor. Given a node's current state and a
+   design change description, output the exact new property value to apply.
+   Output only valid JSON matching the changeType:
+   text_content: { newText, rationale }
+   fill_color:   { r, g, b (each 0–1), rationale }
+   visibility:   { visible: boolean }
+   layout:       only include keys that change (layoutMode, padding, itemSpacing, alignment)
+   position:     { x, y }"
+
+maxTokens: 300
+
+After preview is shown and designer clicks Apply:
+
+ui.html → code.ts
+  type: 'APPLY_NODE_CHANGE'
+  payload: { nodeId: string, changeType: string, value: object }
+
+  Handler (async, own inner try/catch so it always posts a result):
+    node = await figma.getNodeByIdAsync(nodeId)
+    switch changeType:
+      text_content → loadFontAsync for all ranges → node.characters = newText
+      fill_color   → node.fills = [{ type:'SOLID', color:{r,g,b}, opacity:1 }]
+      visibility   → node.visible = visible
+      layout       → set only provided keys on FrameNode
+      position     → node.x = x; node.y = y
+    → post NODE_CHANGE_APPLIED on success
+    → post NODE_CHANGE_FAILED  on any error (does not rethrow)
+
+code.ts → ui.html
+  type: 'NODE_CHANGE_APPLIED'  { nodeId, changeType }
+  type: 'NODE_CHANGE_FAILED'   { nodeId, reason }
+```
+
+`_pendingNodeChanges` Map<nodeId, { checklistItem, previewDiv, applyBtn, proposedDisplay }> routes responses to the correct UI elements. On `NODE_CHANGE_APPLIED`: preview collapses to "✓ Applied", checklist item checkbox is auto-clicked, node row in the Frame Nodes panel updates its preview text. On `NODE_CHANGE_FAILED`: error shown inline in previewDiv, Apply button re-enabled, preview stays open.
+
+### Serialization safety for write-audit-feedback
+
+The audit objects in `_lastAuditsForEvidence` accumulate non-serializable properties during rendering: `_checklistEl` (DOM element), `_nodesEl` (DOM element), `_nodesData` (array). These cannot pass through `window.postMessage` (Structured Clone Algorithm rejects DOM nodes).
+
+Before posting `write-audit-feedback`, the plugin creates a serializable copy:
+
+```javascript
+const serializableAudits = audits.map((a) => ({
+  targetFrameName, critiqueType, severity, impactedMetric,
+  causalMechanism, guardrailRef, suggestion, provocativeQuestion,
+  affectedFrameId, what, where, why,
+}));
+```
+
+Only plain-data fields are included. DOM refs and session-only props are excluded.
