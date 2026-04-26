@@ -284,7 +284,7 @@ cognitiveComplexityScore
 
 ## 7. LLM sub-process: `runJourneyAudit` / `analyzeJourney`
 
-**Trigger:** Designer clicks "Analyze Journey" in the Journey sub-tab.
+**Trigger:** Designer clicks "Analyze Journey" in the **Journey tab**.
 
 ```
 PRE-PROCESSING

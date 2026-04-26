@@ -279,7 +279,7 @@ After a DRD is generated for a `critical` or `warning` audit card, the plugin en
 
 ### Layer 1 — Frame Focus
 
-Click the **dotted-underlined frame name** on any audit card header or on the DRD panel title. Figma pans the viewport to center on that frame and selects it. Zoom level is preserved — sticky note annotations placed to the right of frames stay visible.
+Click the **blue frame name chip** (`[Frame Name ↗]`) on any audit card header or the DRD panel title. Figma pans the viewport to center on that frame and selects it. Zoom level is preserved — sticky note annotations placed to the right of frames stay visible.
 
 This is purely a pan, not a zoom. The frame name in the DRD slide-over header also triggers the same behavior.
 
@@ -352,7 +352,7 @@ The plugin uses a two-stage confirmation model that keeps the designer in contro
 
 ### Stage 1 → 2: Audit findings → Evidence Report
 
-After an audit completes, each audit card in the Findings sub-tab shows a **✓ confirm** and **✕ dismiss** button.
+After an audit completes, each audit card in the **Findings section** (Audit tab) shows a **✓ confirm** and **✕ dismiss** button.
 
 - **✓ confirm** — marks the finding as validated; the card border turns green
 - **✕ dismiss** — marks the finding as not relevant; the card border turns red
@@ -363,7 +363,7 @@ A **confirmation summary** (e.g. `2 / 4 confirmed`) is shown below the audit car
 
 ### Stage 2 → 3: Evidence findings → DRD
 
-The Evidence sub-tab shows Issue Definitions and User Insights sections, each item with a **✓ confirm** button.
+The **Evidence section** (Audit tab, appears after report generation) shows Issue Definitions and User Insights sections, each item with a **✓ confirm** button.
 
 Confirming an issue definition or user insight stores that item's text, cognitive/behavioral mechanism, and design implication in session memory keyed to the original audit index.
 
@@ -377,7 +377,7 @@ All confirmation state is **in-memory** and scoped to the current plugin session
 
 ## Journey-Level Audit
 
-The Journey sub-tab provides two-phase analysis of the whole flow.
+The **Journey tab** provides two-phase analysis of the whole flow.
 
 ### Phase 1 — Deterministic graph metrics (runs automatically after audit)
 
@@ -407,7 +407,7 @@ Sends flow metrics, per-frame metrics (filtered to risky frames if >20 total), D
 
 The plugin supports **English** and **Simplified Chinese** (简体中文).
 
-- The entire UI (labels, buttons, status messages, audit cards, Evidence tab, DRD panel, Journey tab) switches language when you toggle the selector in the header
+- The entire UI (labels, buttons, status messages, audit cards, Evidence section, DRD panel, Journey tab) switches language when you toggle the selector in the header
 - The LLM always generates audit results in English for reliability
 - When Chinese is selected, a separate translation call is made after the audit completes, translating all display fields (`critiqueType`, `impactedMetric`, `causalMechanism`, `guardrailRef`, `suggestion`, `provocativeQuestion`)
 - Annotation frames written to the Figma canvas also use the selected language
@@ -675,9 +675,9 @@ Newer OpenAI models (GPT-5, GPT-5.4, etc.) generate more verbose JSON than GPT-4
 2. Switch to a model with a larger context window
 3. Consider switching to Anthropic, which supports more visual frames per request
 
-### Frame name click does nothing
+### Frame name chip click does nothing
 
-The frame name link only appears when `affectedFrameId` is set on the audit item. `affectedFrameId` is populated by `resolveFrameIds()` after the audit runs by matching `targetFrameName` to the `flowGraph.frames` list. If the LLM returns a `targetFrameName` that doesn't exactly match any selected frame name, `affectedFrameId` will be null and the link won't appear.
+The frame name chip only appears when `affectedFrameId` is set on the audit item. `affectedFrameId` is populated by `resolveFrameIds()` after the audit runs by matching `targetFrameName` to the `flowGraph.frames` list. If the LLM returns a `targetFrameName` that doesn't exactly match any selected frame name, `affectedFrameId` will be null and the link won't appear.
 
 ### Node tree panel stays on "Reading frame…"
 

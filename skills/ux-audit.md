@@ -249,53 +249,73 @@ Arguments:
 ```json
 {
   "researchPlan": {
-    "problemTypes": ["navigation clarity", "error recovery", "information hierarchy"],
+    "problemTypes": "navigation clarity, error recovery, information architecture",
     "rootCauseGroups": [
-      { "groupName": "Missing feedback states", "issueIndices": [0, 2] }
+      {
+        "groupName": "Missing feedback states",
+        "issues": ["No recovery path after permission denial", "Silent failure on form submit"],
+        "sharedRootCause": "UI provides no signal when something goes wrong"
+      }
     ],
-    "modulesJustification": "Both issues share a root cause (absent system feedback) and can be addressed by a single usability study + funnel analysis"
+    "modulesJustification": "Both issues share a root cause and can be covered by one usability study + one funnel analysis"
   },
   "hypotheses": [
     {
       "id": "H1",
       "statement": "Users who encounter the permissions screen without context abandon the flow",
-      "cognitiveMechanism": "Uncertainty aversion — users default to denial when the value exchange is unclear",
-      "testableMethod": "Task-based usability test with think-aloud protocol"
+      "mechanism": "Uncertainty aversion — users default to denial when the value exchange is unclear",
+      "testable": "Task-based usability test with think-aloud protocol"
     }
   ],
   "moduleA": {
     "method": "Moderated usability testing",
-    "why": "Direct observation of decision points is needed to understand abandonment triggers",
-    "issuesCovered": [0, 2],
-    "sampleSize": "8 participants",
-    "timeRange": "2 weeks",
+    "whyThisMethod": "Direct observation of decision points is needed to understand abandonment triggers",
+    "issuesCovered": ["No recovery path after permission denial"],
+    "sampleSize": "n=8",
+    "segments": "First-time users, iOS 15, no prior product experience",
+    "tasks": "Complete onboarding from sign-up to first core action",
+    "setting": "Remote, unmoderated, Maze or UserZoom",
     "findings": [
       {
-        "issueIndex": 0,
         "finding": "6/8 participants tapped 'Deny' before reading the explanation text",
-        "severity": "critical",
+        "severity": "Critical",
         "hypothesisRef": "H1",
-        "suggestedVisualization": "Task completion funnel by step"
+        "supported": true,
+        "visualization": "Task completion funnel by step"
       }
     ]
   },
   "moduleB": {
     "method": "Funnel analysis + exit heatmap",
-    "why": "Quantify the drop-off rate at the permissions screen at scale",
-    "issuesCovered": [0, 1, 2],
-    "sampleSize": "30-day cohort, ~12 000 sessions",
+    "whyThisMethod": "Quantify drop-off rate at scale and identify where users exit",
+    "issuesCovered": ["No recovery path after permission denial", "Silent failure on form submit"],
     "timeRange": "30 days",
-    "findings": []
+    "sampleSize": "~12 000 sessions",
+    "coreMetrics": ["step completion rate", "exit rate by screen", "time on permissions screen"],
+    "analysisDimensions": ["device type", "acquisition channel", "session number"],
+    "findings": [
+      {
+        "finding": "34% of sessions exit on the permissions screen; exit rate is 2.1× higher on first session",
+        "severity": "Critical",
+        "hypothesisRef": "H1",
+        "supported": true,
+        "visualization": "Funnel chart with cohort overlay"
+      }
+    ]
   },
   "issueDefinitions": [
     {
       "auditIndex": 0,
+      "frameName": "Onboarding / Step 2 — Permissions",
+      "severity": "critical",
       "definition": "In first-time users completing onboarding, because the permissions screen shows a request without context, users deny access and have no recovery path, which blocks activation and causes session abandonment."
     }
   ],
   "userInsights": [
     {
       "auditIndex": 0,
+      "frameName": "Onboarding / Step 2 — Permissions",
+      "severity": "critical",
       "insight": "Users experiencing uncertainty on the permissions screen exhibited loss-aversion behaviour — they preferred denying an unclear request over risking an unknown consequence.",
       "cognitiveOrBehavioralMechanism": "Loss aversion under ambiguity",
       "designImplication": "Reframe the permission request around the user benefit before asking; add a visible 'Skip for now' option to reduce perceived risk"
@@ -303,6 +323,23 @@ Arguments:
   ]
 }
 ```
+
+**Key field notes:**
+
+| Field | Type | Notes |
+|---|---|---|
+| `researchPlan.problemTypes` | string | Comma-separated problem categories, not an array |
+| `researchPlan.rootCauseGroups[].issues` | string[] | Issue descriptions (not indices); also has `sharedRootCause` |
+| `hypotheses[].mechanism` | string | Cognitive/behavioral mechanism (not `cognitiveMechanism`) |
+| `hypotheses[].testable` | string | How to test it (not `testableMethod`) |
+| `moduleA.whyThisMethod` | string | Rationale for method choice (not `why`) |
+| `moduleA.segments` / `tasks` / `setting` | string | Required for Module A |
+| `moduleB.coreMetrics` / `analysisDimensions` | string[] | Required for Module B |
+| `findings[].visualization` | string | Suggested chart type (not `suggestedVisualization`) |
+| `findings[].supported` | boolean | Whether the finding supports the referenced hypothesis |
+| `issueDefinitions[].frameName` | string | Frame the issue was found on |
+| `issueDefinitions[].severity` | string | Severity from the original audit item |
+| `userInsights[].frameName` / `severity` | string | Same as issueDefinitions |
 
 In the plugin UI, each item in `issueDefinitions` and `userInsights` has a **✓ confirm** button (Stage 2→3 gating). Confirmed items are injected as research context into the subsequent DRD call for that finding.
 
