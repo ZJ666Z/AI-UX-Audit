@@ -453,14 +453,37 @@ The **Compare mode** toggle (bottom of the History tab) diffs two selected snaps
 ### Plugin only (no bridge)
 
 1. Clone or download this repository
-2. In Figma desktop, go to **Plugins → Development → Import plugin from manifest** and select `manifest.json`
-3. No `npm install` needed to run the plugin itself
+
+2. Install dependencies and compile the plugin:
+
+   ```bash
+   npm install
+   npm run build
+   ```
+
+   This compiles `code.ts` → `code.js`. **Both steps are required.** `code.js` is a build artifact and is gitignored, but `manifest.json` points at it as the plugin entry point — without it Figma fails to load the plugin with:
+
+   ```
+   Error: Unable to load code: ENOENT: no such file or directory, lstat '.../code.js'
+   ```
+
+3. In Figma desktop, go to **Plugins → Development → Import plugin from manifest** and select `manifest.json`
+
+4. Enter your LLM API key in the plugin's **Setup** tab — the plugin calls OpenAI/Anthropic directly from the UI and ships no key of its own
+
+Requires Node 18+ (developed on Node 24).
 
 ### With bridge / MCP support
 
+The bridge is **optional** — the plugin's audit features work fully without it. It only exists so MCP clients like Claude Code can drive the plugin. See the MCP / Claude Code Workflow section below.
+
 ```bash
-npm install
+npm install       # if you haven't already
+npm run build
+npm run bridge:start
 ```
+
+If the browser console shows `Connecting to 'http://localhost:3845/api/session/register' violates the following Content Security Policy directive`, Figma has not applied the `devAllowedDomains` entry from `manifest.json`. Re-importing the manifest usually resolves it. This error is harmless if you aren't using the bridge — `initBridge()` swallows the failure and the plugin continues without it.
 
 ---
 
