@@ -60,56 +60,28 @@ type VisualPayload = {
   base64: string;
 };
 
+// A single text node extracted up front so the whole flow's copy can be
+// audited for cross-screen consistency in one pass. roleHint is inferred
+// from font size + layer name so the LLM knows if copy is a heading, body,
+// button, or caption without needing every screenshot.
+type TextRecord = {
+  nodeId: string;
+  frameId: string;
+  frameName: string;
+  characters: string;
+  fontSize: number | 'mixed';
+  roleHint: string;
+};
+
 type AuditPayload = {
   decisionCard: DecisionCard;
   flowGraph: FlowGraph;
   visuals: VisualPayload[];
-  frameMetrics: FrameMetrics[];
-  flowMetrics: FlowMetrics;
-};
-
-type FrameMetrics = {
-  frameId: string;
-  frameName: string;
-  inboundCount: number;
-  outboundCount: number;
-  danglingReactions: number;
-  isEntryPoint: boolean;
-  isExitPoint: boolean;
-  isDeadEnd: boolean;
-  interactiveNodeCount: number;
-  decisionPointCount: number;
-  frameArea: number;
-};
-
-type FlowMetrics = {
-  totalFrames: number;
-  totalTransitions: number;
-  entryPoints: string[];
-  exitPoints: string[];
-  deadEnds: string[];
-  mostConnectedFrame: string;
-  leastConnectedFrame: string;
-  totalDecisionPoints: number;
-  totalDanglingReactions: number;
-  happyPath: string[];
-  cognitiveComplexityScore: number;
-};
-
-type AuditItem = {
-  targetFrameName: string;
-  critiqueType: string;
-  severity?: string;
-  impactedMetric?: string;
-  causalMechanism?: string;
-  guardrailRef?: string;
-  suggestion?: string;
-  provocativeQuestion: string;
+  texts: TextRecord[];
 };
 
 type UIMessage =
   | { type: 'prepare-audit-payload'; decisionCard: DecisionCard }
-  | { type: 'write-audit-feedback'; audits: AuditItem[] }
   // FOCUS_FRAME: { frameId } — pan viewport to the frame and select it
   | { type: 'FOCUS_FRAME'; frameId: string }
   // INSPECT_NODES: { frameId } — walk the frame's node tree; response is NODES_RESULT
@@ -118,10 +90,6 @@ type UIMessage =
   | { type: 'APPLY_NODE_CHANGE'; nodeId: string; changeType: string; value: Record<string, unknown> }
   // SAVE_SNAPSHOT: { snapshots } — persist audit history to clientStorage
   | { type: 'SAVE_SNAPSHOT'; snapshots: unknown[] };
-
-type StickyCapableFigma = PluginAPI & {
-  createSticky?: () => StickyNode;
-};
 
 const FIGMA_UI_WIDTH = 440;
 const FIGMA_UI_HEIGHT = 760;
@@ -322,147 +290,60 @@ async function exportFrameVisuals(frames: FrameNode[]): Promise<VisualPayload[]>
   return visuals;
 }
 
-const INTENTIONAL_EXIT_KEYWORDS = ['success', 'complete', 'done', 'confirm', 'thank', '成功', '完成', '确认', '谢谢'];
+const BUTTON_NAME_HINTS = ['button', 'btn', 'cta', 'link', 'action'];
+const MAX_TEXTS = 400;
 
-function isIntentionalExit(name: string): boolean {
-  const lower = name.toLowerCase();
-  return INTENTIONAL_EXIT_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
+// Infer a text node's role from its font size and layer name so the audit
+// prompt can reason about copy hierarchy without a screenshot per node.
+function inferRoleHint(node: TextNode): string {
+  const lowerName = node.name.toLowerCase();
+  if (BUTTON_NAME_HINTS.some((kw) => lowerName.includes(kw))) return 'button';
+  const size = node.fontSize;
+  if (size === figma.mixed) return 'body';
+  if (size >= 20) return 'heading';
+  if (size <= 12) return 'caption';
+  return 'body';
 }
 
-function computeHappyPath(
-  adjacency: Map<string, string[]>,
-  entryPoints: string[],
-  deadEndSet: Set<string>,
-  totalFrames: number,
-  allFrameNames: string[]
-): string[] {
-  let bestPath: string[] = [];
-  const startFrames = entryPoints.length > 0 ? entryPoints : allFrameNames.slice(0, 1);
+// Walk every selected frame once and collect all TEXT nodes. This is the
+// backbone of a content audit: the whole flow's copy is available to the LLM
+// in a single pass, which is what makes cross-screen consistency checks
+// (e.g. "Sign in" vs "Log in") possible.
+function extractTexts(frames: FrameNode[]): TextRecord[] {
+  const texts: TextRecord[] = [];
 
-  function dfs(current: string, path: string[], visited: Set<string>): void {
-    if (path.length >= totalFrames) {
-      if (!deadEndSet.has(current) && path.length > bestPath.length) bestPath = [...path];
-      return;
+  const walk = (node: SceneNode, frame: FrameNode): void => {
+    if (texts.length >= MAX_TEXTS) return;
+    if (node.type === 'TEXT') {
+      const tn = node as TextNode;
+      const characters = tn.characters.trim();
+      if (characters.length > 0) {
+        texts.push({
+          nodeId: tn.id,
+          frameId: frame.id,
+          frameName: frame.name,
+          characters: tn.characters,
+          fontSize: tn.fontSize === figma.mixed ? 'mixed' : tn.fontSize,
+          roleHint: inferRoleHint(tn),
+        });
+      }
     }
-    const unvisited = (adjacency.get(current) || []).filter((n) => !visited.has(n));
-    if (unvisited.length === 0) {
-      if (!deadEndSet.has(current) && path.length > bestPath.length) bestPath = [...path];
-      return;
+    if ('children' in node) {
+      for (const child of (node as FrameNode).children) {
+        if (texts.length >= MAX_TEXTS) break;
+        walk(child as SceneNode, frame);
+      }
     }
-    for (const neighbor of unvisited) {
-      visited.add(neighbor);
-      dfs(neighbor, [...path, neighbor], visited);
-      visited.delete(neighbor);
-    }
-  }
-
-  for (const entry of startFrames) {
-    const visited = new Set<string>([entry]);
-    dfs(entry, [entry], visited);
-  }
-  return bestPath;
-}
-
-function computeGraphMetrics(flowGraph: FlowGraph): { frameMetrics: FrameMetrics[]; flowMetrics: FlowMetrics } {
-  const { frames, nodes, edges } = flowGraph;
-
-  const outboundNeighbors = new Map<string, Set<string>>();
-  const inboundNeighbors  = new Map<string, Set<string>>();
-  const danglingByFrame   = new Map<string, number>();
+  };
 
   for (const frame of frames) {
-    outboundNeighbors.set(frame.name, new Set());
-    inboundNeighbors.set(frame.name, new Set());
-    danglingByFrame.set(frame.name, 0);
-  }
-
-  for (const edge of edges) {
-    const src = edge.sourceFrameName;
-    const dst = edge.destinationFrameName;
-    if (dst === null) {
-      danglingByFrame.set(src, (danglingByFrame.get(src) ?? 0) + 1);
-    } else if (dst !== src) {
-      outboundNeighbors.get(src)?.add(dst);
-      inboundNeighbors.get(dst)?.add(src);
+    for (const child of frame.children) {
+      if (texts.length >= MAX_TEXTS) break;
+      walk(child, frame);
     }
   }
 
-  const interactiveByFrame = new Map<string, number>();
-  for (const frame of frames) interactiveByFrame.set(frame.name, 0);
-  for (const node of nodes) {
-    if (node.isInteractive) {
-      interactiveByFrame.set(node.frameName, (interactiveByFrame.get(node.frameName) ?? 0) + 1);
-    }
-  }
-
-  const frameMetrics: FrameMetrics[] = frames.map((frame) => {
-    const outbound = outboundNeighbors.get(frame.name)!;
-    const inbound  = inboundNeighbors.get(frame.name)!;
-    const dangling = danglingByFrame.get(frame.name) ?? 0;
-    const outboundCount = outbound.size;
-    const inboundCount  = inbound.size;
-    const isEntryPoint  = inboundCount === 0;
-    const isExitPoint   = outboundCount === 0;
-    const isDeadEnd     = isExitPoint && !isIntentionalExit(frame.name);
-    return {
-      frameId: frame.id,
-      frameName: frame.name,
-      inboundCount,
-      outboundCount,
-      danglingReactions: dangling,
-      isEntryPoint,
-      isExitPoint,
-      isDeadEnd,
-      interactiveNodeCount: interactiveByFrame.get(frame.name) ?? 0,
-      decisionPointCount: outboundCount > 1 ? 1 : 0,
-      frameArea: frame.width * frame.height,
-    };
-  });
-
-  const entryPoints = frameMetrics.filter((f) => f.isEntryPoint).map((f) => f.frameName);
-  const exitPoints  = frameMetrics.filter((f) => f.isExitPoint).map((f) => f.frameName);
-  const deadEnds    = frameMetrics.filter((f) => f.isDeadEnd).map((f) => f.frameName);
-  const totalDecisionPoints   = frameMetrics.reduce((s, f) => s + f.decisionPointCount, 0);
-  const totalDanglingReactions = frameMetrics.reduce((s, f) => s + f.danglingReactions, 0);
-  const totalTransitions = edges.filter((e) => e.destinationFrameName !== null && e.destinationFrameName !== e.sourceFrameName).length;
-
-  let mostConnectedFrame = frames[0]?.name ?? '';
-  let mostConnectedCount = -1;
-  let leastConnectedFrame = frames[0]?.name ?? '';
-  let leastConnectedTotal = Infinity;
-  for (const fm of frameMetrics) {
-    if (fm.inboundCount > mostConnectedCount) { mostConnectedCount = fm.inboundCount; mostConnectedFrame = fm.frameName; }
-    const total = fm.inboundCount + fm.outboundCount;
-    if (total < leastConnectedTotal) { leastConnectedTotal = total; leastConnectedFrame = fm.frameName; }
-  }
-
-  const adjacency = new Map<string, string[]>();
-  for (const frame of frames) adjacency.set(frame.name, Array.from(outboundNeighbors.get(frame.name)!));
-
-  const deadEndSet = new Set(deadEnds);
-  const happyPath  = computeHappyPath(adjacency, entryPoints, deadEndSet, frames.length, frames.map((f) => f.name));
-
-  const happyPathExtra = Math.max(0, happyPath.length - 5);
-  const cognitiveComplexityScore = Math.max(0,
-    100 - totalDecisionPoints * 3 - deadEnds.length * 5 - totalDanglingReactions * 2 - happyPathExtra,
-  );
-
-  return {
-    frameMetrics,
-    flowMetrics: {
-      totalFrames: frames.length,
-      totalTransitions,
-      entryPoints,
-      exitPoints,
-      deadEnds,
-      mostConnectedFrame,
-      leastConnectedFrame,
-      totalDecisionPoints,
-      totalDanglingReactions,
-      happyPath,
-      cognitiveComplexityScore,
-    },
-  };
+  return texts;
 }
 
 async function prepareAuditPayload(decisionCard: DecisionCard): Promise<AuditPayload> {
@@ -473,112 +354,14 @@ async function prepareAuditPayload(decisionCard: DecisionCard): Promise<AuditPay
 
   const flowGraph = await buildFlowGraph(frames);
   const visuals   = await exportFrameVisuals(frames);
-  const { frameMetrics, flowMetrics } = computeGraphMetrics(flowGraph);
+  const texts     = extractTexts(frames);
 
   return {
     decisionCard,
     flowGraph,
     visuals,
-    frameMetrics,
-    flowMetrics,
+    texts,
   };
-}
-
-async function ensureTextFonts(): Promise<void> {
-  await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
-  await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
-}
-
-function createStickyFallback(audit: AuditItem, frame: FrameNode, index: number): SceneNode {
-  const note = figma.createFrame();
-  note.name = `Audit - ${audit.targetFrameName}`;
-  note.layoutMode = 'VERTICAL';
-  note.primaryAxisSizingMode = 'AUTO';
-  note.counterAxisSizingMode = 'FIXED';
-  note.resize(260, 100);
-  note.paddingTop = 16;
-  note.paddingBottom = 16;
-  note.paddingLeft = 16;
-  note.paddingRight = 16;
-  note.itemSpacing = 10;
-  note.cornerRadius = 10;
-  note.fills = [{ type: 'SOLID', color: { r: 1, g: 0.94, b: 0.9 } }];
-  note.strokes = [{ type: 'SOLID', color: { r: 0.82, g: 0.32, b: 0.28 } }];
-  note.x = frame.x + frame.width + 100;
-  note.y = frame.y + index * 160;
-
-  const title = figma.createText();
-  title.fontName = { family: 'Inter', style: 'Bold' };
-  title.fontSize = 12;
-  title.characters = `${audit.critiqueType} | ${audit.targetFrameName}`;
-  title.fills = [{ type: 'SOLID', color: { r: 0.65, g: 0.16, b: 0.15 } }];
-
-  const body = figma.createText();
-  body.fontName = { family: 'Inter', style: 'Regular' };
-  body.fontSize = 14;
-  body.characters = audit.provocativeQuestion;
-  body.layoutAlign = 'STRETCH';
-  body.fills = [{ type: 'SOLID', color: { r: 0.21, g: 0.16, b: 0.12 } }];
-
-  note.appendChild(title);
-  note.appendChild(body);
-
-  if (audit.impactedMetric) {
-    const metric = figma.createText();
-    metric.fontName = { family: 'Inter', style: 'Bold' };
-    metric.fontSize = 11;
-    metric.characters = `📉 ${audit.impactedMetric}`;
-    metric.fills = [{ type: 'SOLID', color: { r: 0.44, g: 0.18, b: 0.6 } }];
-    note.appendChild(metric);
-  }
-  figma.currentPage.appendChild(note);
-  return note;
-}
-
-function createStickyNote(audit: AuditItem, frame: FrameNode, index: number): SceneNode {
-  const stickyApi = figma as StickyCapableFigma;
-  if (typeof stickyApi.createSticky === 'function') {
-    const sticky = stickyApi.createSticky();
-    sticky.name = `Audit - ${audit.targetFrameName}`;
-    sticky.x = frame.x + frame.width + 100;
-    sticky.y = frame.y + index * 260;
-    sticky.text.characters = `${audit.critiqueType}\n${audit.provocativeQuestion}`;
-    sticky.fillStyleId = '';
-    sticky.fills = [{ type: 'SOLID', color: { r: 1, g: 0.86, b: 0.42 } }];
-    figma.currentPage.appendChild(sticky);
-    return sticky;
-  }
-
-  return createStickyFallback(audit, frame, index);
-}
-
-async function writeAuditFeedback(audits: AuditItem[]): Promise<void> {
-  const frames = getSelectedTopLevelFrames();
-  if (frames.length === 0) {
-    throw new Error('Selection changed. Please reselect the frames and run the audit again.');
-  }
-
-  await ensureTextFonts();
-
-  const frameByName = new Map<string, FrameNode>();
-  for (const frame of frames) {
-    frameByName.set(frame.name, frame);
-  }
-
-  const createdNodes: SceneNode[] = [];
-  const yOffsetByFrame = new Map<string, number>();
-
-  for (const audit of audits) {
-    const frame = frameByName.get(audit.targetFrameName) ?? frames[0];
-    const currentIndex = yOffsetByFrame.get(frame.id) ?? 0;
-    const created = createStickyNote(audit, frame, currentIndex);
-    yOffsetByFrame.set(frame.id, currentIndex + 1);
-    createdNodes.push(created);
-  }
-
-  if (createdNodes.length > 0) {
-    figma.viewport.scrollAndZoomIntoView(createdNodes);
-  }
 }
 
 figma.on('selectionchange', () => {
@@ -596,19 +379,12 @@ figma.ui.onmessage = async (msg: UIMessage) => {
       return;
     }
 
-    if (msg.type === 'write-audit-feedback') {
-      await writeAuditFeedback(msg.audits);
-      figma.notify('AI audit complete. Feedback has been placed next to the audited frames.');
-      return;
-    }
-
     if (msg.type === 'FOCUS_FRAME') {
       const node = await figma.getNodeByIdAsync(msg.frameId);
       if (node && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
         const sceneNode = node as SceneNode;
         figma.currentPage.selection = [sceneNode];
-        // Pan to center on the frame without changing zoom level, so nearby
-        // sticky notes (placed to the right of the frame) stay visible
+        // Pan to center on the node without changing zoom level
         const bb = sceneNode.absoluteBoundingBox;
         if (bb) {
           figma.viewport.center = { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 };

@@ -1234,6 +1234,52 @@
     }
     .setup-step-label { font-size: 11px; font-weight: 600; color: var(--text-sec); flex: 1; }
     .setup-step-check { color: var(--green); font-size: 12px; font-weight: 700; }
+
+    /* ── Content dimension picker ── */
+    .dim-picker { padding: 4px 14px 10px; }
+    .dim-picker-label { font-size: 11px; font-weight: 600; color: var(--text-ter); margin-bottom: 6px; }
+    .dim-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dim-chip {
+      font-size: 11px; font-weight: 600; padding: 5px 11px;
+      border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--separator); background: var(--surface);
+      color: var(--text-ter); position: relative;
+    }
+    .dim-chip.on { background: var(--accent-light); color: var(--accent); border-color: transparent; }
+    .dim-chip.recommended::after {
+      content: '★'; font-size: 9px; position: absolute; top: -4px; right: -2px; color: var(--orange);
+    }
+
+    /* ── Content finding card additions ── */
+    .dim-tag { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .3px; }
+    .audit-current-text {
+      font-size: 12px; line-height: 1.5; color: var(--text-sec);
+      background: var(--surface2); border-radius: var(--radius-s);
+      padding: 6px 8px; margin: 4px 0; font-style: italic;
+    }
+
+    /* ── Rewrite panel ── */
+    .rewrite-panel { padding: 10px 12px 12px; border-top: 1px solid var(--separator); display: flex; flex-direction: column; gap: 8px; }
+    .rewrite-instruction {
+      width: 100%; font-size: 12px; line-height: 1.5; resize: vertical;
+      border: 1px solid var(--separator); border-radius: var(--radius-s);
+      padding: 7px 9px; background: var(--surface); color: var(--text);
+    }
+    .rewrite-gen-btn { font-size: 12px; padding: 8px 14px; align-self: flex-start; }
+    .rewrite-options { display: flex; flex-direction: column; gap: 8px; }
+    .rewrite-option {
+      border: 1px solid var(--separator); border-radius: var(--radius-s);
+      padding: 9px 10px; background: var(--surface2); display: flex; flex-direction: column; gap: 6px;
+    }
+    .ro-text { font-size: 13px; font-weight: 600; line-height: 1.5; color: var(--text); }
+    .ro-rationale { font-size: 11px; line-height: 1.5; color: var(--text-sec); }
+    .ro-proscons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    .ro-proscons li { font-size: 11px; line-height: 1.4; padding-left: 15px; position: relative; }
+    .ro-pro::before { content: '+'; position: absolute; left: 2px; color: var(--green); font-weight: 700; }
+    .ro-con::before { content: '−'; position: absolute; left: 2px; color: var(--orange); font-weight: 700; }
+    .ro-apply { font-size: 11px; padding: 6px 14px; align-self: flex-start; border-radius: var(--radius-s); }
+    .ro-apply-preview { font-size: 11px; }
+    .preview-applied { color: var(--green); font-weight: 600; }
   </style>
 </head>
 <body>
@@ -1264,7 +1310,6 @@
     <span data-i18n="tab.audit">Audit</span>
     <span id="resultsBadge" class="tab-badge"></span>
   </button>
-  <button class="tab" data-tab="journey" data-i18n="tab.journey">Journey</button>
   <button class="tab" data-tab="history" data-i18n="tab.history">History</button>
 </div>
 
@@ -1398,6 +1443,20 @@
 
     </div>
   </div>
+
+    <!-- Content Guidelines (optional) -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title" data-i18n="setup.guidelines">Content Guidelines</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <div class="field-label" data-i18n="setup.guidelinesHint">Voice &amp; tone / terminology (optional — used as the source of truth for tone and consistency)</div>
+          <textarea id="guidelines" data-i18n-placeholder="ph.guidelines" placeholder="Paste voice &amp; tone rules, a terminology list, or writing guidelines…" rows="4"></textarea>
+        </div>
+      </div>
+    </div>
+
 </div><!-- /pane-setup -->
 
   <!-- ── AUDIT ── -->
@@ -1414,17 +1473,26 @@
         </div>
       </div>
       <div class="stepper">
-        <div class="step-item" id="si-inspect"><div class="step-dot">1</div><span data-i18n="step.inspect">Inspect</span></div>
+        <div class="step-item" id="si-inspect"><div class="step-dot">1</div><span data-i18n="step.inspect">Extract copy</span></div>
         <div class="step-item" id="si-audit"><div class="step-dot">2</div><span data-i18n="step.analyse">Analyse</span></div>
-        <div class="step-item" id="si-write"><div class="step-dot">3</div><span data-i18n="step.write">Write back</span></div>
       </div>
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <!-- Content dimensions — all on = audit everything; deselect to narrow; none = let AI recommend -->
+      <div class="dim-picker">
+        <div class="dim-picker-label" data-i18n="dim.picker">Content dimensions</div>
+        <div class="dim-chip-row">
+          <button class="dim-chip on" data-dim="clarity" data-i18n="dim.clarity">Clarity</button>
+          <button class="dim-chip on" data-dim="consistency" data-i18n="dim.consistency">Consistency</button>
+          <button class="dim-chip on" data-dim="voice-tone" data-i18n="dim.voice-tone">Voice &amp; tone</button>
+          <button class="dim-chip on" data-dim="actionability" data-i18n="dim.actionability">Actionability</button>
+        </div>
+      </div>
       <div class="status-row" id="statusRow">
         <span id="statusText" data-i18n="status.idle">Select frames in Figma, then start the audit.</span>
       </div>
       <div style="padding:0 14px 16px">
         <button class="btn btn-primary" id="auditBtn" style="width:100%;padding:13px 16px;font-size:14px;font-weight:700;letter-spacing:-.2px;border-radius:var(--radius-m)">
-          <span data-i18n="btn.audit">Start Audit</span>
+          <span data-i18n="btn.audit">Audit Copy</span>
         </button>
       </div>
     </div>
@@ -1438,67 +1506,14 @@
       <!-- Empty state — hidden after first audit -->
       <div id="findingsEmptyCard" class="card">
         <div class="card-body" style="align-items:center;padding:28px 14px;text-align:center">
-          <div style="font-size:30px;margin-bottom:10px">🔍</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px" data-i18n="results.empty">Run an audit to see results.</div>
-          <div style="font-size:12px;color:var(--text-ter)" data-i18n="audit.hint">Select frames in Figma with prototype arrows, then click Start Audit.</div>
+          <div style="font-size:30px;margin-bottom:10px">✍️</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px" data-i18n="results.empty">Run an audit to see copy issues.</div>
+          <div style="font-size:12px;color:var(--text-ter)" data-i18n="audit.hint">Select the frames of a flow in Figma, then click Audit Copy.</div>
         </div>
       </div>
-      <div id="businessAnalysisSection"></div>
       <div id="resultGroups" style="display:flex;flex-direction:column;gap:8px"></div>
-      <div id="evidenceBtnRow" style="display:none;padding:8px 0;display:flex;flex-direction:column;gap:5px">
-        <button class="btn btn-secondary" id="evidenceBtn" style="font-size:12px;padding:8px 14px" disabled>
-          <span data-i18n="btn.evidence">Generate Evidence Report</span>
-        </button>
-        <div id="confirmSummary" class="confirm-summary" style="display:none"></div>
-      </div>
     </div>
 
-    <!-- Evidence section — shown after evidence report is generated -->
-    <div id="evidenceSectionWrap" style="display:none">
-      <div class="audit-section-label">
-        <span data-i18n="section.evidence">Evidence</span>
-      </div>
-      <div id="evidenceSections" style="display:flex;flex-direction:column;gap:10px"></div>
-    </div>
-
-  </div>
-
-  <!-- ── JOURNEY ── -->
-  <div class="pane" id="pane-journey">
-    <!-- Empty state — before any audit -->
-    <div class="card" id="journeyEmptyCard">
-      <div class="card-body" style="align-items:center;padding:32px 14px;text-align:center">
-        <div style="font-size:30px;margin-bottom:10px">🗺</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px" data-i18n="journey.empty">Run an audit first, then analyze the journey.</div>
-        <div style="font-size:12px;color:var(--text-ter)" data-i18n="journey.hint">Journey audit looks at the whole flow, not individual screens.</div>
-      </div>
-    </div>
-    <!-- Score banner — shown after audit -->
-    <div id="journeyScoreBanner" style="display:none">
-      <div class="card">
-        <div class="card-body" style="gap:8px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div class="field-label" data-i18n="journey.healthScore">Flow Health Score</div>
-              <div id="journeyHealthNum" style="font-size:30px;font-weight:800;line-height:1.1">—</div>
-            </div>
-            <div style="text-align:right">
-              <div class="field-label" data-i18n="journey.cognitiveScore">Cognitive Complexity</div>
-              <div id="journeyCognitiveNum" style="font-size:30px;font-weight:800;line-height:1.1">—</div>
-            </div>
-          </div>
-          <div id="journeySummaryText" style="font-size:12px;line-height:1.55;color:var(--text-sec)"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Analyze Journey CTA — primary, shown after audit -->
-    <div id="journeyBtnRow" style="display:none">
-      <button class="btn btn-primary" id="journeyBtn" style="width:100%;padding:11px 16px;font-size:13px;font-weight:700;border-radius:var(--radius-m)">
-        <span data-i18n="btn.journey">Analyze Journey</span>
-      </button>
-    </div>
-    <!-- Results -->
-    <div id="journeySections" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- ── HISTORY (trend + compare) ── -->
@@ -1565,19 +1580,6 @@
 
 </div><!-- .body -->
 
-<!-- ══ DRD SLIDE-OVER ══ -->
-<div class="drd-overlay" id="drdOverlay">
-  <div class="drd-panel">
-    <div class="drd-panel-header">
-      <span class="drd-panel-title" id="drdPanelTitle" data-i18n="drd.title">Redesign Document</span>
-      <button class="drd-close-btn" id="drdCloseBtn">✕</button>
-    </div>
-    <div class="drd-panel-body" id="drdPanelBody">
-      <div style="text-align:center;padding:24px;color:var(--text-ter)" data-i18n="drd.generating">Generating DRD…</div>
-    </div>
-  </div>
-</div>
-
 <script>
 /* ─────────── CORE LLM ENGINE (runs directly in plugin UI) ─────────── */
 const MAX_OPENAI_VISUALS = 4;
@@ -1622,31 +1624,6 @@ function summarizeFlowGraph(flowGraph) {
   };
 }
 
-function inspectSelectedFlow(payload) {
-  const flowGraph = payload.flowGraph;
-  const graphSummary = summarizeFlowGraph(flowGraph);
-  return {
-    decisionCard: payload.decisionCard || null,
-    frameNames: graphSummary.frames.map((f) => f.name),
-    graphSummary,
-    visualFrameNames: (payload.visuals || []).map((v) => v.name),
-    diagnostics: { danglingReactionCount: graphSummary.danglingReactions.length, interactiveNodeCount: graphSummary.interactiveNodes.length, transitionCount: graphSummary.frameTransitions.length },
-  };
-}
-
-function summarizeDesignVariables(designVariables) {
-  if (!Array.isArray(designVariables) || !designVariables.length) return null;
-  return designVariables.map((col) => ({
-    collection: col.collection,
-    tokens: (col.tokens || []).slice(0, 60).map((t) => {
-      let v = t.value;
-      if (t.resolvedType === 'COLOR' && v && typeof v === 'object') {
-        v = 'rgba(' + Math.round(v.r * 255) + ',' + Math.round(v.g * 255) + ',' + Math.round(v.b * 255) + ',' + (v.a !== undefined ? Math.round(v.a * 100) / 100 : 1) + ')';
-      }
-      return { name: t.name, type: t.resolvedType, value: v, scopes: t.scopes };
-    }),
-  }));
-}
 
 function selectVisualsForAudit(visuals, provider) {
   const max = provider === 'openai' ? MAX_OPENAI_VISUALS : MAX_ANTHROPIC_VISUALS;
@@ -1803,339 +1780,105 @@ async function extractDecisionCard({ provider, model, apiKey, notes, language })
   return result;
 }
 
-async function generateEvidenceReport({ provider, model, apiKey, audits, decisionCard }) {
-  const cappedAudits = (audits || []).slice(0, 20);
-  const systemPrompt = 'You are a senior UX researcher. You design holistic research plans — not one study per issue. Output only valid JSON matching the requested schema. No markdown or commentary.';
-
-  const userPrompt = [
-    'UX AUDIT FINDINGS (read all together before planning):',
-    JSON.stringify(cappedAudits.map((a, i) => ({ index: i, frameName: a.targetFrameName, what: a.what, severity: a.severity, impactedMetric: a.impactedMetric })), null, 2),
-    '',
-    'DECISION CARD:',
-    JSON.stringify(decisionCard, null, 2),
-    '',
-    'INSTRUCTIONS — follow all 5 steps:',
-    '',
-    'Step 1 — Read ALL issues together. Identify what types of problems they are (cognition / behavior / information architecture / decision overload / trust / etc.), which issues share a root cause, and the minimum number of research modules needed.',
-    '',
-    'Step 2 — Design 1–2 research modules (NOT one per issue):',
-    '  moduleA (Qualitative — answers "Why"): method (user interviews / think-aloud / contextual inquiry), issuesCovered (list), whyThisMethod (plain language), sampleSize (n=?), segments, tasks (interview guide outline), setting.',
-    '  moduleB (Quantitative — answers "How many / Where"): method (funnel analysis / clickstream / heatmap / session recording / A/B test), issuesCovered, whyThisMethod, timeRange, sampleSize, coreMetrics, analysisDimensions.',
-    '',
-    'Step 3 — Simulated findings for each module (realistic, not fabricated):',
-    '  Each finding must include a concrete number or percentage (e.g. "8 of 12 users hesitated at step 3", "drop-off rate: 34%"), a severity (Critical / Major / Minor), the hypothesis it supports or refutes, and a visualization suggestion.',
-    '',
-    'Step 4 — For each original audit issue, output:',
-    '  issueDefinitions: "In [user + context], because of [design problem], users [behavior], which ultimately impacts [business metric]."',
-    '  userInsights: evidence-based insight pointing to a cognitive or decision-making mechanism. NOT a restatement of the UI problem. Include designImplication.',
-    '',
-    'Step 5 — 2–4 research hypotheses covering the full issue set. Each must point to a user cognition, decision-making, or behavior mechanism, and be testable.',
-    '',
-    'Return ONLY valid JSON in this exact shape:',
-    JSON.stringify({
-      researchPlan: {
-        problemTypes: 'string',
-        rootCauseGroups: [{ groupName: 'string', issues: ['string'], sharedRootCause: 'string' }],
-        modulesJustification: 'string',
-      },
-      hypotheses: [{ id: 'H1', statement: 'string', mechanism: 'string', testable: 'string' }],
-      moduleA: {
-        method: 'string',
-        whyThisMethod: 'string',
-        issuesCovered: ['string'],
-        sampleSize: 'string',
-        segments: 'string',
-        tasks: 'string',
-        setting: 'string',
-        findings: [{ finding: 'string', severity: 'Critical | Major | Minor', hypothesisRef: 'H1', supported: true, visualization: 'string' }],
-      },
-      moduleB: {
-        method: 'string',
-        whyThisMethod: 'string',
-        issuesCovered: ['string'],
-        timeRange: 'string',
-        sampleSize: 'string',
-        coreMetrics: ['string'],
-        analysisDimensions: ['string'],
-        findings: [{ finding: 'string', severity: 'Critical | Major | Minor', hypothesisRef: 'H1', supported: true, visualization: 'string' }],
-      },
-      issueDefinitions: [{ auditIndex: 0, frameName: 'string', severity: 'string', definition: 'In [user + context], because of [design problem], users [behavior], which ultimately impacts [business metric].' }],
-      userInsights: [{ auditIndex: 0, frameName: 'string', severity: 'string', insight: 'string', cognitiveOrBehavioralMechanism: 'string', designImplication: 'string' }],
-    }),
-  ].join('\n');
-
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 6000 });
-  return extractJson(raw);
-}
-
-async function generateDRD({ provider, model, apiKey, audit, decisionCard, confirmedContext }) {
-  const systemPrompt = 'You are a senior Product Manager, Interaction Design expert, and UX Strategy consultant. Output only valid JSON matching the requested schema. No markdown or commentary.';
-
-  const researchContextLines = [];
-  if (confirmedContext && (confirmedContext.definition || confirmedContext.insight)) {
-    researchContextLines.push('', 'CONFIRMED RESEARCH CONTEXT (designer has reviewed and accepted these findings):');
-    if (confirmedContext.definition) researchContextLines.push('Issue Definition: ' + confirmedContext.definition);
-    if (confirmedContext.insight) researchContextLines.push('User Insight: ' + confirmedContext.insight);
-    if (confirmedContext.cognitiveOrBehavioralMechanism) researchContextLines.push('Cognitive / Behavioral Mechanism: ' + confirmedContext.cognitiveOrBehavioralMechanism);
-    if (confirmedContext.designImplication) researchContextLines.push('Design Implication: ' + confirmedContext.designImplication);
-    researchContextLines.push('Use this confirmed context to ground the redesign solutions in verified user behavior, not assumptions.');
-  } else {
-    researchContextLines.push('', 'Note: the designer has not confirmed research findings for this issue yet. Treat the following issue data as preliminary and apply reasonable assumptions about user behavior.');
-  }
-
-  const userPrompt = [
-    'ISSUE:',
-    'Frame: ' + (audit.targetFrameName || ''),
-    'Critique type: ' + (audit.critiqueType || ''),
-    'Severity: ' + (audit.severity || ''),
-    'Problem: ' + (audit.what || audit.suggestion || ''),
-    'Where: ' + (audit.where || ''),
-    'Impacted metric: ' + (audit.impactedMetric || 'unknown'),
-    'Why it matters: ' + (audit.why || audit.causalMechanism || ''),
-    ...researchContextLines,
-    '',
-    'BUSINESS CONTEXT:',
-    JSON.stringify(decisionCard, null, 2),
-    '',
-    'MANDATORY DIFFERENTIATION CONSTRAINT:',
-    'Before generating the 3 solutions, declare upfront in dimensionDeclaration which design dimension each solution primarily targets:',
-    '  Solution 1 must primarily address one of: information architecture / content hierarchy / interaction path',
-    '  Solution 2 must primarily address one of: visual weight / affordance / feedback mechanisms',
-    '  Solution 3 must primarily address one of: defaults / progressive disclosure / error prevention / copy and guidance',
-    'These three dimensions must be different from each other. Solutions that address the same underlying dimension are not acceptable even if they look different.',
-    '',
-    'For each solution, the beforeAfter section must explicitly answer four questions:',
-    '  before: What does the user see and what do they do in the current design?',
-    '  after: What is the FIRST thing the user notices that is different — not the last, the first?',
-    '  interactionPathChange: Which specific interaction path is shortened, removed, or restructured?',
-    '  meaningfulChangeEvidence: Why would someone looking at before and after side by side immediately understand this is a meaningful change and not a cosmetic one?',
-    '',
-    'COMPARISON TABLE CONSTRAINT:',
-    'The three solutions must differ in scope (one minimal/surgical, one medium, one structural), risk level, and implementation timeline. These differences must be immediately obvious from the table.',
-    '',
-    'Generate exactly 3 redesign solutions, then produce a DRD for the recommended one.',
-    'Return JSON with this exact structure:',
-    JSON.stringify({
-      dimensionDeclaration: { solution1: 'string — chosen dimension', solution2: 'string — chosen dimension', solution3: 'string — chosen dimension' },
-      solutions: [{
-        name: 'string',
-        dimension: 'string — the design dimension this solution primarily addresses',
-        coreDirection: 'string',
-        coreApproach: 'string',
-        specificChanges: { informationArchitecture: 'string', interactionPath: 'string', visualHierarchy: 'string', keyElements: 'string' },
-        beforeAfter: {
-          before: 'string — what does the user see and what do they do?',
-          after: 'string — what is the FIRST thing the user notices that is different?',
-          interactionPathChange: 'string — which specific interaction path is shortened, removed, or restructured?',
-          meaningfulChangeEvidence: 'string — why is this a meaningful change and not cosmetic?',
-        },
-        whyBetter: 'string',
-        impactOnMetric: 'string',
-      }],
-      comparisonTable: [{ solution: 'string', dimension: 'string', suitableFor: 'string', scopeOfChange: 'Minimal/Surgical | Medium | Structural', risk: 'string', businessBenefit: 'string', timelineFit: 'string' }],
-      recommendedIndex: 0,
-      drd: {
-        background: { currentProblem: 'string', rootCause: 'string', businessImpact: 'string' },
-        goals: { experienceProblems: ['string'], businessMetrics: ['string'] },
-        strategy: { coreApproach: 'string', rationale: 'string' },
-        detailedRedesign: [{ module: 'string', whatChanges: 'string', why: 'string', userPerception: 'string', businessEffect: 'string' }],
-        risksAndValidation: { sideEffects: ['string'], metricsToMonitor: ['string'], validationMethod: 'string' },
-      },
-    }),
-  ].join('\n');
-
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 6000 });
-  return extractJson(raw);
-}
-
-async function runJourneyAudit({ provider, model, apiKey, flowMetrics, frameMetrics, decisionCard, existingAudits }) {
-  // Token budget: if many frames, only send frames with a risk signal
-  const totalFrames = (flowMetrics && flowMetrics.totalFrames) || 0;
-  const filteredFrameMetrics = totalFrames > 20
-    ? (frameMetrics || []).filter((f) => f.isDeadEnd || f.danglingReactions > 0 || f.decisionPointCount > 2 || f.inboundCount === 0)
-    : (frameMetrics || []);
-
-  const happyPath = (flowMetrics && flowMetrics.happyPath) || [];
-
-  const systemPrompt = 'You are a senior UX researcher and interaction design expert specializing in user flow analysis. Analyze the journey as a whole and output only valid JSON. No markdown or commentary.';
-
-  const userPrompt = [
-    'FLOW METRICS (computed from Figma graph data):',
-    JSON.stringify(flowMetrics, null, 2),
-    '',
-    'PER-FRAME METRICS:',
-    JSON.stringify(filteredFrameMetrics, null, 2),
-    '',
-    'DECISION CARD (business context):',
-    JSON.stringify(decisionCard, null, 2),
-    '',
-    'EXISTING PER-FRAME AUDIT FINDINGS (for context — do not repeat these):',
-    JSON.stringify((existingAudits || []).slice(0, 10), null, 2),
-    '',
-    'Analyze the journey as a whole. Do not repeat findings already covered in the per-frame audit.',
-    '',
-    '1. HAPPY PATH ASSESSMENT',
-    'The computed happy path is: ' + JSON.stringify(happyPath),
-    'Assess: does this path make sense for the user goal? Are frames out of order? What is the minimum steps needed? Where is unnecessary friction?',
-    '',
-    '2. DROP-OFF POINT ANALYSIS',
-    'For each frame that is a genuine drop-off risk, output one item. Do not flag intentional success/confirmation screens.',
-    '',
-    '3. FLOW STRUCTURE OBSERVATIONS (3–5 observations not in the per-frame audit)',
-    'Look for: loops that trap users, missing error recovery, asymmetric flows, orphaned frames, premature exits.',
-    '',
-    '4. JOURNEY SCORE ADJUSTMENT',
-    '',
-    'Return JSON with this exact structure:',
-    JSON.stringify({
-      happyPathAssessment: {
-        pathMakesSense: true,
-        misplacedFrames: ['string'],
-        minimumSteps: 0,
-        unnecessaryFriction: 'string',
-        summary: 'string',
-      },
-      dropOffPoints: [{
-        frameName: 'string',
-        severity: 'critical | warning',
-        dropOffType: 'dead_end | decision_overload | isolation | navigation_trap',
-        journeyPosition: 'early | mid | late',
-        whyUsersLeave: 'string',
-        impactOnGoal: 'string',
-        suggestion: 'string',
-      }],
-      flowStructureObservations: [{
-        observation: 'string',
-        affectedFrames: ['string'],
-        severity: 'critical | warning | suggestion',
-        journeyImpact: 'string',
-      }],
-      journeyScoreAdjustment: {
-        additionalDeductions: [{ reason: 'string', points: 8, severity: 'critical | warning' }],
-        journeySummary: 'string',
-      },
-    }),
-  ].join('\n');
-
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 6000 });
-  return extractJson(raw);
-}
-
 function resolveFrameIds(audits, flowGraph) {
   const frameMap = new Map(((flowGraph && flowGraph.frames) || []).map((f) => [f.name, f.id]));
   return audits.map((a) => ({ ...a, affectedFrameId: frameMap.get(a.targetFrameName) || null }));
 }
 
-async function runContextualAudit({ provider, model, apiKey, payload, language }) {
-  const flowInspection = inspectSelectedFlow(payload);
-  const summarizedGraph = flowInspection.graphSummary;
+// The four content-design dimensions the audit reasons about. Keys match the
+// dimension IDs used in the UI toggles and the `dimension` field on findings.
+const CONTENT_DIMENSIONS = {
+  'clarity':       'Clarity & comprehensibility — jargon, undefined internal/system terms, ambiguous reference, overlong sentences, passive voice, copy that assumes system knowledge the user does not have.',
+  'consistency':   'Consistency & terminology — the same concept worded differently across screens (e.g. "Sign in" vs "Log in"), inconsistent capitalization or punctuation, an incoherent button-verb system. This REQUIRES comparing copy across the whole flow.',
+  'voice-tone':    'Voice & tone — fit with the brand personality and user segment, error messages that blame the user, over-marketing language, tone that is wrong for the moment (e.g. jokey on a payment failure).',
+  'actionability': 'Actionability, errors & empty states — error messages that do not tell the user what to do next, button labels that do not describe the resulting action, empty states with no path forward, vague CTAs ("OK", "Submit") where a specific verb would be clearer.',
+};
+
+// Build the flow's screen order + copy inventory as compact context for the LLM.
+function summarizeContentContext(payload) {
+  const graph = summarizeFlowGraph(payload.flowGraph);
+  const screenOrder = graph.frames.map((f) => f.name);
+  const transitions = graph.frameTransitions
+    .filter((e) => e.destinationFrameName)
+    .map((e) => e.sourceFrameName + ' → ' + e.destinationFrameName);
+  const texts = (payload.texts || []).map((tx) => ({
+    nodeId: tx.nodeId,
+    frame: tx.frameName,
+    role: tx.roleHint,
+    text: tx.characters,
+  }));
+  return { screenOrder, transitions, texts };
+}
+
+async function runContextualAudit({ provider, model, apiKey, payload, dimensions, guidelines }) {
   const selectedVisuals = selectVisualsForAudit(payload.visuals, provider);
   const omittedVisualNames = (payload.visuals || []).slice(selectedVisuals.length).map((v) => v.name);
-  const variableSummary = summarizeDesignVariables(payload.designVariables);
+  const ctx = summarizeContentContext(payload);
+
+  // If the designer picked specific dimensions, focus on those; otherwise the
+  // model recommends which dimensions matter most for this flow.
+  const activeDims = (dimensions && dimensions.length) ? dimensions : Object.keys(CONTENT_DIMENSIONS);
+  const autoRecommend = !(dimensions && dimensions.length);
+
+  const dimLines = activeDims.map((d) => '  - ' + d + ': ' + (CONTENT_DIMENSIONS[d] || '')).join('\n');
 
   const systemPrompt = [
-    'You are a senior UX Director and product strategist. Your response has two mandatory sequential parts in a single JSON object.',
+    'You are a senior Content Designer / UX writer. You audit the COPY (the words) in a product flow — not layout, colour, or visual design.',
+    'You are given the whole user flow at once: the screen order, every text string with its screen and role, and screenshots for visual context.',
+    'Judge each piece of copy in the context of where it sits in the journey and what the user is trying to do there.',
     '',
-    'PART 1 — Business Analysis: Analyse the DecisionCard to surface what this flow is really trying to accomplish.',
-    'Required fields:',
-    '  coreAction: The single highest-value action a user must complete in this flow (string).',
-    '  whyItMatters: Why completing that action directly moves the primary business metric — one sentence (string).',
-    '  businessMetrics: Array of 3-5 objects, each with "metric" (string), "direction" ("↑" or "↓"), "segment" (string — user group most affected).',
-    '  businessLogic: Plain-language causal chain: UI condition → user behavior → business outcome (string).',
-    '  summary: 2-sentence synthesis connecting the coreAction to the top business metric (string).',
+    'Evaluate ONLY these content dimensions:',
+    dimLines,
+    autoRecommend
+      ? 'The designer did not pick dimensions, so also decide which of these dimensions matter most for THIS flow and concentrate there.'
+      : 'The designer restricted the audit to the dimensions listed above. Do not raise issues outside them.',
     '',
-    'PART 2 — UX Issues: Cross-reference the attached visuals with the flow graph. Identify exactly 3–5 UX issues that most directly threaten the business metrics from Part 1.',
-    'Sort items by business impact: critical first, then warning, then suggestion.',
-    'Required fields for each item:',
-    '  targetFrameName: exact frame name from the flow (string).',
-    '  what: one-sentence plain-English label of the issue (string).',
-    '  where: exact UI location — component name, screen zone, or element type (string).',
-    '  critiqueType: "Broken Link" | "Missing State" | "Guardrail Conflict" | "Constraint Risk" | "Flow Ambiguity".',
-    '  severity: "critical" | "warning" | "suggestion".',
-    '  impactedMetric: metric with ↑/↓ direction, referencing DecisionCard metrics where possible (string).',
-    '  why: why this issue blocks or degrades the coreAction — 1 sentence (string).',
-    '  causalMechanism: [UI condition] → [user response] → [metric consequence]. 1-2 sentences (string).',
-    '  guardrailRef: exact guardrail from DecisionCard if violated, else null.',
-    '  suggestion: one concrete actionable fix (string).',
-    '  provocativeQuestion: a sharp question a stakeholder should ask about this issue (string).',
+    'Rules:',
+    '- Every finding must reference an exact nodeId from the provided text inventory. Never invent a nodeId.',
+    '- currentText must be the exact existing string of that node.',
+    '- For consistency findings, compare copy ACROSS screens; cite the inconsistent variants in the issue.',
+    '- If brand guidelines are provided, treat them as the source of truth for tone and terminology. If not, infer an implicit voice from the existing copy and the DecisionCard, and flag deviations from that implicit voice.',
+    '- Return 3–8 findings, most severe first. Do not pad; only raise real content problems.',
     '',
-    'If the DecisionCard includes touchpoints, evaluate interaction patterns specific to those devices (e.g. TV remote: focus management, D-pad navigation; Mobile: thumb zones, 44px tap targets).',
-    'Do not suggest removing friction if that friction serves a business constraint.',
-    'severity rules: critical=user cannot complete goal or guardrail violated; warning=significant friction or ambiguity; suggestion=improvement opportunity.',
+    'severity rules: critical = the copy will cause the user to make a wrong decision, fail the task, or lose trust; warning = meaningful confusion or inconsistency; suggestion = a clear improvement.',
     '',
     'Return ONLY valid JSON:',
-    '{"businessAnalysis":{"coreAction":"string","whyItMatters":"string","businessMetrics":[{"metric":"string","direction":"↑ or ↓","segment":"string"}],"businessLogic":"string","summary":"string"},"auditItems":[{"targetFrameName":"string","what":"string","where":"string","critiqueType":"string","severity":"string","impactedMetric":"string","why":"string","causalMechanism":"string","guardrailRef":"string or null","suggestion":"string","provocativeQuestion":"string"}]}',
+    '{"recommendedDimensions":["string"],"findings":[{"nodeId":"string","targetFrameName":"string","currentText":"string","dimension":"clarity | consistency | voice-tone | actionability","severity":"critical | warning | suggestion","issue":"one-sentence description of the content problem (string)","why":"why it hurts the user or the goal — 1 sentence (string)","suggestion":"a concrete rewrite or fix direction (string)"}]}',
   ].join('\n');
 
   const userPrompt = [
-    'Evaluate the following tri-modal payload.',
+    'SCREEN ORDER (journey sequence):\n' + JSON.stringify(ctx.screenOrder, null, 2),
     '',
-    'DecisionCard:\n' + JSON.stringify(payload.decisionCard, null, 2),
+    'SCREEN TRANSITIONS:\n' + (ctx.transitions.join('\n') || 'None detected'),
     '',
-    'FlowGraphSummary:\n' + JSON.stringify(summarizedGraph, null, 2),
+    'TEXT INVENTORY (every copy string in the flow — audit these; use the exact nodeId):\n' + JSON.stringify(ctx.texts, null, 2),
     '',
-    'Attached Visual Frames:\n' + (selectedVisuals.map((v) => v.name).join(', ') || 'None'),
+    'BUSINESS CONTEXT (DecisionCard — for tone/segment judgement):\n' + JSON.stringify(payload.decisionCard || {}, null, 2),
     '',
-    'Frames Without Attached Visuals Due To Token Budget:\n' + (omittedVisualNames.join(', ') || 'None'),
+    (guidelines && guidelines.trim())
+      ? 'BRAND VOICE / TERMINOLOGY GUIDELINES (source of truth):\n' + guidelines.trim()
+      : 'No brand guidelines provided — infer the implicit voice from the existing copy and DecisionCard.',
     '',
-    variableSummary
-      ? 'Design Tokens (Figma Variables):\n' + JSON.stringify(variableSummary, null, 2) + '\nWhen a guardrail or constraint relates to color, spacing, or typography, reference the exact token name (e.g. $brand-danger) in guardrailRef where applicable.'
-      : 'Design Tokens: none available for this file.',
-    '',
-    'Every critique must target one of the provided frame names exactly.',
-    'If a frame is not visually attached, rely on the graph summary and business context instead of inventing UI details.',
+    'Attached screenshots (visual context):\n' + (selectedVisuals.map((v) => v.name).join(', ') || 'None'),
   ].join('\n');
 
   const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: selectedVisuals });
   const parsed = extractJson(raw);
-  const rawAudits = Array.isArray(parsed.auditItems) ? parsed.auditItems
-    : Array.isArray(parsed.audits) ? parsed.audits : [];
-  if (!rawAudits.length) throw new Error('The model returned no audits.');
+  const rawFindings = Array.isArray(parsed.findings) ? parsed.findings
+    : Array.isArray(parsed.auditItems) ? parsed.auditItems : [];
+  if (!rawFindings.length) throw new Error('The model returned no content findings.');
 
-  const audits = resolveFrameIds(rawAudits, payload.flowGraph);
-  const businessAnalysis = parsed.businessAnalysis || null;
+  // Enrich each finding with the text node's role hint (from the inventory) so
+  // the rewrite step knows whether it is rewriting a heading, button, etc.
+  const roleByNode = new Map((payload.texts || []).map((tx) => [tx.nodeId, tx.roleHint]));
+  const audits = resolveFrameIds(rawFindings, payload.flowGraph)
+    .map((a) => ({ ...a, roleHint: roleByNode.get(a.nodeId) || '' }));
 
   return {
     audits,
-    businessAnalysis,
+    recommendedDimensions: Array.isArray(parsed.recommendedDimensions) ? parsed.recommendedDimensions : [],
     score: calculateAuditScore(audits),
-    meta: { attachedVisualFrames: selectedVisuals.map((v) => v.name), omittedVisualFrames: omittedVisualNames, graphSummary: summarizedGraph, flowInspection },
   };
-}
-
-/* ─────────── FLOW HEALTH SCORE ─────────── */
-function computeFlowHealthScore(flowMetrics) {
-  if (!flowMetrics) return 100;
-  let score = 100;
-  const { deadEnds, totalDanglingReactions, entryPoints, cognitiveComplexityScore } = flowMetrics;
-  const deadEndCount = (deadEnds || []).length;
-  const danglingCount = totalDanglingReactions || 0;
-
-  // Dead end deductions (capped at 20)
-  if (deadEndCount > 0) {
-    const deduction = Math.min(10 + 5 * Math.max(0, deadEndCount - 1), 20);
-    score -= deduction;
-  }
-  // Dangling reaction deductions (capped at 10)
-  if (danglingCount > 0) {
-    const deduction = Math.min(5 + 2 * Math.max(0, danglingCount - 1), 10);
-    score -= deduction;
-  }
-  // Multiple entry points
-  if ((entryPoints || []).length > 1) score -= 5;
-  // Cognitive complexity
-  if ((cognitiveComplexityScore || 100) < 40) score -= 5;
-  else if ((cognitiveComplexityScore || 100) < 60) score -= 3;
-
-  return Math.max(0, score);
-}
-
-function applyJourneyAIPenalties(preScore, adjustments) {
-  let score = preScore;
-  for (const adj of adjustments || []) {
-    score -= (adj.points || 0);
-  }
-  return Math.max(0, score);
 }
 
 /* ─────────── STATE ─────────── */
@@ -2261,6 +2004,27 @@ const UI_STRINGS = {
     'nodes.current':'Current','nodes.proposed':'Proposed',
     'nodes.rationale':'Why','nodes.apply':'Apply','nodes.dismiss':'Dismiss',
     'nodes.applied':'✓ Applied',
+    // Content-audit additions (declared last so they override any stale keys above)
+    'tab.audit':'Audit','section.findings':'Findings',
+    'step.inspect':'Extract copy','step.analyse':'Analyse',
+    'status.idle':'Select the frames of a flow in Figma, then audit the copy.',
+    'status.inspect':'Extracting copy + screenshots from Figma…',
+    'status.analyse':'AI is auditing the copy…',
+    'status.translate':'Translating results…',
+    'status.done':'Content audit complete.',
+    'btn.audit':'Audit Copy',
+    'results.empty':'Run an audit to see copy issues.',
+    'audit.hint':'Select the frames of a flow in Figma, then click Audit Copy.',
+    'audit.why':'Why it matters','audit.suggestion':'Fix direction',
+    'dim.picker':'Content dimensions',
+    'dim.clarity':'Clarity','dim.consistency':'Consistency','dim.voice-tone':'Voice & tone','dim.actionability':'Actionability',
+    'setup.guidelines':'Content Guidelines',
+    'setup.guidelinesHint':'Voice & tone / terminology (optional — the source of truth for tone and consistency)',
+    'ph.guidelines':'Paste voice & tone rules, a terminology list, or writing guidelines…',
+    'rewrite.title':'Rewrite options',
+    'rewrite.instructionPh':'Optional: add a constraint (e.g. "under 20 characters", "more formal", "emphasize it is free")',
+    'rewrite.generate':'Generate options','rewrite.generating':'Generating…','rewrite.regenerate':'Regenerate',
+    'rewrite.apply':'Apply to Figma','rewrite.applied':'✓ Applied','rewrite.none':'No options returned.',
   },
   zh: {
     'tab.setup':'设置','tab.audit':'审计','tab.journey':'旅程','tab.history':'历史',
@@ -2369,6 +2133,27 @@ const UI_STRINGS = {
     'nodes.current':'当前值','nodes.proposed':'建议值',
     'nodes.rationale':'原因','nodes.apply':'应用','nodes.dismiss':'取消',
     'nodes.applied':'✓ 已应用',
+    // 内容审计新增（放最后以覆盖上方过时的键）
+    'tab.audit':'审计','section.findings':'发现',
+    'step.inspect':'提取文案','step.analyse':'分析',
+    'status.idle':'在 Figma 中选择一个流程的画框，然后审计文案。',
+    'status.inspect':'正在从 Figma 提取文案与截图…',
+    'status.analyse':'AI 正在审计文案…',
+    'status.translate':'正在翻译结果…',
+    'status.done':'文案审计完成。',
+    'btn.audit':'审计文案',
+    'results.empty':'运行审计后查看文案问题。',
+    'audit.hint':'在 Figma 中选择一个流程的画框，然后点击"审计文案"。',
+    'audit.why':'为什么重要','audit.suggestion':'修改方向',
+    'dim.picker':'内容维度',
+    'dim.clarity':'清晰度','dim.consistency':'一致性','dim.voice-tone':'语气','dim.actionability':'可操作性',
+    'setup.guidelines':'内容规范',
+    'setup.guidelinesHint':'语气 / 术语规范（可选 —— 作为语气与一致性判断的基准）',
+    'ph.guidelines':'粘贴语气规范、术语表或写作规范…',
+    'rewrite.title':'改写方案',
+    'rewrite.instructionPh':'可选：补充约束（如"控制在 20 字内""更正式""突出免费"）',
+    'rewrite.generate':'生成方案','rewrite.generating':'生成中…','rewrite.regenerate':'重新生成',
+    'rewrite.apply':'应用到 Figma','rewrite.applied':'✓ 已应用','rewrite.none':'未返回方案。',
   },
 };
 
@@ -2416,18 +2201,41 @@ function switchTab(name) {
 }
 
 /* ─────────── STEPPER ─────────── */
-const STEPS = ['si-inspect', 'si-audit', 'si-write'];
-const PCT   = [0, 15, 55, 88, 100];
+const STEPS = ['si-inspect', 'si-audit'];
+const PCT   = [0, 25, 65, 100];
 
 function setStep(n) {
-  $('progressFill').style.width = PCT[n] + '%';
+  $('progressFill').style.width = (PCT[n] != null ? PCT[n] : 100) + '%';
   STEPS.forEach((id, i) => {
     const el = $(id);
+    if (!el) return;
     el.classList.toggle('done',   i + 1 < n);
     el.classList.toggle('active', i + 1 === n);
     el.querySelector('.step-dot').textContent = i + 1 < n ? '✓' : String(i + 1);
   });
 }
+
+/* ─────────── DIMENSIONS ─────────── */
+// Read which content dimensions the designer left enabled. An empty result
+// (all chips off) is the signal for the model to auto-recommend.
+function getSelectedDimensions() {
+  const on = [...document.querySelectorAll('.dim-chip.on')].map((c) => c.dataset.dim);
+  const all = [...document.querySelectorAll('.dim-chip')].map((c) => c.dataset.dim);
+  // All-on means "audit everything"; a strict subset narrows; none means auto.
+  return on.length === all.length ? all : on;
+}
+
+function highlightRecommendedDimensions(dims) {
+  const set = new Set(dims);
+  document.querySelectorAll('.dim-chip').forEach((c) => {
+    c.classList.toggle('recommended', set.has(c.dataset.dim));
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const chip = e.target.closest && e.target.closest('.dim-chip');
+  if (chip) chip.classList.toggle('on');
+});
 
 /* ─────────── STATUS ─────────── */
 function setStatus(msg, kind = 'idle') {
@@ -2591,12 +2399,16 @@ function renderChips(names) {
 }
 
 /* ─────────── AUDIT ─────────── */
+// DecisionCard is used for tone/segment context by generateRewrites, so we
+// stash it (plus the audit options) when the run kicks off, since the payload
+// round-trips through the Figma sandbox before runAudit sees it again.
+let _auditDecisionCard = null;
+let _auditOptions = { dimensions: [], guidelines: '' };
+
 $('auditBtn').addEventListener('click', async () => {
   const card = getDecisionCard();
-  if (!card.decisionQuestion || !card.primaryMetric || !card.guardrails.length || !card.constraints.length) {
-    alert('Complete the Decision Card in Setup first.');
-    return;
-  }
+  _auditDecisionCard = card;
+  _auditOptions = { dimensions: getSelectedDimensions(), guidelines: $('guidelines') ? $('guidelines').value : '' };
   $('auditBtn').disabled = true;
   setStep(1);
   setStatus(t('status.inspect'), 'busy');
@@ -2609,8 +2421,11 @@ async function runAudit(payload) {
   setStatus(t('status.analyse'), 'busy');
 
   const cfg = getLLMConfig();
-  // Always request English from the LLM
-  const result = await runContextualAudit({ ...cfg, language: 'en', payload });
+  const result = await runContextualAudit({
+    ...cfg, payload,
+    dimensions: _auditOptions.dimensions,
+    guidelines: _auditOptions.guidelines,
+  });
 
   // Push to bridge for MCP history (optional, silent)
   if (state.bridgeConnected && state.sessionId) {
@@ -2620,46 +2435,21 @@ async function runAudit(payload) {
   let audits = Array.isArray(result.audits) ? result.audits : [];
   if (!audits.length) throw new Error('No audit results returned.');
 
-  let businessAnalysis = result.businessAnalysis || null;
-
-  // Translate display fields to Chinese right before rendering
+  // Translate the prose fields to Chinese right before rendering.
+  // currentText and dimension are left untouched (currentText is real copy;
+  // dimension is a tag localized separately via t()).
   if (state.lang === 'zh') {
     setStatus(t('status.translate'), 'busy');
     try {
-      const fields = audits.map((a) => ({
-        what:                a.what,
-        where:               a.where,
-        why:                 a.why,
-        critiqueType:        a.critiqueType,
-        impactedMetric:      a.impactedMetric,
-        causalMechanism:     a.causalMechanism,
-        guardrailRef:        a.guardrailRef,
-        suggestion:          a.suggestion,
-        provocativeQuestion: a.provocativeQuestion,
-      }));
+      const fields = audits.map((a) => ({ issue: a.issue, why: a.why, suggestion: a.suggestion }));
       const translated = await translateToZh({ provider: cfg.provider, model: cfg.model, apiKey: cfg.apiKey, source: fields });
       const arr = Array.isArray(translated) ? translated : [];
       audits = audits.map((a, i) => ({
         ...a,
-        what:                (arr[i] && arr[i].what)                || a.what,
-        where:               (arr[i] && arr[i].where)               || a.where,
-        why:                 (arr[i] && arr[i].why)                 || a.why,
-        critiqueType:        (arr[i] && arr[i].critiqueType)        || a.critiqueType,
-        impactedMetric:      (arr[i] && arr[i].impactedMetric)      || a.impactedMetric,
-        causalMechanism:     (arr[i] && arr[i].causalMechanism)     || a.causalMechanism,
-        guardrailRef:        (arr[i] && arr[i].guardrailRef)        || a.guardrailRef,
-        suggestion:          (arr[i] && arr[i].suggestion)          || a.suggestion,
-        provocativeQuestion: (arr[i] && arr[i].provocativeQuestion) || a.provocativeQuestion,
+        issue:      (arr[i] && arr[i].issue)      || a.issue,
+        why:        (arr[i] && arr[i].why)        || a.why,
+        suggestion: (arr[i] && arr[i].suggestion) || a.suggestion,
       }));
-
-      if (businessAnalysis) {
-        try {
-          const baSource = [{ coreAction: businessAnalysis.coreAction, whyItMatters: businessAnalysis.whyItMatters, businessLogic: businessAnalysis.businessLogic, summary: businessAnalysis.summary }];
-          const baArr = await translateToZh({ provider: cfg.provider, model: cfg.model, apiKey: cfg.apiKey, source: baSource });
-          const bt = Array.isArray(baArr) ? baArr[0] : null;
-          if (bt) businessAnalysis = { ...businessAnalysis, coreAction: bt.coreAction || businessAnalysis.coreAction, whyItMatters: bt.whyItMatters || businessAnalysis.whyItMatters, businessLogic: bt.businessLogic || businessAnalysis.businessLogic, summary: bt.summary || businessAnalysis.summary };
-        } catch (_) { /* keep English */ }
-      }
     } catch (_) { /* translation failed — show English */ }
   }
 
@@ -2674,58 +2464,20 @@ async function runAudit(payload) {
   state.snapshots.push(snap);
   persistSnapshots();
 
-  _lastAuditsForEvidence = audits;
-  _lastDecisionCardForEvidence = payload.decisionCard || null;
-
-  // Reset confirmation state, DRD store, and node panel routing for the new audit
-  confirmState.confirmedAuditIndices.clear();
-  confirmState.confirmedInsights.clear();
-  _evidenceAuditIndexMap = audits.map((_, i) => i);
-  _drdStore.clear();
-  _frameNodePanels.clear();
-  // Reset findings empty state and evidence section from previous run
+  // Reset findings empty state from previous run
   const findingsEmpty = $('findingsEmptyCard');
   if (findingsEmpty) findingsEmpty.style.display = 'none';
   const findingsBadge = $('findingsBadge');
   if (findingsBadge) findingsBadge.style.display = 'none';
-  const ew = $('evidenceSectionWrap');
-  if (ew) { ew.style.display = 'none'; $('evidenceSections').innerHTML = ''; }
 
-  showEvidenceButton(true);
-
-  // Populate journey state from payload metrics
-  if (payload.flowMetrics) {
-    journeyState.flowMetrics  = payload.flowMetrics;
-    journeyState.frameMetrics = payload.frameMetrics || [];
-    journeyState.preScore     = computeFlowHealthScore(payload.flowMetrics);
-    journeyState.postScore    = null;
-    journeyState.result       = null;
-    showJourneyButton(true);
-    updateJourneyScoreBanner(journeyState.preScore, null, payload.flowMetrics.cognitiveComplexityScore, null);
-    $('journeySections').innerHTML = '';
+  // Reflect which dimensions the model recommended, if the designer left it on auto
+  if ((!_auditOptions.dimensions || !_auditOptions.dimensions.length) && result.recommendedDimensions.length) {
+    highlightRecommendedDimensions(result.recommendedDimensions);
   }
 
-  renderGroups(audits, businessAnalysis);
+  renderGroups(audits);
   updateResultsBadge(audits.length);
-
   setStep(3);
-  setStatus(t('status.write'), 'busy');
-  // Strip DOM element refs (_checklistEl) and session-only props before structured-clone serialization
-  const serializableAudits = audits.map((a) => ({
-    targetFrameName: a.targetFrameName,
-    critiqueType:    a.critiqueType,
-    severity:        a.severity,
-    impactedMetric:  a.impactedMetric,
-    causalMechanism: a.causalMechanism,
-    guardrailRef:    a.guardrailRef,
-    suggestion:      a.suggestion,
-    provocativeQuestion: a.provocativeQuestion,
-    affectedFrameId: a.affectedFrameId,
-    what:  a.what,
-    where: a.where,
-    why:   a.why,
-  }));
-  parent.postMessage({ pluginMessage: { type: 'write-audit-feedback', audits: serializableAudits, lang: state.lang } }, '*');
 }
 
 function countSev(audits) {
@@ -2741,37 +2493,12 @@ function updateResultsBadge(n) {
   badge.classList.toggle('visible', n > 0);
 }
 
-/* ─────────── BUSINESS ANALYSIS CARD ─────────── */
-function renderBusinessAnalysis(ba) {
-  const el = $('businessAnalysisSection');
-  if (!el) return;
-  if (!ba) { el.innerHTML = ''; return; }
-
-  const metricsHtml = (ba.businessMetrics || []).map((m) =>
-    '<span class="ba-metric-chip">' + esc(m.direction || '') + ' ' + esc(m.metric || '') +
-    (m.segment ? '<span class="ba-metric-seg">' + esc(m.segment) + '</span>' : '') +
-    '</span>'
-  ).join('');
-
-  el.innerHTML =
-    '<div class="ba-card">' +
-      '<div class="ba-header">' +
-        '<span class="ba-label">' + t('ba.label') + '</span>' +
-        '<span class="ba-core-action">' + esc(ba.coreAction || '') + '</span>' +
-      '</div>' +
-      '<div class="ba-body">' +
-        (metricsHtml ? '<div class="ba-metrics">' + metricsHtml + '</div>' : '') +
-        (ba.whyItMatters ? '<div class="ba-row"><span class="ba-row-label">' + t('ba.whyItMatters') + '</span><span class="ba-row-val">' + esc(ba.whyItMatters) + '</span></div>' : '') +
-        (ba.businessLogic ? '<div class="ba-row"><span class="ba-row-label">' + t('ba.businessLogic') + '</span><span class="ba-row-val ba-logic">' + esc(ba.businessLogic) + '</span></div>' : '') +
-        (ba.summary ? '<div class="ba-summary">' + esc(ba.summary) + '</div>' : '') +
-      '</div>' +
-    '</div>';
+/* ─────────── RESULT GROUPS ─────────── */
+function dimLabel(dim) {
+  return t('dim.' + (dim || '')) || dim || '';
 }
 
-/* ─────────── RESULT GROUPS ─────────── */
-function renderGroups(audits, businessAnalysis) {
-  renderBusinessAnalysis(businessAnalysis || null);
-
+function renderGroups(audits) {
   const groups = { critical: [], warning: [], suggestion: [] };
   audits.forEach((a, i) => {
     const s = a.severity || 'suggestion';
@@ -2795,7 +2522,6 @@ function renderGroups(audits, businessAnalysis) {
     wrap.appendChild(section);
   });
 
-  // Hide findings empty state and show badge
   const emptyCard = $('findingsEmptyCard');
   if (emptyCard) emptyCard.style.display = 'none';
   const badge = $('findingsBadge');
@@ -2805,166 +2531,136 @@ function renderGroups(audits, businessAnalysis) {
 }
 
 function buildAuditCard(audit, sev, auditIndex) {
-  // Store original index on the audit object for DRD lookup
-  audit._auditIndex = auditIndex;
-
   const card = document.createElement('div');
   card.className = 'audit-card ' + sev;
 
   const hdr = document.createElement('div');
   hdr.className = 'audit-card-header';
   const sevLabelText = sev === 'critical' ? t('sev.critical') : sev === 'warning' ? t('sev.warning') : t('sev.suggestion');
-  const whereHtml = audit.where ? '<span class="audit-where">' + esc(audit.where) + '</span>' : '';
-  // Wrap frame name in a clickable span when affectedFrameId is available
-  const frameNameInner = audit.affectedFrameId
+  // The frame name is clickable → jump the Figma canvas straight to the text node
+  const focusTargetId = audit.nodeId || audit.affectedFrameId;
+  const frameNameInner = focusTargetId
     ? '<span class="frame-focus-link">' + esc(audit.targetFrameName || '') + '</span>'
     : esc(audit.targetFrameName || '');
   hdr.innerHTML =
     '<div class="sev-label">' + sevLabelText + '</div>' +
     '<div class="audit-card-text">' +
-      '<div class="audit-frame-name">' + frameNameInner + (whereHtml ? ' · ' + whereHtml : '') + '</div>' +
-      (audit.what ? '<div class="audit-what">' + esc(audit.what) + '</div>' : '') +
-      '<div class="audit-question">' + esc(audit.provocativeQuestion || '') + '</div>' +
+      '<div class="audit-frame-name">' + frameNameInner + ' · <span class="dim-tag">' + esc(dimLabel(audit.dimension)) + '</span></div>' +
+      (audit.currentText ? '<div class="audit-current-text">“' + esc(audit.currentText) + '”</div>' : '') +
+      '<div class="audit-question">' + esc(audit.issue || '') + '</div>' +
     '</div>' +
     '<div class="audit-chevron">▶</div>';
   hdr.addEventListener('click', () => card.classList.toggle('open'));
-  // Attach FOCUS_FRAME + INSPECT_NODES listeners; stopPropagation prevents card toggle
   const focusLink = hdr.querySelector('.frame-focus-link');
-  if (focusLink) {
+  if (focusLink && focusTargetId) {
     focusLink.addEventListener('click', (e) => {
       e.stopPropagation();
-      // FOCUS_FRAME: { frameId } — pan Figma viewport to the frame and select it
-      parent.postMessage({ pluginMessage: { type: 'FOCUS_FRAME', frameId: audit.affectedFrameId } }, '*');
-      // INSPECT_NODES: { frameId } — request node tree; response arrives as NODES_RESULT
-      parent.postMessage({ pluginMessage: { type: 'INSPECT_NODES', frameId: audit.affectedFrameId } }, '*');
-      if (audit._nodesEl) {
-        audit._nodesEl.style.display = 'block';
-        audit._nodesEl.innerHTML = '<div class="nodes-loading">' + t('nodes.loading') + '</div>';
-      }
+      // FOCUS_FRAME: { frameId } — resolves any node id; zoom + select the text node
+      parent.postMessage({ pluginMessage: { type: 'FOCUS_FRAME', frameId: focusTargetId } }, '*');
     });
   }
-
-  // Confirm / dismiss buttons — inserted before chevron
-  const confirmRow = document.createElement('div');
-  confirmRow.className = 'confirm-row';
-  confirmRow.addEventListener('click', (e) => e.stopPropagation());
-
-  const yesBtn = document.createElement('button');
-  yesBtn.className = 'confirm-btn cb-yes' + (confirmState.confirmedAuditIndices.has(auditIndex) ? ' confirmed' : '');
-  yesBtn.title = t('confirm.confirm');
-  yesBtn.textContent = '✓';
-
-  const noBtn = document.createElement('button');
-  noBtn.className = 'confirm-btn cb-no';
-  noBtn.title = t('confirm.dismiss');
-  noBtn.textContent = '✕';
-
-  yesBtn.addEventListener('click', () => {
-    if (confirmState.confirmedAuditIndices.has(auditIndex)) {
-      confirmState.confirmedAuditIndices.delete(auditIndex);
-      yesBtn.classList.remove('confirmed');
-    } else {
-      confirmState.confirmedAuditIndices.add(auditIndex);
-      yesBtn.classList.add('confirmed');
-      noBtn.classList.remove('dismissed');
-    }
-    updateConfirmSummary();
-  });
-
-  noBtn.addEventListener('click', () => {
-    if (noBtn.classList.contains('dismissed')) {
-      noBtn.classList.remove('dismissed');
-    } else {
-      noBtn.classList.add('dismissed');
-      confirmState.confirmedAuditIndices.delete(auditIndex);
-      yesBtn.classList.remove('confirmed');
-    }
-    updateConfirmSummary();
-  });
-
-  confirmRow.appendChild(yesBtn);
-  confirmRow.appendChild(noBtn);
-  // Insert before the chevron
-  const chevron = hdr.querySelector('.audit-chevron');
-  hdr.insertBefore(confirmRow, chevron);
 
   const body = document.createElement('div');
   body.className = 'audit-card-body';
 
-  // type + impact badge on same row
-  if (audit.critiqueType || audit.impactedMetric) {
-    const typeHtml = audit.critiqueType ? '<span class="type-tag">' + esc(audit.critiqueType) + '</span>' : '';
-    const impactHtml = audit.impactedMetric ? '<span class="impact-badge">📉 ' + esc(audit.impactedMetric) + '</span>' : '';
-    body.innerHTML += block(t('audit.type'), '<div class="tag-row">' + typeHtml + impactHtml + '</div>');
-  }
   if (audit.why) {
     body.innerHTML += block(t('audit.why'), '<div class="callout callout-why">' + esc(audit.why) + '</div>');
   }
   if (audit.suggestion) {
     body.innerHTML += block(t('audit.suggestion'), '<div class="callout callout-suggestion">' + esc(audit.suggestion) + '</div>');
   }
-  if (audit.guardrailRef) {
-    body.innerHTML += block(t('audit.guardrailViolation'), '<div class="callout callout-guardrail">' + esc(audit.guardrailRef) + '</div>');
-  }
-  if (audit.causalMechanism) {
-    const whyId = 'why-' + Math.random().toString(36).slice(2, 8);
-    const toggleEl = document.createElement('button');
-    toggleEl.className = 'why-toggle';
-    toggleEl.innerHTML = '<span class="why-chevron">▶</span><span data-i18n-dynamic="audit.whyMatters">' + t('audit.whyMatters') + '</span>';
-    const bodyEl = document.createElement('div');
-    bodyEl.className = 'why-body';
-    bodyEl.id = whyId;
-    bodyEl.textContent = audit.causalMechanism;
-    toggleEl.addEventListener('click', () => {
-      toggleEl.classList.toggle('open');
-      bodyEl.classList.toggle('open');
-    });
-    const wrapper = document.createElement('div');
-    wrapper.className = 'detail-block';
-    wrapper.appendChild(toggleEl);
-    wrapper.appendChild(bodyEl);
-    body.appendChild(wrapper);
-  }
 
-  // Checklist panel — hidden until DRD is generated for this item
-  const checklistPanel = document.createElement('div');
-  checklistPanel.className = 'drd-checklist-panel';
-  checklistPanel.style.display = 'none';
-  audit._checklistEl = checklistPanel;
-  if (auditIndex != null && _drdStore.has(auditIndex)) {
-    populateChecklist(audit, _drdStore.get(auditIndex));
-  }
+  card.appendChild(hdr);
+  card.appendChild(body);
 
-  // Nodes panel — hidden until the frame name is clicked (3a)
-  const nodesPanel = document.createElement('div');
-  nodesPanel.className = 'frame-nodes-panel';
-  nodesPanel.style.display = 'none';
-  audit._nodesEl  = nodesPanel;
-  audit._nodesData = [];
-  if (audit.affectedFrameId) {
-    _frameNodePanels.set(audit.affectedFrameId, { nodesEl: nodesPanel, audit });
+  // Rewrite panel — only when we have a text node to write back to
+  if (audit.nodeId) {
+    body.appendChild(buildRewritePanel(audit));
   }
-
-  // DRD button for critical/warning items
-  if (sev === 'critical' || sev === 'warning') {
-    const drdBtnRow = document.createElement('div');
-    drdBtnRow.style.cssText = 'padding:8px 12px 12px;display:flex';
-    const drdBtn = document.createElement('button');
-    drdBtn.className = 'btn btn-tonal';
-    drdBtn.style.cssText = 'font-size:11px;padding:6px 14px;border-radius:var(--radius-s)';
-    drdBtn.textContent = t('btn.drd');
-    drdBtn.addEventListener('click', (e) => { e.stopPropagation(); openDRD(audit); });
-    drdBtnRow.appendChild(drdBtn);
-    card.appendChild(hdr);
-    card.appendChild(body);
-    card.appendChild(drdBtnRow);
-    card.appendChild(checklistPanel);
-  } else {
-    card.appendChild(hdr);
-    card.appendChild(body);
-  }
-  card.appendChild(nodesPanel);
   return card;
+}
+
+// The "how to fix" surface: current copy, a designer instruction box, and a
+// button that asks the LLM for several rewrite options (each with pros/cons),
+// any of which can be applied straight to the Figma text node.
+function buildRewritePanel(audit) {
+  const panel = document.createElement('div');
+  panel.className = 'rewrite-panel';
+
+  const label = document.createElement('div');
+  label.className = 'detail-label';
+  label.textContent = t('rewrite.title');
+  panel.appendChild(label);
+
+  const instr = document.createElement('textarea');
+  instr.className = 'rewrite-instruction';
+  instr.rows = 2;
+  instr.placeholder = t('rewrite.instructionPh');
+  panel.appendChild(instr);
+
+  const genBtn = document.createElement('button');
+  genBtn.className = 'btn btn-secondary rewrite-gen-btn';
+  genBtn.textContent = t('rewrite.generate');
+  panel.appendChild(genBtn);
+
+  const optionsWrap = document.createElement('div');
+  optionsWrap.className = 'rewrite-options';
+  panel.appendChild(optionsWrap);
+
+  genBtn.addEventListener('click', async () => {
+    genBtn.disabled = true;
+    genBtn.textContent = t('rewrite.generating');
+    optionsWrap.innerHTML = '';
+    try {
+      const cfg = getLLMConfig();
+      const res = await generateRewrites({ ...cfg, audit, instruction: instr.value.trim() });
+      renderRewriteOptions(optionsWrap, res.options || [], audit);
+    } catch (e) {
+      optionsWrap.innerHTML = '<div class="preview-error">' + esc(e.message) + '</div>';
+    } finally {
+      genBtn.disabled = false;
+      genBtn.textContent = t('rewrite.regenerate');
+    }
+  });
+
+  return panel;
+}
+
+function renderRewriteOptions(container, options, audit) {
+  container.innerHTML = '';
+  if (!options.length) {
+    container.innerHTML = '<div class="nodes-empty">' + t('rewrite.none') + '</div>';
+    return;
+  }
+  options.forEach((opt) => {
+    const el = document.createElement('div');
+    el.className = 'rewrite-option';
+
+    const prosHtml = (opt.pros || []).map((p) => '<li class="ro-pro">' + esc(p) + '</li>').join('');
+    const consHtml = (opt.cons || []).map((c) => '<li class="ro-con">' + esc(c) + '</li>').join('');
+
+    el.innerHTML =
+      '<div class="ro-text">“' + esc(opt.text || '') + '”</div>' +
+      (opt.rationale ? '<div class="ro-rationale">' + esc(opt.rationale) + '</div>' : '') +
+      ((prosHtml || consHtml) ? '<ul class="ro-proscons">' + prosHtml + consHtml + '</ul>' : '');
+
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'btn btn-primary ro-apply';
+    applyBtn.textContent = t('rewrite.apply');
+    const preview = document.createElement('div');
+    preview.className = 'ro-apply-preview';
+
+    applyBtn.addEventListener('click', () => {
+      applyBtn.disabled = true;
+      // APPLY_NODE_CHANGE: text_content → code.ts loads fonts then sets characters
+      _pendingNodeChanges.set(audit.nodeId, { previewDiv: preview, applyBtn, proposedDisplay: opt.text });
+      parent.postMessage({ pluginMessage: { type: 'APPLY_NODE_CHANGE', nodeId: audit.nodeId, changeType: 'text_content', value: { newText: opt.text } } }, '*');
+    });
+
+    el.appendChild(applyBtn);
+    el.appendChild(preview);
+    container.appendChild(el);
+  });
 }
 
 function block(label, content) {
@@ -2975,270 +2671,6 @@ function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/* ─────────── JOURNEY AUDIT ─────────── */
-const journeyState = {
-  flowMetrics: null,
-  frameMetrics: null,
-  preScore: null,
-  postScore: null,
-  result: null,
-};
-
-function journeyHealthClass(score) {
-  if (score == null) return '';
-  return score >= 80 ? 'journey-health-good' : score >= 60 ? 'journey-health-warn' : 'journey-health-bad';
-}
-
-function showJourneyButton(show) {
-  // Show score banner + Analyze Journey button on the dedicated Journey pane
-  const empty = $('journeyEmptyCard');
-  const banner = $('journeyScoreBanner');
-  const btnRow = $('journeyBtnRow');
-  if (empty)  empty.style.display  = show ? 'none' : '';
-  if (banner) banner.style.display = show ? '' : 'none';
-  if (btnRow) btnRow.style.display = show ? '' : 'none';
-}
-
-function updateJourneyScoreBanner(preScore, postScore, cognitiveScore, summary) {
-  const banner = $('journeyScoreBanner');
-  if (!banner) return;
-  banner.style.display = '';
-  const healthEl = $('journeyHealthNum');
-  const cogEl    = $('journeyCognitiveNum');
-  const summEl   = $('journeySummaryText');
-  const displayScore = postScore != null ? postScore : preScore;
-  healthEl.textContent = displayScore != null ? displayScore : '—';
-  healthEl.className = journeyHealthClass(displayScore);
-  cogEl.textContent = cognitiveScore != null ? cognitiveScore : '—';
-  cogEl.className = journeyHealthClass(cognitiveScore);
-  if (summEl && summary) summEl.textContent = summary;
-}
-
-$('journeyBtn').addEventListener('click', async () => {
-  if (!journeyState.flowMetrics) { alert(t('journey.runAuditFirst')); return; }
-  const btn = $('journeyBtn');
-  btn.disabled = true;
-  btn.querySelector('[data-i18n]').textContent = t('status.journeyAnalysing');
-  try {
-    const cfg = getLLMConfig();
-    const result = await runJourneyAudit({
-      ...cfg,
-      flowMetrics:    journeyState.flowMetrics,
-      frameMetrics:   journeyState.frameMetrics,
-      decisionCard:   _lastDecisionCardForEvidence,
-      existingAudits: _lastAuditsForEvidence,
-    });
-    journeyState.result = result;
-
-    // Compute post-LLM score
-    const adjustments = result.journeyScoreAdjustment && result.journeyScoreAdjustment.additionalDeductions;
-    journeyState.postScore = applyJourneyAIPenalties(journeyState.preScore, adjustments);
-
-    const summary = result.journeyScoreAdjustment && result.journeyScoreAdjustment.journeySummary;
-    updateJourneyScoreBanner(
-      journeyState.preScore,
-      journeyState.postScore,
-      journeyState.flowMetrics.cognitiveComplexityScore,
-      summary,
-    );
-    renderJourneySections(result, journeyState.flowMetrics, journeyState.frameMetrics);
-  } catch (e) {
-    alert(e.message);
-  } finally {
-    btn.disabled = false;
-    btn.querySelector('[data-i18n]').textContent = t('btn.journey');
-  }
-});
-
-function renderJourneySections(result, flowMetrics, frameMetrics) {
-  const container = $('journeySections');
-  container.innerHTML = '';
-
-  // Stats card
-  renderJourneyStatsCard(container, flowMetrics);
-
-  // Happy path card
-  if (flowMetrics && (flowMetrics.happyPath || []).length) {
-    renderHappyPathCard(container, flowMetrics.happyPath, result.happyPathAssessment);
-  }
-
-  // Drop-off points
-  if (result.dropOffPoints && result.dropOffPoints.length) {
-    renderDropOffSection(container, result.dropOffPoints);
-  }
-
-  // Flow structure observations
-  if (result.flowStructureObservations && result.flowStructureObservations.length) {
-    renderObservationsSection(container, result.flowStructureObservations);
-  }
-}
-
-function renderJourneyStatsCard(container, flowMetrics) {
-  if (!flowMetrics) return;
-  const card = document.createElement('div');
-  card.className = 'card';
-  const hdr = document.createElement('div');
-  hdr.className = 'card-header';
-  hdr.innerHTML = '<span class="card-title" data-i18n-dynamic="journey.stats">' + t('journey.stats') + '</span>';
-
-  const grid = document.createElement('div');
-  grid.className = 'stats-grid';
-  const stats = [
-    { v: flowMetrics.totalFrames,        l: t('journey.statFrames')      },
-    { v: flowMetrics.totalTransitions,   l: t('journey.statTransitions') },
-    { v: flowMetrics.totalDecisionPoints,l: t('journey.statDecisions')   },
-    { v: (flowMetrics.deadEnds || []).length, l: t('journey.statDeadEnds') },
-    { v: flowMetrics.totalDanglingReactions,  l: t('journey.statDangling') },
-    { v: (flowMetrics.happyPath || []).length, l: t('journey.statHappyLen') },
-  ];
-  stats.forEach(({ v, l }) => {
-    const cell = document.createElement('div');
-    cell.className = 'stat-cell';
-    cell.innerHTML = '<span class="stat-value">' + (v != null ? v : '—') + '</span><span class="stat-label">' + esc(l) + '</span>';
-    grid.appendChild(cell);
-  });
-
-  const entryExitRow = document.createElement('div');
-  entryExitRow.className = 'entry-exit-row';
-  if ((flowMetrics.entryPoints || []).length) {
-    entryExitRow.innerHTML +=
-      '<div class="entry-exit-line"><span class="entry-exit-label">' + t('journey.entryPoints') + '</span>' +
-      flowMetrics.entryPoints.map((n) => '<span class="chip" style="font-size:10px;padding:2px 7px">' + esc(n) + '</span>').join(' ') + '</div>';
-  }
-  if ((flowMetrics.exitPoints || []).length) {
-    entryExitRow.innerHTML +=
-      '<div class="entry-exit-line"><span class="entry-exit-label">' + t('journey.exitPoints') + '</span>' +
-      flowMetrics.exitPoints.map((n) => '<span class="chip" style="font-size:10px;padding:2px 7px;background:rgba(52,199,89,.1);color:var(--green)">' + esc(n) + '</span>').join(' ') + '</div>';
-  }
-
-  card.appendChild(hdr);
-  card.appendChild(grid);
-  card.appendChild(entryExitRow);
-  container.appendChild(card);
-}
-
-function renderHappyPathCard(container, happyPath, assessment) {
-  const card = document.createElement('div');
-  card.className = 'card';
-  const hdr = document.createElement('div');
-  hdr.className = 'card-header';
-  hdr.innerHTML = '<span class="card-title" data-i18n-dynamic="journey.happyPath">' + t('journey.happyPath') + '</span>';
-
-  const chipRow = document.createElement('div');
-  chipRow.className = 'happy-path-row';
-  happyPath.forEach((name, i) => {
-    const chip = document.createElement('span');
-    chip.className = 'happy-path-chip';
-    chip.textContent = name;
-    chipRow.appendChild(chip);
-    if (i < happyPath.length - 1) {
-      const arrow = document.createElement('span');
-      arrow.className = 'happy-path-arrow';
-      arrow.textContent = '→';
-      chipRow.appendChild(arrow);
-    }
-  });
-
-  card.appendChild(hdr);
-  card.appendChild(chipRow);
-
-  if (assessment && assessment.summary) {
-    const whyBtn = document.createElement('button');
-    whyBtn.className = 'why-toggle';
-    whyBtn.style.cssText = 'margin:0 14px 12px';
-    whyBtn.innerHTML = '<span class="why-chevron">▶</span><span>' + t('journey.assessment') + '</span>';
-    const whyBody = document.createElement('div');
-    whyBody.className = 'why-body';
-    whyBody.style.cssText = 'margin:0 14px 12px';
-    whyBody.textContent = assessment.summary;
-    if (assessment.unnecessaryFriction) whyBody.textContent += '\n\n' + t('journey.friction') + ': ' + assessment.unnecessaryFriction;
-    whyBtn.addEventListener('click', () => { whyBtn.classList.toggle('open'); whyBody.classList.toggle('open'); });
-    card.appendChild(whyBtn);
-    card.appendChild(whyBody);
-  }
-
-  container.appendChild(card);
-}
-
-function renderDropOffSection(container, dropOffPoints) {
-  const sectionEl = document.createElement('div');
-  const lbl = document.createElement('div');
-  lbl.className = 'group-label';
-  lbl.innerHTML = '<span>' + t('journey.dropOffPoints') + '</span><span class="group-pill">' + dropOffPoints.length + '</span>';
-  sectionEl.appendChild(lbl);
-
-  dropOffPoints.forEach((dp) => {
-    const sev = dp.severity || 'warning';
-    const card = document.createElement('div');
-    card.className = 'dropoff-card ' + sev;
-    const hdr = document.createElement('div');
-    hdr.className = 'dropoff-card-header';
-    hdr.innerHTML =
-      '<div class="sev-bar"></div>' +
-      '<div class="audit-card-text">' +
-        '<div class="audit-frame-name">' + esc(dp.frameName || '') + '</div>' +
-        '<div class="tag-row" style="margin-top:4px">' +
-          (dp.dropOffType ? '<span class="dropoff-type-badge">' + esc(dp.dropOffType.replace('_', ' ')) + '</span>' : '') +
-          (dp.journeyPosition ? '<span class="journey-pos-badge">' + esc(dp.journeyPosition) + '</span>' : '') +
-        '</div>' +
-      '</div>' +
-      '<div class="audit-chevron">▶</div>';
-    hdr.addEventListener('click', () => card.classList.toggle('open'));
-
-    const body = document.createElement('div');
-    body.className = 'dropoff-card-body';
-    if (dp.whyUsersLeave) body.innerHTML += block(t('journey.whyLeave'), '<div class="detail-text">' + esc(dp.whyUsersLeave) + '</div>');
-    if (dp.impactOnGoal)  body.innerHTML += block(t('journey.impactGoal'), '<div class="callout callout-guardrail">' + esc(dp.impactOnGoal) + '</div>');
-    if (dp.suggestion)    body.innerHTML += block(t('audit.suggestion'), '<div class="callout callout-suggestion">' + esc(dp.suggestion) + '</div>');
-
-    card.appendChild(hdr);
-    card.appendChild(body);
-    sectionEl.appendChild(card);
-  });
-
-  container.appendChild(sectionEl);
-}
-
-function renderObservationsSection(container, observations) {
-  const section = document.createElement('div');
-  section.className = 'evidence-section open';
-  const hdr = document.createElement('div');
-  hdr.className = 'evidence-section-header';
-  hdr.innerHTML = '<span class="evidence-section-title">' + t('journey.observations') + ' (' + observations.length + ')</span><span style="font-size:10px;color:var(--text-ter)">▼</span>';
-  const body = document.createElement('div');
-  body.className = 'evidence-section-body';
-
-  observations.forEach((obs) => {
-    const sev = obs.severity || 'suggestion';
-    const sevColor = sev === 'critical' ? 'var(--red)' : sev === 'warning' ? 'var(--orange)' : 'var(--accent)';
-    const el = document.createElement('div');
-    el.className = 'evidence-item';
-    el.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
-        '<div class="evidence-item-text" style="flex:1">' + esc(obs.observation || '') + '</div>' +
-        '<span style="font-size:9px;font-weight:800;color:' + sevColor + ';flex-shrink:0">' + esc(sev.toUpperCase()) + '</span>' +
-      '</div>' +
-      (obs.journeyImpact ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(obs.journeyImpact) + '</div>' : '') +
-      ((obs.affectedFrames || []).length ? '<div class="tag-row">' + obs.affectedFrames.map((f) => '<span class="type-tag">' + esc(f) + '</span>').join('') + '</div>' : '');
-    body.appendChild(el);
-  });
-
-  hdr.addEventListener('click', () => {
-    section.classList.toggle('open');
-    hdr.querySelector('span:last-child').textContent = section.classList.contains('open') ? '▼' : '▶';
-  });
-  section.appendChild(hdr);
-  section.appendChild(body);
-  container.appendChild(section);
-}
-
-/* ─────────── EVIDENCE REPORT ─────────── */
-let _lastAuditsForEvidence = [];
-let _lastDecisionCardForEvidence = null;
-let _evidenceAuditIndexMap = []; // filteredIndex → originalIndex mapping
-// Map<auditIndex, drdResult> — persists DRD results so checklist survives panel close
-const _drdStore = new Map();
-
 /* ─────────── HISTORY PERSISTENCE ─────────── */
 function persistSnapshots() {
   // Strip non-serializable properties before sending through postMessage
@@ -3247,948 +2679,59 @@ function persistSnapshots() {
     score: s.score,
     severityCounts: s.severityCounts,
     audits: (s.audits || []).map((a) => ({
-      targetFrameName:    a.targetFrameName,
-      critiqueType:       a.critiqueType,
-      severity:           a.severity,
-      impactedMetric:     a.impactedMetric,
-      provocativeQuestion:a.provocativeQuestion,
-      what:               a.what,
-      where:              a.where,
-      why:                a.why,
-      affectedFrameId:    a.affectedFrameId,
+      nodeId:          a.nodeId,
+      targetFrameName: a.targetFrameName,
+      dimension:       a.dimension,
+      severity:        a.severity,
+      currentText:     a.currentText,
+      issue:           a.issue,
+      why:             a.why,
+      suggestion:      a.suggestion,
+      affectedFrameId: a.affectedFrameId,
     })),
   }));
   // SAVE_SNAPSHOT: { snapshots } — code.ts writes to figma.clientStorage
   parent.postMessage({ pluginMessage: { type: 'SAVE_SNAPSHOT', snapshots: clean } }, '*');
 }
-// Map<frameId, { nodesEl, audit }> — routes NODES_RESULT to the correct card
-const _frameNodePanels = new Map();
-// Map<nodeId, { checklistItem, previewDiv, applyBtn, proposedDisplay }> — routes NODE_CHANGE_APPLIED/FAILED
+// Map<nodeId, { previewDiv, applyBtn, proposedDisplay }> — routes NODE_CHANGE_APPLIED/FAILED
 const _pendingNodeChanges = new Map();
 
-function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map((v) => Math.round((v || 0) * 255).toString(16).padStart(2, '0')).join('');
-}
-
-/* ─────────── CONFIRMATION STATE ─────────── */
-const confirmState = {
-  confirmedAuditIndices: new Set(),  // Set<number> — original indices into _lastAuditsForEvidence
-  confirmedInsights: new Map(),       // Map<originalIndex, { definition?, insight? }>
-};
-
-function showEvidenceButton(show) {
-  const row = $('evidenceBtnRow');
-  if (row) row.style.display = show ? 'flex' : 'none';
-  if (show) updateConfirmSummary();
-}
-
-function updateConfirmSummary() {
-  const total     = _lastAuditsForEvidence.length;
-  const confirmed = confirmState.confirmedAuditIndices.size;
-  const summaryEl = $('confirmSummary');
-  const btn       = $('evidenceBtn');
-
-  if (summaryEl) {
-    if (total > 0) {
-      summaryEl.innerHTML = '<strong>' + confirmed + '</strong> / ' + total + ' ' + t('confirm.summary');
-      summaryEl.style.display = '';
-    } else {
-      summaryEl.style.display = 'none';
-    }
-  }
-  if (btn) {
-    btn.disabled = confirmed === 0;
-    // Elevate to primary CTA once the designer has confirmed at least one finding
-    btn.className = 'btn ' + (confirmed > 0 ? 'btn-primary' : 'btn-secondary');
-  }
-}
-
-$('evidenceBtn').addEventListener('click', async () => {
-  if (!_lastAuditsForEvidence.length) { alert('Run an audit first.'); return; }
-  const btn = $('evidenceBtn');
-
-  // Build filtered audit list from confirmed items
-  const confirmedIndices = Array.from(confirmState.confirmedAuditIndices).sort((a, b) => a - b);
-  const auditsToSend = confirmedIndices.length > 0
-    ? confirmedIndices.map((i) => _lastAuditsForEvidence[i])
-    : _lastAuditsForEvidence;
-  // Store the mapping: filtered position → original index
-  _evidenceAuditIndexMap = confirmedIndices.length > 0
-    ? confirmedIndices
-    : _lastAuditsForEvidence.map((_, i) => i);
-
-  btn.disabled = true;
-  btn.querySelector('[data-i18n]').textContent = t('status.evidenceGenerating') + ' (' + auditsToSend.length + ')';
-  try {
-    const cfg = getLLMConfig();
-    const report = await generateEvidenceReport({ ...cfg, audits: auditsToSend, decisionCard: _lastDecisionCardForEvidence });
-    renderEvidenceReport(report, auditsToSend);
-    // Show evidence section inline (no tab switch needed)
-    const ew = $('evidenceSectionWrap');
-    if (ew) { ew.style.display = ''; ew.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  } catch (e) {
-    alert(e.message);
-  } finally {
-    btn.disabled = confirmState.confirmedAuditIndices.size === 0;
-    btn.querySelector('[data-i18n]').textContent = t('btn.evidence');
-  }
-});
-
-function renderEvidenceReport(report, audits) {
-  const container = $('evidenceSections');
-  container.innerHTML = '';
-
-  const sections = [
-    { key: 'researchPlan',     titleKey: 'evidence.researchPlan',     render: renderResearchPlan },
-    { key: 'hypotheses',       titleKey: 'evidence.hypotheses',       render: renderHypotheses },
-    { key: 'moduleA',          titleKey: 'evidence.moduleA',          render: (d) => renderModule(d, 'A') },
-    { key: 'moduleB',          titleKey: 'evidence.moduleB',          render: (d) => renderModule(d, 'B') },
-    { key: 'issueDefinitions', titleKey: 'evidence.issueDefinitions', render: (d) => renderIssueDefsOrInsights(d, audits, 'definition') },
-    { key: 'userInsights',     titleKey: 'evidence.userInsights',     render: (d) => renderIssueDefsOrInsights(d, audits, 'insight') },
-  ];
-
-  sections.forEach(({ key, titleKey, render }, idx) => {
-    if (!report[key]) return;
-    const section = document.createElement('div');
-    section.className = 'evidence-section' + (idx === 0 ? ' open' : '');
-    const hdr = document.createElement('div');
-    hdr.className = 'evidence-section-header';
-    hdr.innerHTML = '<span class="evidence-section-title">' + t(titleKey) + '</span><span style="font-size:10px;color:var(--text-ter)">' + (idx === 0 ? '▼' : '▶') + '</span>';
-    hdr.addEventListener('click', () => {
-      section.classList.toggle('open');
-      hdr.querySelector('span:last-child').textContent = section.classList.contains('open') ? '▼' : '▶';
-    });
-    const body = document.createElement('div');
-    body.className = 'evidence-section-body';
-    render(report[key]).forEach((el) => body.appendChild(el));
-    section.appendChild(hdr);
-    section.appendChild(body);
-    container.appendChild(section);
-  });
-}
-
-function evidenceItem(label, text) {
-  const el = document.createElement('div');
-  el.className = 'evidence-item';
-  el.innerHTML = '<div class="evidence-item-label">' + esc(label) + '</div><div class="evidence-item-text">' + esc(text) + '</div>';
-  return el;
-}
-
-function renderResearchPlan(d) {
-  const items = [];
-  if (d.problemTypes) items.push(evidenceItem(t('evidence.problemTypes'), d.problemTypes));
-  if (d.modulesJustification) items.push(evidenceItem(t('evidence.modulesJustification'), d.modulesJustification));
-  if (Array.isArray(d.rootCauseGroups) && d.rootCauseGroups.length) {
-    const el = document.createElement('div');
-    el.className = 'evidence-item';
-    el.innerHTML = '<div class="evidence-item-label">' + t('evidence.rootCauseGroups') + '</div>';
-    d.rootCauseGroups.forEach((g) => {
-      const row = document.createElement('div');
-      row.className = 'ev-rcg';
-      const issueChips = (g.issues || []).map((iss) => '<span class="ev-rcg-chip">' + esc(String(iss)) + '</span>').join('');
-      row.innerHTML =
-        '<div class="ev-rcg-name">' + esc(g.groupName || '') + '</div>' +
-        (issueChips ? '<div class="ev-rcg-chips">' + issueChips + '</div>' : '') +
-        (g.sharedRootCause ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(g.sharedRootCause) + '</div>' : '');
-      el.appendChild(row);
-    });
-    items.push(el);
-  }
-  return items;
-}
-
-function renderHypotheses(arr) {
-  return (arr || []).map((h) => {
-    const el = document.createElement('div');
-    el.className = 'evidence-item';
-    el.innerHTML =
-      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">' +
-        '<span class="ev-hyp-id">' + esc(h.id || '') + '</span>' +
-        '<span class="evidence-item-text" style="font-weight:600;flex:1">' + esc(h.statement || '') + '</span>' +
-      '</div>' +
-      (h.mechanism ? '<div class="evidence-item-text" style="color:var(--text-sec)">🧠 ' + esc(h.mechanism) + '</div>' : '') +
-      (h.testable ? '<div class="evidence-item-text" style="color:var(--accent);margin-top:2px">🧪 ' + esc(h.testable) + '</div>' : '');
-    return el;
-  });
-}
-
-function renderModule(m, label) {
-  const items = [];
-  const meta = document.createElement('div');
-  meta.className = 'evidence-item ev-module-meta';
-  const coversChips = (m.issuesCovered || []).map((iss) => '<span class="ev-covers-chip">' + esc(String(iss)) + '</span>').join('');
-  meta.innerHTML =
-    '<div class="ev-module-method"><strong>' + esc(m.method || '') + '</strong></div>' +
-    (m.whyThisMethod ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(m.whyThisMethod) + '</div>' : '') +
-    (coversChips ? '<div class="ev-covers-row">' + t('evidence.issuesCovered') + ': ' + coversChips + '</div>' : '') +
-    '<div class="ev-module-detail-grid">' +
-      (m.sampleSize ? '<span><em>' + t('evidence.sampleSize') + '</em> ' + esc(m.sampleSize) + '</span>' : '') +
-      (m.segments   ? '<span><em>' + esc(m.segments) + '</em></span>' : '') +
-      (m.timeRange  ? '<span><em>' + t('evidence.timeRange') + '</em> ' + esc(m.timeRange) + '</span>' : '') +
-    '</div>' +
-    (m.tasks    ? '<div class="evidence-item-text">' + esc(m.tasks)    + '</div>' : '') +
-    (m.setting  ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + esc(m.setting)  + '</div>' : '') +
-    (Array.isArray(m.coreMetrics) && m.coreMetrics.length ? '<div class="evidence-item-text">' + m.coreMetrics.map(esc).join(' · ') + '</div>' : '') +
-    (Array.isArray(m.analysisDimensions) && m.analysisDimensions.length ? '<div class="evidence-item-text" style="color:var(--text-sec)">' + m.analysisDimensions.map(esc).join(', ') + '</div>' : '');
-  items.push(meta);
-
-  if (Array.isArray(m.findings) && m.findings.length) {
-    const findingsEl = document.createElement('div');
-    findingsEl.className = 'evidence-item';
-    findingsEl.innerHTML = '<div class="evidence-item-label">' + t('evidence.findings') + '</div>';
-    m.findings.forEach((f) => {
-      const sev = (f.severity || '').toLowerCase();
-      const sevColor = sev === 'critical' ? 'var(--red)' : sev === 'major' ? 'var(--orange)' : 'var(--text-ter)';
-      const supportedText = f.supported === false ? '✗ refutes ' : '✓ supports ';
-      const row = document.createElement('div');
-      row.className = 'ev-finding';
-      row.innerHTML =
-        '<div style="display:flex;align-items:flex-start;gap:6px">' +
-          '<span class="ev-finding-sev" style="color:' + sevColor + '">' + esc(f.severity || '') + '</span>' +
-          '<span class="evidence-item-text" style="flex:1">' + esc(f.finding || '') + '</span>' +
-        '</div>' +
-        (f.hypothesisRef ? '<div class="ev-finding-meta">' + supportedText + '<strong>' + esc(f.hypothesisRef) + '</strong>' + (f.visualization ? ' · 📊 ' + esc(f.visualization) : '') + '</div>' : '');
-      findingsEl.appendChild(row);
-    });
-    items.push(findingsEl);
-  }
-  return items;
-}
-
-function renderIssueDefsOrInsights(arr, audits, kind) {
-  return (arr || []).map((item) => {
-    const auditFromArr = audits[item.auditIndex] || {};
-    const frameName = item.frameName || auditFromArr.targetFrameName || '';
-    const severity  = item.severity  || auditFromArr.severity || '';
-    const sevColor = severity === 'critical' ? 'var(--red)' : severity === 'warning' ? 'var(--orange)' : severity === 'suggestion' ? 'var(--accent)' : 'var(--text-ter)';
-    const el = document.createElement('div');
-    el.className = 'evidence-item';
-    const text = kind === 'definition' ? item.definition : item.insight;
-    const extra = kind === 'insight'
-      ? (item.cognitiveOrBehavioralMechanism ? '<div class="evidence-item-text" style="color:var(--text-sec);margin-top:3px">🧠 ' + esc(item.cognitiveOrBehavioralMechanism) + '</div>' : '')
-        + (item.designImplication ? '<div class="evidence-item-text" style="color:var(--accent);margin-top:2px">→ ' + esc(item.designImplication) + '</div>' : '')
-      : '';
-    el.innerHTML =
-      '<div class="evidence-item-text">' + esc(text || '') + '</div>' +
-      extra +
-      '<div class="ev-issue-ref-row">' +
-        (frameName ? '<span class="evidence-link-badge">' + esc(frameName) + '</span>' : '') +
-        (severity  ? '<span class="ev-sev-badge" style="color:' + sevColor + '">' + esc(severity) + '</span>' : '') +
-      '</div>';
-
-    // Stage 2→3 confirm button — map filtered index back to original
-    const originalIndex = _evidenceAuditIndexMap[item.auditIndex] ?? item.auditIndex;
-    const confirmBtnRow = document.createElement('div');
-    confirmBtnRow.className = 'ev-confirm-row';
-
-    const currentEntry = confirmState.confirmedInsights.get(originalIndex) || {};
-    const isConfirmed = Boolean(currentEntry[kind]);
-
-    const confirmBtn = document.createElement('button');
-    confirmBtn.className = 'ev-confirm-btn' + (isConfirmed ? ' ev-confirmed' : '');
-    confirmBtn.textContent = isConfirmed ? t('confirm.confirmed') : t('confirm.confirm');
-    confirmBtn.addEventListener('click', () => {
-      const entry = confirmState.confirmedInsights.get(originalIndex) || {};
-      if (entry[kind]) {
-        delete entry[kind];
-        confirmBtn.classList.remove('ev-confirmed');
-        confirmBtn.textContent = t('confirm.confirm');
-      } else {
-        entry[kind] = kind === 'definition' ? item.definition : item.insight;
-        if (kind === 'insight') {
-          entry.cognitiveOrBehavioralMechanism = item.cognitiveOrBehavioralMechanism;
-          entry.designImplication = item.designImplication;
-        }
-        confirmBtn.classList.add('ev-confirmed');
-        confirmBtn.textContent = t('confirm.confirmed');
-      }
-      if (Object.keys(entry).length > 0) {
-        confirmState.confirmedInsights.set(originalIndex, entry);
-      } else {
-        confirmState.confirmedInsights.delete(originalIndex);
-      }
-    });
-
-    confirmBtnRow.appendChild(confirmBtn);
-    el.appendChild(confirmBtnRow);
-    return el;
-  });
-}
-
-/* ─────────── FRAME NODES (3a) ─────────── */
-function renderNodesList(container, nodes, truncated) {
-  container.innerHTML = '';
-  container.style.display = 'block';
-
-  const hdr = document.createElement('div');
-  hdr.className = 'nodes-panel-header';
-  hdr.textContent = t('nodes.header');
-  container.appendChild(hdr);
-
-  if (!nodes || nodes.length === 0) {
-    const el = document.createElement('div');
-    el.className = 'nodes-empty';
-    el.textContent = t('nodes.empty');
-    container.appendChild(el);
-    return;
-  }
-
-  if (truncated) {
-    const el = document.createElement('div');
-    el.className = 'nodes-truncated';
-    el.textContent = t('nodes.truncated');
-    container.appendChild(el);
-  }
-
-  const list = document.createElement('div');
-  list.className = 'nodes-list';
-
-  nodes.forEach((node) => {
-    const row = document.createElement('div');
-    row.className = 'node-row';
-    row.dataset.nodeId = node.id;
-
-    let preview = '';
-    if (node.type === 'TEXT' && node.characters) {
-      preview = node.characters.length > 50 ? node.characters.slice(0, 50) + '…' : node.characters;
-    } else if (node.fills && node.fills.length > 0) {
-      const f = node.fills[0];
-      if (f.type === 'SOLID' && f.color) {
-        const { r, g, b } = f.color;
-        preview = '#' + [r, g, b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
-      }
-    }
-
-    row.innerHTML =
-      '<span class="node-name">' + esc(node.name) + '</span>' +
-      '<span class="node-type">' + esc(node.type) + '</span>' +
-      (preview ? '<span class="node-preview">' + esc(preview) + '</span>' : '');
-    list.appendChild(row);
-  });
-
-  container.appendChild(list);
-}
-
-/* ─────────── 3c: LLM NODE CHANGE GENERATION ─────────── */
-async function generateNodeChange({ provider, model, apiKey, node, changeType, changeDescription, beforeState, afterState }) {
-  const dc = _lastDecisionCardForEvidence || {};
-
-  let currentValue = '(unknown)';
-  if (changeType === 'text_content' && node.characters) {
-    currentValue = node.characters.slice(0, 200);
-  } else if (changeType === 'fill_color') {
-    const f0 = node.fills && node.fills[0];
-    if (f0 && f0.type === 'SOLID' && f0.color) currentValue = rgbToHex(f0.color.r, f0.color.g, f0.color.b);
-  } else if (changeType === 'visibility') {
-    currentValue = node.visible ? 'visible' : 'hidden';
-  } else if (changeType === 'position') {
-    currentValue = 'x and y from Figma canvas';
-  } else if (changeType === 'layout') {
-    currentValue = 'layout properties from Figma canvas';
-  }
+/* ─────────── LLM REWRITE GENERATION ─────────── */
+// Given one finding and an optional designer instruction, ask the model for
+// several rewrite options, each with a rationale and pros/cons so the designer
+// can make a real choice rather than accept a single canned suggestion.
+async function generateRewrites({ provider, model, apiKey, audit, instruction }) {
+  const dc = _auditDecisionCard || {};
+  const guidelines = $('guidelines') ? $('guidelines').value.trim() : '';
 
   const systemPrompt = [
-    'You are a Figma property editor. Given a node\'s current state and a design change description,',
-    'output the exact new property value to apply.',
-    'Output only valid JSON matching the changeType:',
-    'text_content: { "newText": "string", "rationale": "string" }',
-    'fill_color: { "r": 0-1, "g": 0-1, "b": 0-1, "rationale": "string" }  (values 0 to 1, NOT 0 to 255)',
-    'visibility: { "visible": true|false }',
-    'layout: only include keys that should change: { layoutMode?, paddingTop?, paddingBottom?, paddingLeft?, paddingRight?, itemSpacing?, primaryAxisAlignItems?, counterAxisAlignItems? }',
-    'position: { "x": number, "y": number }',
-    'No markdown or commentary.',
+    'You are a senior Content Designer / UX writer. Rewrite one piece of UI copy.',
+    'Produce 3 distinct options that fix the identified issue. Each option must take a genuinely different angle (e.g. one concise, one more explanatory, one warmer) — not trivial rewordings of each other.',
+    'For each option give: text (the rewrite), rationale (why it works, 1 sentence), pros (array of short strings), cons (array of short strings — every option has at least one trade-off).',
+    'Respect any brand guidelines and the designer instruction. Keep the copy in the same language as the current text unless told otherwise.',
+    'Return ONLY valid JSON: {"options":[{"text":"string","rationale":"string","pros":["string"],"cons":["string"]}]}',
   ].join(' ');
 
   const userPrompt = [
-    'Node name: ' + (node.name || ''),
-    'Node type: ' + (node.type || ''),
-    'Change type: ' + changeType,
-    'Current value: ' + currentValue,
-    'Change description: ' + changeDescription,
-    'Before: ' + (beforeState || '(not specified)'),
-    'After: ' + (afterState || '(not specified)'),
-    'Guardrails: ' + JSON.stringify(dc.guardrails || []),
-    'Constraints: ' + JSON.stringify(dc.constraints || []),
-  ].join('\n');
-
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 800 });
-  return extractJson(raw);
-}
-
-/* ─────────── 3b: LLM NODE MATCHING ─────────── */
-async function identifyTargetNodes({ provider, model, apiKey, nodes, changeDescription, beforeState, afterState }) {
-  const systemPrompt = [
-    'You are a Figma node analyst. Given a list of nodes inside a Figma frame and a design change description,',
-    'identify which node IDs are the targets of that change.',
-    'Output only valid JSON: { "matches": [ { "nodeId": "string", "nodeName": "string", "reason": "string",',
-    '"changeType": "text_content | fill_color | visibility | layout | position" } ] }',
-    'changeType must be one of those five exact strings.',
-    'If no node is a confident match, return matches: [].',
-    'Do not guess. Only match when confident. No markdown or commentary.',
-  ].join(' ');
-
-  const nodesSummary = (nodes || []).map((n) => {
-    const f0 = n.fills && n.fills[0];
-    const fillHex = (f0 && f0.type === 'SOLID' && f0.color)
-      ? '#' + ['r', 'g', 'b'].map((k) => Math.round((f0.color[k] || 0) * 255).toString(16).padStart(2, '0')).join('')
-      : undefined;
-    return {
-      id: n.id, name: n.name, type: n.type,
-      characters: n.characters ? n.characters.slice(0, 80) : undefined,
-      fillHex,
-      width: Math.round(n.width || 0), height: Math.round(n.height || 0),
-    };
-  });
-
-  const userPrompt = [
-    'Frame nodes:\n' + JSON.stringify(nodesSummary, null, 2),
-    '',
-    'Change description: ' + changeDescription,
-    'Before state: ' + (beforeState || '(not specified)'),
-    'After state: ' + (afterState || '(not specified)'),
-    '',
-    'Which nodes are the targets of this change? What type of change is needed on each?',
+    'Current copy: "' + (audit.currentText || '') + '"',
+    'Role on screen: ' + (audit.roleHint || 'unknown'),
+    'Screen: ' + (audit.targetFrameName || ''),
+    'Content dimension: ' + (audit.dimension || ''),
+    'Identified issue: ' + (audit.issue || ''),
+    'Why it matters: ' + (audit.why || ''),
+    'Fix direction: ' + (audit.suggestion || ''),
+    'Designer instruction: ' + (instruction || '(none — use your best judgement)'),
+    'Brand guidelines: ' + (guidelines || '(none provided — infer voice from the copy and business context)'),
+    'Business context: ' + JSON.stringify({ businessGoal: dc.businessGoal, touchpoints: dc.touchpoints, primaryMetric: dc.primaryMetric }),
   ].join('\n');
 
   const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 1200 });
-  return extractJson(raw);
-}
-
-/* ─────────── DRD CHANGE CHECKLIST ─────────── */
-function populateChecklist(audit, result) {
-  const panel = audit._checklistEl;
-  if (!panel) return;
-
-  const solutions = Array.isArray(result.solutions) ? result.solutions : [];
-  const recommended = typeof result.recommendedIndex === 'number' ? result.recommendedIndex : 0;
-  const sol = solutions[recommended];
-  if (!sol) return;
-
-  const sc = sol.specificChanges || {};
-  const ba = sol.beforeAfter || {};
-
-  const sections = [
-    { labelKey: 'drd.infoArch',       value: sc.informationArchitecture },
-    { labelKey: 'drd.interaction',     value: sc.interactionPath },
-    { labelKey: 'drd.visualHierarchy', value: sc.visualHierarchy },
-    { labelKey: 'drd.keyElements',     value: sc.keyElements },
-  ].filter((s) => s.value && s.value.trim());
-
-  const hasBA = ba.before || ba.after || ba.interactionPathChange;
-  if (!sections.length && !hasBA) return;
-
-  // Repopulate (handles DRD re-generation)
-  panel.innerHTML = '';
-  panel.style.display = 'block';
-
-  const hdrLbl = document.createElement('div');
-  hdrLbl.className = 'checklist-header';
-  hdrLbl.textContent = t('checklist.title');
-  panel.appendChild(hdrLbl);
-
-  // "X / Y done" counter
-  const counterEl = document.createElement('div');
-  counterEl.className = 'checklist-counter';
-  panel.appendChild(counterEl);
-
-  let checkedCount = 0;
-  const total = sections.length;
-  function updateCounter() {
-    counterEl.innerHTML = '<strong>' + checkedCount + '</strong> / ' + total + ' ' + t('checklist.done');
+  const parsed = extractJson(raw);
+  let options = Array.isArray(parsed.options) ? parsed.options : [];
+  if (state.lang === 'zh' && options.length) {
+    try { const tr = await translateToZh({ provider, model, apiKey, source: options }); if (Array.isArray(tr) && tr.length) options = tr; } catch (_) { /* keep original */ }
   }
-  updateCounter();
-
-  // Checkboxes + 3b expand-to-match
-  if (sections.length) {
-    const itemsWrap = document.createElement('div');
-    itemsWrap.className = 'checklist-items';
-
-    // Tracks the currently open match panel (one at a time)
-    let activeRef = null; // { panel, btn }
-
-    sections.forEach(({ labelKey, value }) => {
-      const item = document.createElement('label');
-      item.className = 'checklist-item';
-
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.className = 'checklist-cb';
-
-      const content = document.createElement('span');
-      content.className = 'checklist-content';
-
-      const lbl = document.createElement('span');
-      lbl.className = 'checklist-section-label';
-      lbl.textContent = t(labelKey);
-
-      const txt = document.createElement('span');
-      txt.className = 'checklist-text';
-      txt.textContent = value;
-
-      // "Find nodes" expand button — triggers identifyTargetNodes LLM call
-      const expandBtn = document.createElement('button');
-      expandBtn.className = 'checklist-expand-btn';
-      expandBtn.textContent = t('nodes.matchFind');
-
-      content.appendChild(lbl);
-      content.appendChild(txt);
-      content.appendChild(expandBtn);
-      item.appendChild(cb);
-      item.appendChild(content);
-
-      // Match panel — sibling of item, hidden until expanded
-      const matchPanel = document.createElement('div');
-      matchPanel.className = 'checklist-match-panel';
-      matchPanel.style.display = 'none';
-
-      cb.addEventListener('change', () => {
-        if (cb.checked) { checkedCount++; item.classList.add('done'); }
-        else            { checkedCount--; item.classList.remove('done'); }
-        updateCounter();
-      });
-
-      expandBtn.addEventListener('click', async (e) => {
-        e.preventDefault();   // prevent label from toggling checkbox
-        e.stopPropagation();
-
-        // Collapse any previously open panel
-        if (activeRef && activeRef.panel !== matchPanel) {
-          activeRef.panel.style.display = 'none';
-          activeRef.btn.classList.remove('active');
-          activeRef = null;
-        }
-
-        // Toggle this panel
-        if (matchPanel.style.display !== 'none') {
-          matchPanel.style.display = 'none';
-          expandBtn.classList.remove('active');
-          activeRef = null;
-          return;
-        }
-
-        // Open this panel
-        matchPanel.style.display = 'flex';
-        matchPanel.style.flexDirection = 'column';
-        expandBtn.classList.add('active');
-        activeRef = { panel: matchPanel, btn: expandBtn };
-
-        // LLM already ran for this item — don't re-run
-        if (matchPanel.dataset.loaded === '1') return;
-
-        // Check nodes are available
-        const nodes = audit._nodesData || [];
-        if (!nodes.length) {
-          matchPanel.innerHTML = '<div class="match-no-match">' + esc(t('nodes.noNodes')) + '</div>';
-          matchPanel.dataset.loaded = '1';
-          return;
-        }
-
-        matchPanel.innerHTML = '<div class="nodes-matching">' + esc(t('nodes.matching')) + '</div>';
-
-        try {
-          const cfg = getLLMConfig();
-          const result = await identifyTargetNodes({
-            ...cfg,
-            nodes,
-            changeDescription: value,
-            beforeState: ba.before,
-            afterState: ba.after,
-          });
-
-          const matches = Array.isArray(result.matches) ? result.matches : [];
-          matchPanel.innerHTML = '';
-          matchPanel.dataset.loaded = '1';
-
-          if (!matches.length) {
-            const el = document.createElement('div');
-            el.className = 'match-no-match';
-            el.textContent = t('nodes.noMatch');
-            matchPanel.appendChild(el);
-            return;
-          }
-
-          matches.forEach((match) => {
-            const row = document.createElement('div');
-            row.className = 'match-row';
-            row.dataset.nodeId = match.nodeId || '';
-
-            const top = document.createElement('div');
-            top.className = 'match-top';
-
-            const nameEl = document.createElement('span');
-            nameEl.className = 'match-node-name';
-            nameEl.textContent = match.nodeName || match.nodeId || '';
-
-            const typeBadge = document.createElement('span');
-            typeBadge.className = 'match-change-type';
-            typeBadge.textContent = match.changeType || '';
-
-            top.appendChild(nameEl);
-            top.appendChild(typeBadge);
-
-            const reasonEl = document.createElement('div');
-            reasonEl.className = 'match-reason';
-            reasonEl.textContent = match.reason || '';
-
-            // "Suggest edit" — active in 3c: calls generateNodeChange, shows preview
-            const suggestBtn = document.createElement('button');
-            suggestBtn.className = 'match-suggest-btn';
-            suggestBtn.textContent = t('nodes.suggestEdit');
-
-            // Preview div — shown after generateNodeChange returns
-            const previewDiv = document.createElement('div');
-            previewDiv.className = 'change-preview';
-            previewDiv.style.display = 'none';
-
-            suggestBtn.addEventListener('click', async (e) => {
-              e.stopPropagation();
-              suggestBtn.disabled = true;
-              suggestBtn.textContent = t('nodes.generating');
-              previewDiv.style.display = 'none';
-              previewDiv.innerHTML = '';
-
-              const nodeData = (audit._nodesData || []).find((n) => n.id === match.nodeId) || {
-                id: match.nodeId, name: match.nodeName, type: '', characters: undefined, fills: [], visible: true, width: 0, height: 0,
-              };
-
-              try {
-                const cfg = getLLMConfig();
-                const res = await generateNodeChange({
-                  ...cfg,
-                  node: nodeData,
-                  changeType: match.changeType,
-                  changeDescription: value,
-                  beforeState: ba.before,
-                  afterState: ba.after,
-                });
-
-                // Build human-readable current / proposed strings
-                let currentDisplay = '(unknown)';
-                let proposedDisplay = '';
-                if (match.changeType === 'text_content') {
-                  currentDisplay = nodeData.characters ? nodeData.characters.slice(0, 100) : '(no text)';
-                  proposedDisplay = String(res.newText ?? '');
-                } else if (match.changeType === 'fill_color' && res.r != null) {
-                  const f0 = nodeData.fills && nodeData.fills[0];
-                  if (f0 && f0.type === 'SOLID' && f0.color) currentDisplay = rgbToHex(f0.color.r, f0.color.g, f0.color.b);
-                  proposedDisplay = rgbToHex(res.r, res.g, res.b);
-                } else if (match.changeType === 'visibility') {
-                  currentDisplay = nodeData.visible ? 'visible' : 'hidden';
-                  proposedDisplay = res.visible ? 'visible' : 'hidden';
-                } else {
-                  proposedDisplay = JSON.stringify(res);
-                }
-
-                // Render preview rows
-                previewDiv.innerHTML = '';
-                previewDiv.style.display = 'flex';
-                previewDiv.style.flexDirection = 'column';
-
-                [[t('nodes.current'), currentDisplay, ''], [t('nodes.proposed'), proposedDisplay, 'proposed']].forEach(([label, val, cls]) => {
-                  if (!val) return;
-                  const r = document.createElement('div'); r.className = 'preview-row';
-                  r.innerHTML = '<span class="preview-label">' + esc(label) + '</span><span class="preview-val ' + cls + '">' + esc(val) + '</span>';
-                  previewDiv.appendChild(r);
-                });
-                if (res.rationale) {
-                  const rat = document.createElement('div'); rat.className = 'preview-rationale';
-                  rat.textContent = res.rationale; previewDiv.appendChild(rat);
-                }
-
-                // Apply / Dismiss
-                const btnRow = document.createElement('div'); btnRow.className = 'preview-btns';
-                const applyBtn = document.createElement('button'); applyBtn.className = 'preview-apply-btn'; applyBtn.textContent = t('nodes.apply');
-                const dismissBtn = document.createElement('button'); dismissBtn.className = 'preview-dismiss-btn'; dismissBtn.textContent = t('nodes.dismiss');
-
-                applyBtn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  applyBtn.disabled = true;
-                  // Register for NODE_CHANGE_APPLIED/FAILED routing
-                  _pendingNodeChanges.set(match.nodeId, { checklistItem: item, previewDiv, applyBtn, proposedDisplay, changeType: match.changeType });
-                  // APPLY_NODE_CHANGE: { nodeId, changeType, value } — code.ts writes the change to Figma
-                  parent.postMessage({ pluginMessage: { type: 'APPLY_NODE_CHANGE', nodeId: match.nodeId, changeType: match.changeType, value: res } }, '*');
-                });
-
-                dismissBtn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  previewDiv.style.display = 'none';
-                  suggestBtn.disabled = false;
-                  suggestBtn.textContent = t('nodes.suggestEdit');
-                });
-
-                btnRow.appendChild(applyBtn); btnRow.appendChild(dismissBtn);
-                previewDiv.appendChild(btnRow);
-              } catch (err) {
-                previewDiv.style.display = 'flex'; previewDiv.style.flexDirection = 'column';
-                previewDiv.innerHTML = '<div class="preview-error">' + esc(err.message || 'Error generating change') + '</div>';
-                suggestBtn.disabled = false;
-                suggestBtn.textContent = t('nodes.suggestEdit');
-              }
-            });
-
-            row.appendChild(top);
-            row.appendChild(reasonEl);
-            row.appendChild(suggestBtn);
-            row.appendChild(previewDiv);
-            matchPanel.appendChild(row);
-          });
-        } catch (err) {
-          matchPanel.innerHTML = '<div class="match-no-match">' + esc(err.message || 'Error identifying nodes') + '</div>';
-          matchPanel.dataset.loaded = '1';
-        }
-      });
-
-      itemsWrap.appendChild(item);
-      itemsWrap.appendChild(matchPanel);
-    });
-    panel.appendChild(itemsWrap);
-  }
-
-  // Before → After — collapsed by default, reuses existing .why-toggle / .why-body pattern
-  if (hasBA) {
-    const baSection = document.createElement('div');
-    baSection.className = 'checklist-ba-section';
-
-    const baToggle = document.createElement('button');
-    baToggle.className = 'why-toggle';
-    baToggle.innerHTML = '<span class="why-chevron">▶</span><span>' + esc(t('checklist.beforeAfter')) + '</span>';
-
-    const baBody = document.createElement('div');
-    baBody.className = 'why-body';
-
-    [
-      { label: t('drd.before'),               val: ba.before },
-      { label: t('drd.after'),                 val: ba.after },
-      { label: t('drd.interactionPathChange'), val: ba.interactionPathChange },
-    ].forEach(({ label, val }) => {
-      if (!val) return;
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;flex-direction:column;gap:1px;margin-bottom:6px';
-      const lbl = document.createElement('span');
-      lbl.className = 'detail-label';
-      lbl.textContent = label;
-      const valEl = document.createElement('span');
-      valEl.style.cssText = 'font-size:12px;line-height:1.5';
-      valEl.textContent = val;
-      row.appendChild(lbl);
-      row.appendChild(valEl);
-      baBody.appendChild(row);
-    });
-
-    baToggle.addEventListener('click', () => {
-      baToggle.classList.toggle('open');
-      baBody.classList.toggle('open');
-    });
-
-    baSection.appendChild(baToggle);
-    baSection.appendChild(baBody);
-    panel.appendChild(baSection);
-  }
-}
-
-/* ─────────── DRD PANEL ─────────── */
-$('drdCloseBtn').addEventListener('click', () => $('drdOverlay').classList.remove('open'));
-$('drdOverlay').addEventListener('click', (e) => { if (e.target === $('drdOverlay')) $('drdOverlay').classList.remove('open'); });
-
-async function openDRD(audit) {
-  const overlay  = $('drdOverlay');
-  const body     = $('drdPanelBody');
-  const titleEl  = $('drdPanelTitle');
-  // Frame name in DRD header is also clickable when affectedFrameId is present
-  if (audit.affectedFrameId) {
-    titleEl.innerHTML = esc(t('drd.title')) + ' — <span class="frame-focus-link">' + esc(audit.targetFrameName || '') + '</span>';
-    titleEl.querySelector('.frame-focus-link').addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'FOCUS_FRAME', frameId: audit.affectedFrameId } }, '*');
-    });
-  } else {
-    titleEl.textContent = t('drd.title') + ' — ' + (audit.targetFrameName || '');
-  }
-  body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-ter)">' + t('drd.generating') + '</div>';
-  overlay.classList.add('open');
-
-  // Look up confirmed research context for this specific audit item
-  const originalIndex = audit._auditIndex != null ? audit._auditIndex : _lastAuditsForEvidence.indexOf(audit);
-  const confirmedContext = originalIndex >= 0 ? (confirmState.confirmedInsights.get(originalIndex) || null) : null;
-
-  try {
-    const cfg = getLLMConfig();
-    const result = await generateDRD({ ...cfg, audit, decisionCard: _lastDecisionCardForEvidence, confirmedContext });
-    renderDRDPanel(body, result);
-    // Persist result and populate the checklist below the audit card
-    const idx = audit._auditIndex != null ? audit._auditIndex : _lastAuditsForEvidence.indexOf(audit);
-    if (idx >= 0) _drdStore.set(idx, result);
-    populateChecklist(audit, result);
-  } catch (e) {
-    body.innerHTML = '<div style="padding:16px;color:var(--red)">' + esc(e.message) + '</div>';
-  }
-}
-
-function renderDRDPanel(body, result) {
-  body.innerHTML = '';
-
-  const solutions = Array.isArray(result.solutions) ? result.solutions : [];
-  const recommended = result.recommendedIndex ?? 0;
-
-  // Solution tabs
-  if (solutions.length) {
-    const tabRow = document.createElement('div');
-    tabRow.className = 'drd-solution-tabs';
-    const cards = [];
-    solutions.forEach((sol, i) => {
-      const tab = document.createElement('button');
-      tab.className = 'drd-sol-tab' + (i === recommended ? ' active' : '');
-      tab.innerHTML =
-        '<span>' + esc(sol.name || ('Solution ' + (i + 1))) + '</span>' +
-        (sol.dimension ? '<span class="drd-dim-badge">' + esc(sol.dimension) + '</span>' : '');
-      const card = document.createElement('div');
-      card.className = 'drd-solution-card' + (i === recommended ? ' active' : '');
-      const ba = sol.beforeAfter || {};
-      card.innerHTML =
-        drdField(t('drd.coreDirection'), sol.coreDirection || sol.coreDiection || '') +
-        drdField(t('drd.coreApproach'), sol.coreApproach || '') +
-        (sol.specificChanges ? drdField(t('drd.infoArch'), sol.specificChanges.informationArchitecture || '') +
-          drdField(t('drd.interaction'), sol.specificChanges.interactionPath || '') +
-          drdField(t('drd.visualHierarchy'), sol.specificChanges.visualHierarchy || '') +
-          drdField(t('drd.keyElements'), sol.specificChanges.keyElements || '') : '') +
-        drdField(t('drd.before'), ba.before || '') +
-        drdField(t('drd.after'), ba.after || '') +
-        drdField(t('drd.interactionPathChange'), ba.interactionPathChange || '') +
-        drdField(t('drd.meaningfulChangeEvidence'), ba.meaningfulChangeEvidence || '') +
-        drdField(t('drd.whyBetter'), sol.whyBetter || '') +
-        drdField(t('drd.impactMetric'), sol.impactOnMetric || '');
-      tab.addEventListener('click', () => {
-        tabRow.querySelectorAll('.drd-sol-tab').forEach((t) => t.classList.remove('active'));
-        cards.forEach((c) => c.classList.remove('active'));
-        tab.classList.add('active');
-        card.classList.add('active');
-      });
-      tabRow.appendChild(tab);
-      cards.push(card);
-    });
-    body.appendChild(tabRow);
-    cards.forEach((c) => body.appendChild(c));
-  }
-
-  // Comparison table
-  if (Array.isArray(result.comparisonTable) && result.comparisonTable.length) {
-    const section = document.createElement('div');
-    section.className = 'evidence-section';
-    const hdr = document.createElement('div');
-    hdr.className = 'evidence-section-header';
-    hdr.innerHTML = '<span class="evidence-section-title">' + t('drd.comparison') + '</span><span style="font-size:10px;color:var(--text-ter)">▶</span>';
-    const bdy = document.createElement('div');
-    bdy.className = 'evidence-section-body';
-    const table = document.createElement('table');
-    table.className = 'drd-comparison-table';
-    table.innerHTML = '<thead><tr>' + [t('drd.solution'), t('drd.dimension'), t('drd.scope'), t('drd.risk'), t('drd.bizBenefit'), t('drd.timeline')].map((h) => '<th>' + esc(h) + '</th>').join('') + '</tr></thead>';
-    const tbody = document.createElement('tbody');
-    result.comparisonTable.forEach((row) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = [row.solution, row.dimension, row.scopeOfChange, row.risk, row.businessBenefit, row.timelineFit].map((v) => '<td>' + esc(v || '') + '</td>').join('');
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    bdy.appendChild(table);
-    hdr.addEventListener('click', () => { section.classList.toggle('open'); hdr.querySelector('span:last-child').textContent = section.classList.contains('open') ? '▼' : '▶'; });
-    section.appendChild(hdr);
-    section.appendChild(bdy);
-    body.appendChild(section);
-  }
-
-  // DRD document
-  if (result.drd) {
-    const d = result.drd;
-    const section = document.createElement('div');
-    section.className = 'evidence-section open';
-    const hdr = document.createElement('div');
-    hdr.className = 'evidence-section-header';
-    hdr.innerHTML = '<span class="evidence-section-title">' + t('drd.document') + '</span><span style="font-size:10px;color:var(--text-ter)">▼</span>';
-    const bdy = document.createElement('div');
-    bdy.className = 'evidence-section-body';
-
-    if (d.background) {
-      bdy.innerHTML +=
-        drdEvItem(t('drd.currentProblem'), d.background.currentProblem) +
-        drdEvItem(t('drd.rootCause'), d.background.rootCause) +
-        drdEvItem(t('drd.bizImpact'), d.background.businessImpact);
-    }
-    if (d.strategy) {
-      bdy.innerHTML += drdEvItem(t('drd.strategy'), d.strategy.coreApproach + (d.strategy.rationale ? '\n' + d.strategy.rationale : ''));
-    }
-    if (Array.isArray(d.detailedRedesign)) {
-      d.detailedRedesign.forEach((m) => {
-        bdy.innerHTML += drdEvItem(m.module || t('drd.module'), [m.whatChanges, m.why, m.userPerception, m.businessEffect].filter(Boolean).join('\n'));
-      });
-    }
-    if (d.risksAndValidation) {
-      const rv = d.risksAndValidation;
-      bdy.innerHTML += drdEvItem(t('drd.validation'), [
-        (rv.sideEffects || []).join(', '),
-        'Monitor: ' + (rv.metricsToMonitor || []).join(', '),
-        'Method: ' + (rv.validationMethod || ''),
-      ].filter(Boolean).join('\n'));
-    }
-    hdr.addEventListener('click', () => { section.classList.toggle('open'); hdr.querySelector('span:last-child').textContent = section.classList.contains('open') ? '▼' : '▶'; });
-    section.appendChild(hdr);
-    section.appendChild(bdy);
-    body.appendChild(section);
-  }
-
-  // Copy as Markdown
-  const copyBtn = document.createElement('button');
-  copyBtn.className = 'btn btn-secondary drd-copy-btn';
-  copyBtn.textContent = t('drd.copyMarkdown');
-  copyBtn.addEventListener('click', () => {
-    const md = drdToMarkdown(result);
-    navigator.clipboard.writeText(md).then(() => { copyBtn.textContent = '✓ ' + t('drd.copied'); setTimeout(() => { copyBtn.textContent = t('drd.copyMarkdown'); }, 2000); });
-  });
-  body.appendChild(copyBtn);
-}
-
-function drdField(label, text) {
-  if (!text) return '';
-  return '<div class="drd-field"><div class="drd-field-label">' + esc(label) + '</div><div class="drd-field-text">' + esc(text) + '</div></div>';
-}
-
-function drdEvItem(label, text) {
-  if (!text) return '';
-  return '<div class="evidence-item"><div class="evidence-item-label">' + esc(label) + '</div><div class="evidence-item-text">' + esc(text) + '</div></div>';
-}
-
-function drdToMarkdown(result) {
-  const lines = ['# Redesign Document\n'];
-  (result.solutions || []).forEach((s, i) => {
-    lines.push('## Solution ' + (i + 1) + ': ' + (s.name || ''));
-    lines.push((s.coreApproach || '') + '\n');
-  });
-  if (result.drd) {
-    const d = result.drd;
-    lines.push('## DRD');
-    if (d.background) {
-      lines.push('### Background');
-      lines.push('**Problem:** ' + (d.background.currentProblem || ''));
-      lines.push('**Root cause:** ' + (d.background.rootCause || ''));
-      lines.push('**Business impact:** ' + (d.background.businessImpact || '') + '\n');
-    }
-    if (d.strategy) {
-      lines.push('### Strategy');
-      lines.push((d.strategy.coreApproach || '') + '\n' + (d.strategy.rationale || '') + '\n');
-    }
-    if (Array.isArray(d.detailedRedesign)) {
-      lines.push('### Detailed Redesign');
-      d.detailedRedesign.forEach((m) => {
-        lines.push('#### ' + (m.module || ''));
-        lines.push((m.whatChanges || '') + '\n' + (m.why || '') + '\n');
-      });
-    }
-    if (d.risksAndValidation) {
-      const rv = d.risksAndValidation;
-      lines.push('### Risks & Validation');
-      (rv.sideEffects || []).forEach((s) => lines.push('- ' + s));
-      lines.push('**Validation:** ' + (rv.validationMethod || '') + '\n');
-    }
-  }
-  return lines.join('\n');
+  return { options };
 }
 
 /* ─────────── COMPARE ─────────── */
@@ -4230,7 +2773,7 @@ function doCompare(a, b) {
   $('cmpScoreA').textContent = a.score != null ? a.score : '—';
   $('cmpScoreB').textContent = b.score != null ? b.score : '—';
 
-  const key = (x) => [x.targetFrameName, x.critiqueType, x.provocativeQuestion].join('|');
+  const key = (x) => [x.nodeId || x.targetFrameName, x.dimension].join('|');
   const aKeys = new Set(a.audits.map(key));
   const bKeys = new Set(b.audits.map(key));
 
@@ -4249,7 +2792,7 @@ function cmpItem(audit, kind) {
   const el = document.createElement('div');
   el.className = 'cmp-item cmp-' + kind;
   const tags = { added: t('cmp.added'), removed: t('cmp.removed'), same: t('cmp.same') };
-  el.innerHTML = '<span class="cmp-tag">' + tags[kind] + '</span>' + esc(audit.provocativeQuestion || '');
+  el.innerHTML = '<span class="cmp-tag">' + tags[kind] + '</span>' + esc(audit.issue || '');
   return el;
 }
 
@@ -4322,8 +2865,8 @@ function renderHistoryList(snaps) {
         fr.innerHTML =
           '<span class="hf-sev ' + sevClass + '">' + esc(sev.slice(0,1).toUpperCase() + sev.slice(1)) + '</span>' +
           '<div class="hf-body">' +
-            (a.targetFrameName ? '<div class="hf-frame">' + esc(a.targetFrameName) + '</div>' : '') +
-            '<div class="hf-q">' + esc(a.what || a.provocativeQuestion || '') + '</div>' +
+            (a.targetFrameName ? '<div class="hf-frame">' + esc(a.targetFrameName) + (a.dimension ? ' · ' + esc(dimLabel(a.dimension)) : '') + '</div>' : '') +
+            '<div class="hf-q">' + esc(a.issue || '') + '</div>' +
           '</div>';
         detail.appendChild(fr);
       });
@@ -4476,38 +3019,17 @@ window.onmessage = async (event) => {
     return;
   }
 
-  // NODES_RESULT: { frameId, nodes[], truncated } — response from INSPECT_NODES handler in code.ts
-  if (msg.type === 'NODES_RESULT') {
-    const entry = _frameNodePanels.get(msg.frameId);
-    if (entry) {
-      entry.audit._nodesData = msg.nodes || [];
-      renderNodesList(entry.nodesEl, msg.nodes, msg.truncated);
-    }
-    return;
-  }
-
-  // NODE_CHANGE_APPLIED: { nodeId, changeType } — edit was successfully written to Figma canvas
+  // NODE_CHANGE_APPLIED: { nodeId } — rewrite was written to the Figma text node
   if (msg.type === 'NODE_CHANGE_APPLIED') {
     const pending = _pendingNodeChanges.get(msg.nodeId);
     if (pending) {
-      // Show success in preview
-      pending.previewDiv.innerHTML = '<div class="preview-applied">' + esc(t('nodes.applied')) + '</div>';
-      // Auto-check the checklist item (tick it as done)
-      const cb = pending.checklistItem && pending.checklistItem.querySelector('.checklist-cb');
-      if (cb && !cb.checked) cb.click();
-      // Update the matching node-row preview in the 3a node list
-      document.querySelectorAll('.node-row').forEach((row) => {
-        if (row.dataset.nodeId === msg.nodeId) {
-          const previewEl = row.querySelector('.node-preview');
-          if (previewEl && pending.proposedDisplay) previewEl.textContent = pending.proposedDisplay;
-        }
-      });
+      pending.previewDiv.innerHTML = '<div class="preview-applied">' + esc(t('rewrite.applied')) + '</div>';
       _pendingNodeChanges.delete(msg.nodeId);
     }
     return;
   }
 
-  // NODE_CHANGE_FAILED: { nodeId, reason } — edit failed; show error inline without collapsing preview
+  // NODE_CHANGE_FAILED: { nodeId, reason } — edit failed; show error inline
   if (msg.type === 'NODE_CHANGE_FAILED') {
     const pending = _pendingNodeChanges.get(msg.nodeId);
     if (pending) {
@@ -4525,7 +3047,6 @@ window.onmessage = async (event) => {
     await pushCtx({ selectionInfo: state.selection, auditPayload: msg.payload });
     try {
       await runAudit(msg.payload);
-      setStep(4);
       setStatus(t('status.done'), 'ok');
     } catch (e) {
       setStatus(e.message, 'error');

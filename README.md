@@ -1,14 +1,29 @@
-# AI UX Audit
+# AI UX Content Audit
 
-A contextual UX auditor that runs directly inside Figma. No backend required for basic use.
+An AI **content-design auditor** that runs directly inside Figma. It reviews the *copy* in a product flow — the words, not the layout — and helps you rewrite it in place. No backend required for basic use.
 
-The plugin combines three kinds of design context before asking an LLM to critique a flow:
+> **Content-audit refactor (this branch).** The plugin was originally a broad UX auditor (structural critique, journey analysis, redesign documents, research reports). It has been narrowed to a focused **content design** tool. Sections below that describe **Journey analysis, DRD generation, Evidence reports, or canvas annotation write-back** describe the *previous* version and no longer exist in the plugin UI. The **bridge / MCP** layer ([bridge/](bridge), [skills/ux-audit.md](skills/ux-audit.md)) still exposes the old tool set and is synced to the new taxonomy at the end of each version.
 
-1. **Business context** — a `DecisionCard` extracted from raw meeting notes, including causal business-to-experience logic and touchpoint constraints
-2. **Canvas logic** — a deep inspection of selected Figma frames, node reactions, and routing links, including computed graph metrics
-3. **Visual context** — compressed PNG exports of the selected frames
+## What it does now
 
-Critique results are severity-graded, business-metric-linked, and written back onto the Figma canvas as colour-coded annotation frames.
+When you select the frames of a flow and click **Audit Copy**, the plugin:
+
+1. Extracts **every text string** across all selected frames in one pass (with each string's screen, role, and node id), plus the screen order and screenshots for context.
+2. Sends that whole-flow copy inventory to an LLM, which audits it across four **content dimensions** and returns findings tied to specific text nodes.
+3. For any finding, generates **several rewrite options** (each with a rationale and pros/cons), lets you add a constraint in a designer instruction box, and **applies the chosen rewrite straight to the Figma text node**.
+
+### The four content dimensions
+
+| Dimension | What it catches |
+|---|---|
+| **Clarity** | Jargon, undefined system terms, ambiguous reference, overlong sentences, passive voice |
+| **Consistency** | The same concept worded differently across screens (e.g. "Sign in" vs "Log in"), inconsistent capitalization/punctuation — a whole-flow check |
+| **Voice & tone** | Fit with brand personality and user segment; error messages that blame the user; wrong tone for the moment |
+| **Actionability** | Errors that don't say what to do next, button labels that don't describe the result, empty states with no path forward, vague CTAs |
+
+The dimension chips in the **Audit** tab let the designer narrow the audit; deselecting all of them lets the model recommend which dimensions matter most for the flow. Optional brand **Content Guidelines** (voice/tone or a terminology list) pasted in Setup become the source of truth for the tone and consistency dimensions.
+
+Findings are severity-graded (critical / warning / suggestion) and saved to per-run **History** (with snapshot comparison). Context still comes from an optional `DecisionCard` (business goal, user segment, touchpoints), used mainly for the voice & tone judgement.
 
 ---
 
@@ -20,8 +35,8 @@ The core audit engine runs **entirely inside the Figma plugin UI** (`ui.html`). 
 
 | File | Role |
 |---|---|
-| `ui.html` | Plugin UI + embedded LLM engine |
-| `code.ts` / `code.js` | Figma sandbox (frame inspection, PNG export, graph metrics, canvas write-back) |
+| `ui.html` | Plugin UI + embedded LLM engine (content audit + rewrite generation) |
+| `code.ts` / `code.js` | Figma sandbox (frame flow graph, full-flow text extraction, PNG export, apply text rewrites to nodes) |
 | `manifest.json` | Plugin manifest; declares `allowedDomains` for api.openai.com and api.anthropic.com |
 
 ### Bridge (optional — MCP / Claude Code only)

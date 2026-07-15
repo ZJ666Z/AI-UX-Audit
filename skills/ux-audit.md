@@ -1,5 +1,7 @@
 # UX Audit Skill
 
+> ⚠️ **Describes the bridge/MCP tools, which still run the previous UX-audit taxonomy.** The Figma **plugin UI** has been narrowed to a focused **content-design audit** (four content dimensions + in-place rewrite; see [README.md](../README.md)). The MCP tools below (`analyze_journey`, `generate_evidence_report`, `generate_drd`, `write_audit_feedback`, the structural critique types) reflect the older behaviour in `bridge/core.mjs` and are accurate for the bridge until it is synced to the content-audit taxonomy at the end of this version.
+
 Use this skill to run a structured AI UX audit against one or more selected Figma frames.
 The audit is **tri-modal**: it combines frame screenshots (visuals), the Figma interaction graph (logic), and a DecisionCard (business context) to produce severity-graded critiques that are written back to the Figma canvas as annotation frames.
 

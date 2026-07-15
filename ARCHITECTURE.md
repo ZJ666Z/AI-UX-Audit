@@ -1,5 +1,7 @@
 # Architecture Reference
 
+> ⚠️ **Stale — pending rewrite.** This document describes the *original* broad UX-audit architecture. The plugin has since been narrowed to a focused **content-design audit** (see [README.md](README.md)). The Journey analysis, DRD generation, Evidence report, business-analysis, graph-metrics, and canvas sticky/annotation write-back subsystems documented below **have been removed from the plugin**. The bridge/MCP layer still matches parts of this document until it is synced to the content-audit taxonomy. Treat this file as a historical reference, not a current spec, until it is rewritten.
+
 This document describes the full system structure of AI UX Audit, including every sub-process and how each one prompts the LLM.
 
 ---
