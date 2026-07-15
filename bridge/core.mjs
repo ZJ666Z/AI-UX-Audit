@@ -234,8 +234,9 @@ export async function callLLM({ provider, model, apiKey, purpose, prompt, visual
           { role: 'system', content: purpose },
           { role: 'user', content: userContent },
         ],
+        // No temperature: reasoning models (GPT-5.x) reject non-default
+        // sampling params with a 400; omitting it works on every model.
         max_completion_tokens: maxTokens,
-        temperature: 0.3,
       }),
     });
 

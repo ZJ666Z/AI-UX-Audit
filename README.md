@@ -1,4 +1,4 @@
-# AI UX Content Audit
+# UX Content Audit LLM Workflow
 
 An AI **content-design auditor** that runs directly inside Figma. It reviews the *copy* in a product flow — the words, not the layout — and helps you rewrite it in place. No backend required for basic use.
 
@@ -20,6 +20,11 @@ When you select the frames of a flow and click **Audit Copy**, the plugin:
 | **Consistency** | The same concept worded differently across screens (e.g. "Sign in" vs "Log in"), inconsistent capitalization/punctuation — a whole-flow check |
 | **Voice & tone** | Fit with brand personality and user segment; error messages that blame the user; wrong tone for the moment |
 | **Actionability** | Errors that don't say what to do next, button labels that don't describe the result, empty states with no path forward, vague CTAs |
+| **Localization** | Copy that will break in translation: idioms, humour/wordplay, concatenation-style fragments, hardcoded dates/units/plurals, length-overflow risk in verbose languages |
+
+### English canvas copy + reference translations
+
+The product copy is **English**: every rewrite option's text is generated in English and Apply always writes English to the canvas — even when the plugin UI is in Chinese (only rationale/pros/cons are translated for display). For localization work, the rewrite panel has an optional **locales** field (e.g. `es, ja, zh-CN`); each option then also shows native-quality **reference translations** for those locales, for handoff to your localization pipeline — they are never applied to the design file.
 
 The dimension chips in the **Audit** tab let the designer narrow the audit; deselecting all of them lets the model recommend which dimensions matter most for the flow. Optional brand **Content Guidelines** (voice/tone or a terminology list) pasted in Setup become the source of truth for the tone and consistency dimensions.
 

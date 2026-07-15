@@ -2,39 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI UX Audit</title>
+  <title>UX Content Audit LLM Workflow</title>
   <style>
     /* ── Design system ── */
     :root {
-      --bg:           #eef0f4;
+      /* Material 3 surface tones on an Apple-soft base */
+      --bg:           #f3f6fb;
       --surface:      #ffffff;
-      --surface2:     #f7f8fa;
-      --surface3:     #f0f2f6;
-      --border:       rgba(0,0,0,.08);
-      --border-med:   rgba(0,0,0,.13);
-      --separator:    rgba(0,0,0,.06);
-      --text:         #1d2026;
-      --text-sec:     #5a6070;
-      --text-ter:     #99a0ac;
-      --accent:       #1a73e8;
-      --accent-d:     #1261c4;
-      --accent-light: rgba(26,115,232,.1);
+      --surface2:     #f6f8fc;
+      --surface3:     #eef1f8;
+      --border:       rgba(27,38,59,.07);
+      --border-med:   rgba(27,38,59,.14);
+      --separator:    rgba(27,38,59,.06);
+      --text:         #1b1f26;
+      --text-sec:     #545b68;
+      --text-ter:     #8d95a3;
+      --accent:       #0b57d0;
+      --accent-d:     #0a4bb5;
+      --accent-light: rgba(11,87,208,.09);
       --green:        #1e8e3e;
       --green-light:  rgba(30,142,62,.1);
       --orange:       #e37400;
       --red:          #d93025;
       --purple:       #7b61ff;
-      --fill:         rgba(29,32,38,.05);
-      --fill-sec:     rgba(29,32,38,.09);
-      --radius-s:     6px;
-      --radius-m:     10px;
-      --radius-l:     14px;
-      --shadow-s:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-      --shadow-m:     0 4px 12px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.06);
-      --shadow-card:  0 2px 8px rgba(0,0,0,.07), 0 0 1px rgba(0,0,0,.06);
-      --font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
-      --mono:         "SF Mono", "Fira Mono", ui-monospace, monospace;
-      --transition:   .15s cubic-bezier(.4,0,.2,1);
+      --fill:         rgba(27,32,40,.05);
+      --fill-sec:     rgba(27,32,40,.09);
+      --radius-s:     8px;
+      --radius-m:     12px;
+      --radius-l:     16px;
+      --shadow-s:     0 1px 2px rgba(27,38,59,.07), 0 1px 3px rgba(27,38,59,.05);
+      --shadow-m:     0 6px 16px rgba(27,38,59,.1), 0 2px 4px rgba(27,38,59,.05);
+      --shadow-card:  0 1px 2px rgba(27,38,59,.05), 0 4px 14px rgba(27,38,59,.06);
+      --font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", "Google Sans Text", "Roboto", "Inter", "Helvetica Neue", sans-serif;
+      --mono:         "SF Mono", "Roboto Mono", ui-monospace, monospace;
+      --transition:   .18s cubic-bezier(.2,0,0,1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -71,8 +72,8 @@
     .header-left { display: flex; align-items: center; gap: 8px; }
     .app-icon {
       width: 26px; height: 26px;
-      background: linear-gradient(145deg, #2b84ff 0%, #1a73e8 55%, #1261c4 100%);
-      border-radius: 7px;
+      background: linear-gradient(145deg, #2b7bf3 0%, #0b57d0 55%, #0a4bb5 100%);
+      border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
       font-size: 11px; font-weight: 800; letter-spacing: -.5px;
       color: #fff; flex-shrink: 0;
@@ -151,10 +152,10 @@
     .tab.active::after {
       content: '';
       position: absolute;
-      bottom: 0; left: 12%; right: 12%;
-      height: 2px;
+      bottom: 0; left: 22%; right: 22%;
+      height: 3px;
       background: var(--accent);
-      border-radius: 2px 2px 0 0;
+      border-radius: 3px 3px 0 0;
     }
     .tab-badge {
       background: var(--red);
@@ -233,18 +234,19 @@
     }
 
     /* ══ CARDS ══ */
+    /* Material elevated card: shadow does the lifting, no hard border */
     .card {
       background: var(--surface);
       border-radius: var(--radius-l);
-      border: 1px solid var(--border);
+      border: none;
       box-shadow: var(--shadow-card);
       overflow: hidden;
     }
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px;
+      padding: 12px 16px 10px;
       border-bottom: 1px solid var(--separator);
-      background: var(--surface2);
+      background: var(--surface);
     }
     .card-title {
       font-size: 11px; font-weight: 700;
@@ -259,33 +261,36 @@
     .field-label { font-size: 11px; font-weight: 600; color: var(--text-sec); letter-spacing: .1px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
+    /* Filled inputs (Material) with an Apple-style focus ring */
     input, select, textarea {
       width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border-med);
+      background: var(--surface2);
+      border: 1px solid transparent;
       border-radius: var(--radius-s);
-      padding: 7px 10px;
+      padding: 8px 11px;
       font: inherit; font-size: 12px;
       color: var(--text);
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
       -webkit-appearance: none;
       appearance: none;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
+      background: var(--surface);
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(26,115,232,.12);
+      box-shadow: 0 0 0 3px rgba(11,87,208,.13);
     }
     input:hover:not(:focus), select:hover:not(:focus), textarea:hover:not(:focus) {
-      border-color: rgba(0,0,0,.2);
+      background: var(--surface3);
     }
     textarea { resize: vertical; min-height: 60px; }
     input::placeholder, textarea::placeholder { color: var(--text-ter); }
 
     /* ══ BUTTONS ══ */
+    /* Material 3 pill buttons; primary lifts slightly on hover */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-      border: none; border-radius: var(--radius-m);
+      border: none; border-radius: 999px;
       padding: 8px 18px;
       font: 600 12px var(--font);
       cursor: pointer;
@@ -297,9 +302,10 @@
     .btn-primary {
       background: var(--accent);
       color: #fff;
+      box-shadow: var(--shadow-s);
     }
-    .btn-primary:hover  { background: var(--accent-d); }
-    .btn-primary:active { opacity: .88; }
+    .btn-primary:hover  { background: var(--accent-d); box-shadow: var(--shadow-m); }
+    .btn-primary:active { opacity: .9; box-shadow: none; transform: translateY(1px); }
 
     .btn-secondary {
       background: transparent;
@@ -1277,9 +1283,23 @@
     .ro-proscons li { font-size: 11px; line-height: 1.4; padding-left: 15px; position: relative; }
     .ro-pro::before { content: '+'; position: absolute; left: 2px; color: var(--green); font-weight: 700; }
     .ro-con::before { content: '−'; position: absolute; left: 2px; color: var(--orange); font-weight: 700; }
-    .ro-apply { font-size: 11px; padding: 6px 14px; align-self: flex-start; border-radius: var(--radius-s); }
+    .ro-apply { font-size: 11px; padding: 6px 14px; align-self: flex-start; }
     .ro-apply-preview { font-size: 11px; }
     .preview-applied { color: var(--green); font-weight: 600; }
+
+    /* Locales input + reference translations */
+    .rewrite-locales { font-size: 11px; }
+    .ro-locs {
+      border-top: 1px dashed var(--separator);
+      padding-top: 6px; display: flex; flex-direction: column; gap: 3px;
+    }
+    .ro-locs-label { font-size: 10px; font-weight: 700; color: var(--text-ter); text-transform: uppercase; letter-spacing: .4px; }
+    .ro-loc-row { display: flex; gap: 7px; align-items: baseline; }
+    .ro-loc-code {
+      font: 600 10px var(--mono); color: var(--accent);
+      background: var(--accent-light); border-radius: 4px; padding: 1px 5px; flex-shrink: 0;
+    }
+    .ro-loc-text { font-size: 12px; line-height: 1.5; color: var(--text-sec); }
   </style>
 </head>
 <body>
@@ -1288,7 +1308,7 @@
 <div class="header">
   <div class="header-left">
     <div class="app-icon" style="color:#fff;font-style:normal;font-weight:700;font-size:11px;letter-spacing:-.3px">AI</div>
-    <div class="app-name">UX <span>Audit</span></div>
+    <div class="app-name">UX Content Audit <span>LLM Workflow</span></div>
   </div>
   <div class="header-right">
     <!-- Language selector -->
@@ -1485,13 +1505,14 @@
           <button class="dim-chip on" data-dim="consistency" data-i18n="dim.consistency">Consistency</button>
           <button class="dim-chip on" data-dim="voice-tone" data-i18n="dim.voice-tone">Voice &amp; tone</button>
           <button class="dim-chip on" data-dim="actionability" data-i18n="dim.actionability">Actionability</button>
+          <button class="dim-chip on" data-dim="localization" data-i18n="dim.localization">Localization</button>
         </div>
       </div>
       <div class="status-row" id="statusRow">
         <span id="statusText" data-i18n="status.idle">Select frames in Figma, then start the audit.</span>
       </div>
       <div style="padding:0 14px 16px">
-        <button class="btn btn-primary" id="auditBtn" style="width:100%;padding:13px 16px;font-size:14px;font-weight:700;letter-spacing:-.2px;border-radius:var(--radius-m)">
+        <button class="btn btn-primary" id="auditBtn" style="width:100%;padding:13px 16px;font-size:14px;font-weight:700;letter-spacing:-.2px">
           <span data-i18n="btn.audit">Audit Copy</span>
         </button>
       </div>
@@ -1696,7 +1717,9 @@ async function callLLM({ provider, model, apiKey, purpose, prompt, visuals, maxT
     const response = await callOpenAIWithRetry({
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
-      body: JSON.stringify({ model, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: purpose }, { role: 'user', content: userContent }], max_completion_tokens: maxTokens, temperature: 0.3 }),
+      // No temperature: reasoning models (GPT-5.x) reject non-default sampling
+      // params with a 400. Omitting it lets every model use its own default.
+      body: JSON.stringify({ model, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: purpose }, { role: 'user', content: userContent }], max_completion_tokens: maxTokens }),
     });
     const data = await response.json();
     return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '{}';
@@ -1792,6 +1815,7 @@ const CONTENT_DIMENSIONS = {
   'consistency':   'Consistency & terminology — the same concept worded differently across screens (e.g. "Sign in" vs "Log in"), inconsistent capitalization or punctuation, an incoherent button-verb system. This REQUIRES comparing copy across the whole flow.',
   'voice-tone':    'Voice & tone — fit with the brand personality and user segment, error messages that blame the user, over-marketing language, tone that is wrong for the moment (e.g. jokey on a payment failure).',
   'actionability': 'Actionability, errors & empty states — error messages that do not tell the user what to do next, button labels that do not describe the resulting action, empty states with no path forward, vague CTAs ("OK", "Submit") where a specific verb would be clearer.',
+  'localization':  'Localization readiness — copy that will break or degrade in translation: idioms and culture-bound references, humour or wordplay, sentence fragments that read like concatenated strings, text whose meaning depends on English word order, dates/units/plurals written in a hardcoded way, and copy so long it will overflow in verbose languages (e.g. German).',
 };
 
 // Build the flow's screen order + copy inventory as compact context for the LLM.
@@ -1834,6 +1858,7 @@ async function runContextualAudit({ provider, model, apiKey, payload, dimensions
       : 'The designer restricted the audit to the dimensions listed above. Do not raise issues outside them.',
     '',
     'Rules:',
+    '- The product copy is ENGLISH. Any proposed copy inside suggestion must be written in English, regardless of what language this conversation or the guidelines are in.',
     '- Every finding must reference an exact nodeId from the provided text inventory. Never invent a nodeId.',
     '- currentText must be the exact existing string of that node.',
     '- For consistency findings, compare copy ACROSS screens; cite the inconsistent variants in the issue.',
@@ -2017,7 +2042,7 @@ const UI_STRINGS = {
     'audit.hint':'Select the frames of a flow in Figma, then click Audit Copy.',
     'audit.why':'Why it matters','audit.suggestion':'Fix direction',
     'dim.picker':'Content dimensions',
-    'dim.clarity':'Clarity','dim.consistency':'Consistency','dim.voice-tone':'Voice & tone','dim.actionability':'Actionability',
+    'dim.clarity':'Clarity','dim.consistency':'Consistency','dim.voice-tone':'Voice & tone','dim.actionability':'Actionability','dim.localization':'Localization',
     'setup.guidelines':'Content Guidelines',
     'setup.guidelinesHint':'Voice & tone / terminology (optional — the source of truth for tone and consistency)',
     'ph.guidelines':'Paste voice & tone rules, a terminology list, or writing guidelines…',
@@ -2025,6 +2050,8 @@ const UI_STRINGS = {
     'rewrite.instructionPh':'Optional: add a constraint (e.g. "under 20 characters", "more formal", "emphasize it is free")',
     'rewrite.generate':'Generate options','rewrite.generating':'Generating…','rewrite.regenerate':'Regenerate',
     'rewrite.apply':'Apply to Figma','rewrite.applied':'✓ Applied','rewrite.none':'No options returned.',
+    'rewrite.localesPh':'Optional locales for reference translations (e.g. es, ja, zh-CN) — Apply always writes English',
+    'rewrite.localizations':'Reference translations',
   },
   zh: {
     'tab.setup':'设置','tab.audit':'审计','tab.journey':'旅程','tab.history':'历史',
@@ -2146,7 +2173,7 @@ const UI_STRINGS = {
     'audit.hint':'在 Figma 中选择一个流程的画框，然后点击"审计文案"。',
     'audit.why':'为什么重要','audit.suggestion':'修改方向',
     'dim.picker':'内容维度',
-    'dim.clarity':'清晰度','dim.consistency':'一致性','dim.voice-tone':'语气','dim.actionability':'可操作性',
+    'dim.clarity':'清晰度','dim.consistency':'一致性','dim.voice-tone':'语气','dim.actionability':'可操作性','dim.localization':'本地化',
     'setup.guidelines':'内容规范',
     'setup.guidelinesHint':'语气 / 术语规范（可选 —— 作为语气与一致性判断的基准）',
     'ph.guidelines':'粘贴语气规范、术语表或写作规范…',
@@ -2154,6 +2181,8 @@ const UI_STRINGS = {
     'rewrite.instructionPh':'可选：补充约束（如"控制在 20 字内""更正式""突出免费"）',
     'rewrite.generate':'生成方案','rewrite.generating':'生成中…','rewrite.regenerate':'重新生成',
     'rewrite.apply':'应用到 Figma','rewrite.applied':'✓ 已应用','rewrite.none':'未返回方案。',
+    'rewrite.localesPh':'可选：参考翻译的语言代码（如 es, ja, zh-CN）—— Apply 写入的始终是英文',
+    'rewrite.localizations':'参考翻译',
   },
 };
 
@@ -2598,6 +2627,13 @@ function buildRewritePanel(audit) {
   instr.placeholder = t('rewrite.instructionPh');
   panel.appendChild(instr);
 
+  // Optional locale codes — when filled, each English option also comes with
+  // translations for these locales (display-only; Apply always writes English)
+  const localesInput = document.createElement('input');
+  localesInput.className = 'rewrite-locales';
+  localesInput.placeholder = t('rewrite.localesPh');
+  panel.appendChild(localesInput);
+
   const genBtn = document.createElement('button');
   genBtn.className = 'btn btn-secondary rewrite-gen-btn';
   genBtn.textContent = t('rewrite.generate');
@@ -2613,7 +2649,7 @@ function buildRewritePanel(audit) {
     optionsWrap.innerHTML = '';
     try {
       const cfg = getLLMConfig();
-      const res = await generateRewrites({ ...cfg, audit, instruction: instr.value.trim() });
+      const res = await generateRewrites({ ...cfg, audit, instruction: instr.value.trim(), locales: localesInput.value.trim() });
       renderRewriteOptions(optionsWrap, res.options || [], audit);
     } catch (e) {
       optionsWrap.innerHTML = '<div class="preview-error">' + esc(e.message) + '</div>';
@@ -2638,11 +2674,18 @@ function renderRewriteOptions(container, options, audit) {
 
     const prosHtml = (opt.pros || []).map((p) => '<li class="ro-pro">' + esc(p) + '</li>').join('');
     const consHtml = (opt.cons || []).map((c) => '<li class="ro-con">' + esc(c) + '</li>').join('');
+    const locs = opt.localizations && typeof opt.localizations === 'object' ? Object.entries(opt.localizations) : [];
+    const locsHtml = locs.length
+      ? '<div class="ro-locs"><div class="ro-locs-label">' + t('rewrite.localizations') + '</div>' +
+        locs.map(([lc, tx]) => '<div class="ro-loc-row"><span class="ro-loc-code">' + esc(lc) + '</span><span class="ro-loc-text">' + esc(String(tx)) + '</span></div>').join('') +
+        '</div>'
+      : '';
 
     el.innerHTML =
       '<div class="ro-text">“' + esc(opt.text || '') + '”</div>' +
       (opt.rationale ? '<div class="ro-rationale">' + esc(opt.rationale) + '</div>' : '') +
-      ((prosHtml || consHtml) ? '<ul class="ro-proscons">' + prosHtml + consHtml + '</ul>' : '');
+      ((prosHtml || consHtml) ? '<ul class="ro-proscons">' + prosHtml + consHtml + '</ul>' : '') +
+      locsHtml;
 
     const applyBtn = document.createElement('button');
     applyBtn.className = 'btn btn-primary ro-apply';
@@ -2700,17 +2743,22 @@ const _pendingNodeChanges = new Map();
 // Given one finding and an optional designer instruction, ask the model for
 // several rewrite options, each with a rationale and pros/cons so the designer
 // can make a real choice rather than accept a single canned suggestion.
-async function generateRewrites({ provider, model, apiKey, audit, instruction }) {
+async function generateRewrites({ provider, model, apiKey, audit, instruction, locales }) {
   const dc = _auditDecisionCard || {};
   const guidelines = $('guidelines') ? $('guidelines').value.trim() : '';
+  const localeList = (locales || '').split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
 
   const systemPrompt = [
     'You are a senior Content Designer / UX writer. Rewrite one piece of UI copy.',
+    'The product ships in ENGLISH: every option\'s "text" field MUST be English — it is applied directly to the design file. This holds even if the conversation, instruction, or guidelines are in another language.',
     'Produce 3 distinct options that fix the identified issue. Each option must take a genuinely different angle (e.g. one concise, one more explanatory, one warmer) — not trivial rewordings of each other.',
-    'For each option give: text (the rewrite), rationale (why it works, 1 sentence), pros (array of short strings), cons (array of short strings — every option has at least one trade-off).',
-    'Respect any brand guidelines and the designer instruction. Keep the copy in the same language as the current text unless told otherwise.',
-    'Return ONLY valid JSON: {"options":[{"text":"string","rationale":"string","pros":["string"],"cons":["string"]}]}',
-  ].join(' ');
+    'For each option give: text (the English rewrite), rationale (why it works, 1 sentence), pros (array of short strings), cons (array of short strings — every option has at least one trade-off).',
+    localeList.length
+      ? 'Additionally, for each option include localizations: an object mapping each requested locale code to a faithful translation of that option\'s text, written by a native-speaker standard, preserving tone and UI length constraints. Requested locales: ' + localeList.join(', ') + '.'
+      : '',
+    'Respect any brand guidelines and the designer instruction.',
+    'Return ONLY valid JSON: {"options":[{"text":"string","rationale":"string","pros":["string"],"cons":["string"]' + (localeList.length ? ',"localizations":{"<locale>":"string"}' : '') + '}]}',
+  ].filter(Boolean).join(' ');
 
   const userPrompt = [
     'Current copy: "' + (audit.currentText || '') + '"',
@@ -2725,11 +2773,26 @@ async function generateRewrites({ provider, model, apiKey, audit, instruction })
     'Business context: ' + JSON.stringify({ businessGoal: dc.businessGoal, touchpoints: dc.touchpoints, primaryMetric: dc.primaryMetric }),
   ].join('\n');
 
-  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: 1200 });
+  const raw = await callLLM({ provider, model, apiKey, purpose: systemPrompt, prompt: userPrompt, visuals: [], maxTokens: localeList.length ? 2000 : 1200 });
   const parsed = extractJson(raw);
   let options = Array.isArray(parsed.options) ? parsed.options : [];
+
+  // zh display: translate ONLY the explanatory fields. The rewrite text (and
+  // its localizations) must never be touched — text is what gets applied to
+  // the canvas and the product copy is English.
   if (state.lang === 'zh' && options.length) {
-    try { const tr = await translateToZh({ provider, model, apiKey, source: options }); if (Array.isArray(tr) && tr.length) options = tr; } catch (_) { /* keep original */ }
+    try {
+      const explain = options.map((o) => ({ rationale: o.rationale, pros: o.pros, cons: o.cons }));
+      const tr = await translateToZh({ provider, model, apiKey, source: explain });
+      if (Array.isArray(tr)) {
+        options = options.map((o, i) => ({
+          ...o,
+          rationale: (tr[i] && tr[i].rationale) || o.rationale,
+          pros: Array.isArray(tr[i] && tr[i].pros) ? tr[i].pros : o.pros,
+          cons: Array.isArray(tr[i] && tr[i].cons) ? tr[i].cons : o.cons,
+        }));
+      }
+    } catch (_) { /* keep English explanations */ }
   }
   return { options };
 }
