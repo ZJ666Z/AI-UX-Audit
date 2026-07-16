@@ -71,6 +71,9 @@ type TextRecord = {
   characters: string;
   fontSize: number | 'mixed';
   roleHint: string;
+  // Text box width in px — lets the LLM judge whether a rewrite will still
+  // fit the space the design allocates for this string.
+  boxWidth: number;
 };
 
 type AuditPayload = {
@@ -314,6 +317,9 @@ function extractTexts(frames: FrameNode[]): TextRecord[] {
 
   const walk = (node: SceneNode, frame: FrameNode): void => {
     if (texts.length >= MAX_TEXTS) return;
+    // Hidden layers are not part of the shipped UI — skip the whole subtree
+    // so alternate states / stashed copy never pollute the audit.
+    if (!node.visible) return;
     if (node.type === 'TEXT') {
       const tn = node as TextNode;
       const characters = tn.characters.trim();
@@ -325,6 +331,7 @@ function extractTexts(frames: FrameNode[]): TextRecord[] {
           characters: tn.characters,
           fontSize: tn.fontSize === figma.mixed ? 'mixed' : tn.fontSize,
           roleHint: inferRoleHint(tn),
+          boxWidth: Math.round(tn.width),
         });
       }
     }

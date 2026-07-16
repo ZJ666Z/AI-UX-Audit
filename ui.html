@@ -1830,6 +1830,9 @@ function summarizeContentContext(payload) {
     frame: tx.frameName,
     role: tx.roleHint,
     text: tx.characters,
+    chars: (tx.characters || '').length,
+    boxWidth: tx.boxWidth,
+    fontSize: tx.fontSize,
   }));
   return { screenOrder, transitions, texts };
 }
@@ -1863,6 +1866,8 @@ async function runContextualAudit({ provider, model, apiKey, payload, dimensions
     '- currentText must be the exact existing string of that node.',
     '- For consistency findings, compare copy ACROSS screens; cite the inconsistent variants in the issue.',
     '- If brand guidelines are provided, treat them as the source of truth for tone and terminology. If not, infer an implicit voice from the existing copy and the DecisionCard, and flag deviations from that implicit voice.',
+    '- LENGTH: each entry carries chars, boxWidth (px) and fontSize. Copy must fit the space the design gives it — flag strings that look likely to truncate or wrap awkwardly (long text in a narrow box, verbose button labels), and strings so terse they under-explain. Any rewrite you suggest must plausibly fit the same box.',
+    '- Be OBJECTIVE. Judge only what the copy actually says against the dimension definitions. Do not manufacture problems to fill a quota, and do not soften real ones.',
     '- Return 3–8 findings, most severe first. Do not pad; only raise real content problems.',
     '',
     'severity rules: critical = the copy will cause the user to make a wrong decision, fail the task, or lose trust; warning = meaningful confusion or inconsistency; suggestion = a clear improvement.',
@@ -1893,11 +1898,15 @@ async function runContextualAudit({ provider, model, apiKey, payload, dimensions
     : Array.isArray(parsed.auditItems) ? parsed.auditItems : [];
   if (!rawFindings.length) throw new Error('The model returned no content findings.');
 
-  // Enrich each finding with the text node's role hint (from the inventory) so
-  // the rewrite step knows whether it is rewriting a heading, button, etc.
-  const roleByNode = new Map((payload.texts || []).map((tx) => [tx.nodeId, tx.roleHint]));
+  // Enrich each finding with the text node's role hint and box width (from the
+  // inventory) so the rewrite step knows what it is rewriting and how much
+  // space the design gives it.
+  const byNode = new Map((payload.texts || []).map((tx) => [tx.nodeId, tx]));
   const audits = resolveFrameIds(rawFindings, payload.flowGraph)
-    .map((a) => ({ ...a, roleHint: roleByNode.get(a.nodeId) || '' }));
+    .map((a) => {
+      const tx = byNode.get(a.nodeId);
+      return { ...a, roleHint: (tx && tx.roleHint) || '', boxWidth: tx ? tx.boxWidth : undefined };
+    });
 
   return {
     audits,
@@ -2752,7 +2761,9 @@ async function generateRewrites({ provider, model, apiKey, audit, instruction, l
     'You are a senior Content Designer / UX writer. Rewrite one piece of UI copy.',
     'The product ships in ENGLISH: every option\'s "text" field MUST be English — it is applied directly to the design file. This holds even if the conversation, instruction, or guidelines are in another language.',
     'Produce 3 distinct options that fix the identified issue. Each option must take a genuinely different angle (e.g. one concise, one more explanatory, one warmer) — not trivial rewordings of each other.',
-    'For each option give: text (the English rewrite), rationale (why it works, 1 sentence), pros (array of short strings), cons (array of short strings — every option has at least one trade-off).',
+    'For each option give: text (the English rewrite), rationale (why it works, 1 sentence), pros (array of short strings), cons (array of short strings).',
+    'Be OBJECTIVE about pros and cons: list only genuine, observable trade-offs. If an option has no real downside, return an empty cons array — never invent a weakness to look balanced, and never hide a real one.',
+    'LENGTH: UI copy must fit the space the design gives it. Stay close to the current text\'s length unless the identified issue IS length or missing information; if an option runs meaningfully longer, say so in its cons.',
     localeList.length
       ? 'Additionally, for each option include localizations: an object mapping each requested locale code to a faithful translation of that option\'s text, written by a native-speaker standard, preserving tone and UI length constraints. Requested locales: ' + localeList.join(', ') + '.'
       : '',
@@ -2762,6 +2773,7 @@ async function generateRewrites({ provider, model, apiKey, audit, instruction, l
 
   const userPrompt = [
     'Current copy: "' + (audit.currentText || '') + '"',
+    'Current length: ' + (audit.currentText || '').length + ' chars' + (audit.boxWidth ? '; text box width: ' + audit.boxWidth + 'px' : ''),
     'Role on screen: ' + (audit.roleHint || 'unknown'),
     'Screen: ' + (audit.targetFrameName || ''),
     'Content dimension: ' + (audit.dimension || ''),
