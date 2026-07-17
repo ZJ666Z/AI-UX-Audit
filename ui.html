@@ -287,6 +287,10 @@
     input::placeholder, textarea::placeholder { color: var(--text-ter); }
 
     /* ══ COMBO (editable input + full-list dropdown) ══ */
+    /* .card clips at its rounded corners (overflow: hidden); a card hosting a
+       combo must not, or a menu taller than the card gets cut off. Safe here:
+       the header bg matches the card bg, so nothing pokes out of the radius. */
+    .card.combo-host { overflow: visible; }
     .combo { position: relative; }
     .combo input { padding-right: 30px; }
     .combo-btn {
@@ -1376,8 +1380,8 @@
   <!-- ── SETUP ── -->
   <div class="pane active" id="pane-setup">
 
-    <!-- LLM Config -->
-    <div class="card">
+    <!-- LLM Config — combo-host: the model dropdown must overflow the card -->
+    <div class="card combo-host">
       <div class="card-header"><span class="card-title" data-i18n="setup.connection">LLM Configuration</span></div>
       <div class="card-body">
         <div class="field-row">
