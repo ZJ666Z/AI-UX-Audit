@@ -286,6 +286,43 @@
     textarea { resize: vertical; min-height: 60px; }
     input::placeholder, textarea::placeholder { color: var(--text-ter); }
 
+    /* ══ COMBO (editable input + full-list dropdown) ══ */
+    .combo { position: relative; }
+    .combo input { padding-right: 30px; }
+    .combo-btn {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: 28px;
+      border: none; background: transparent;
+      color: var(--text-ter);
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 0 var(--radius-s) var(--radius-s) 0;
+      transition: color var(--transition);
+    }
+    .combo-btn:hover { color: var(--text); }
+    .combo-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px); left: 0; right: 0;
+      background: var(--surface);
+      border-radius: var(--radius-m);
+      box-shadow: var(--shadow-m);
+      max-height: 216px;
+      overflow-y: auto;
+      z-index: 50;
+      padding: 4px;
+    }
+    .combo-menu.open { display: block; }
+    .combo-item {
+      padding: 7px 10px;
+      font-size: 12px;
+      border-radius: var(--radius-s);
+      cursor: pointer;
+      color: var(--text);
+    }
+    .combo-item:hover { background: var(--accent-light); color: var(--accent); }
+    .combo-item.selected { font-weight: 600; color: var(--accent); }
+
     /* ══ BUTTONS ══ */
     /* Material 3 pill buttons; primary lifts slightly on hover */
     .btn {
@@ -1354,9 +1391,14 @@
           </div>
           <div class="field">
             <div class="field-label" data-i18n="setup.model">Model</div>
-            <!-- datalist = dropdown suggestions + free typing for new model ids -->
-            <input id="model" value="gpt-5.6" list="modelOptions" autocomplete="off" />
-            <datalist id="modelOptions"></datalist>
+            <!-- Custom combo: free typing + a button that always shows the FULL
+                 list (native datalist prefix-filters by current value, which
+                 hides everything once a default is filled in) -->
+            <div class="combo">
+              <input id="model" value="gpt-5.6" autocomplete="off" />
+              <button type="button" class="combo-btn" id="modelDropBtn" tabindex="-1">▾</button>
+              <div class="combo-menu" id="modelMenu"></div>
+            </div>
           </div>
         </div>
         <div class="field">
@@ -3184,14 +3226,32 @@ const PROVIDER_MODELS = {
 
 function syncModelOptions(resetValue) {
   const models = PROVIDER_MODELS[$('provider').value] || [];
-  $('modelOptions').innerHTML = models.map((m) => '<option value="' + m + '"></option>').join('');
   if (resetValue) $('model').value = models[0] || '';
+  const current = $('model').value.trim();
+  $('modelMenu').innerHTML = models
+    .map((m) => '<div class="combo-item' + (m === current ? ' selected' : '') + '" data-model="' + m + '">' + m + '</div>')
+    .join('');
 }
 
 // Switching provider always resets to that provider's latest model — the
 // previous provider's model id would be invalid anyway.
 $('provider').addEventListener('change', () => syncModelOptions(true));
 syncModelOptions(false);
+
+$('modelDropBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  syncModelOptions(false); // rebuild so the checkmark tracks hand-typed values
+  $('modelMenu').classList.toggle('open');
+});
+$('modelMenu').addEventListener('click', (e) => {
+  const item = e.target.closest('.combo-item');
+  if (!item) return;
+  $('model').value = item.dataset.model;
+  $('modelMenu').classList.remove('open');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.combo')) $('modelMenu').classList.remove('open');
+});
 
 $('bridgeUrl').addEventListener('change', () => {
   initBridge().catch((e) => setStatus(e.message, 'error'));
